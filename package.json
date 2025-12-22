@@ -1,0 +1,55 @@
+{
+  "name": "@kattebak/openapi-generator-ts",
+  "version": "0.1.0",
+  "description": "OpenAPI Generator - Generate code from OpenAPI specifications",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "openapi-generator": "./dist/cli/index.js"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "test": "node --test",
+    "lint": "eslint src",
+    "typecheck": "tsc --noEmit"
+  },
+  "files": [
+    "dist",
+    "templates"
+  ],
+  "keywords": [
+    "openapi",
+    "swagger",
+    "codegen",
+    "generator",
+    "api",
+    "typescript"
+  ],
+  "author": "",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "dependencies": {
+    "@apidevtools/swagger-parser": "^10.1.0",
+    "handlebars": "^4.7.8",
+    "es-toolkit": "^1.31.0",
+    "fast-glob": "^3.3.2",
+    "fs-extra": "^11.2.0",
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0"
+  }
+}
