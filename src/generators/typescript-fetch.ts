@@ -70,6 +70,7 @@ const TYPESCRIPT_RESERVED_WORDS = new Set([
   'while',
   'with',
   'yield',
+  'type',
 ]);
 
 /**

@@ -80,13 +80,17 @@ export class HandlebarsAdapter implements TemplatingEngine {
       value: unknown,
       options: Handlebars.HelperOptions
     ) {
-      if (Array.isArray(value) && value.length > 0) {
-        return options.fn(this);
+      let isNotEmpty = false;
+
+      if (Array.isArray(value)) {
+        isNotEmpty = value.length > 0;
+      } else if (typeof value === 'object' && value !== null) {
+        isNotEmpty = Object.keys(value).length > 0;
+      } else {
+        isNotEmpty = Boolean(value);
       }
-      if (typeof value === 'object' && value !== null && Object.keys(value).length > 0) {
-        return options.fn(this);
-      }
-      if (value) {
+
+      if (isNotEmpty) {
         return options.fn(this);
       }
       return options.inverse ? options.inverse(this) : '';
