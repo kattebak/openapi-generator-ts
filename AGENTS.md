@@ -167,11 +167,26 @@ The core data models mirror the Java implementation:
 Tests use Node.js's built-in test runner with native TypeScript support:
 
 ```bash
-npm test                    # Run all tests
-npm run test:verbose        # Run with detailed output
+npm test                    # Run all checks (lint, typecheck, unit tests, build samples)
+npm run test:unit           # Run unit tests only
+npm run test:unit:verbose   # Run unit tests with detailed output
+npm run test:build-samples  # Build all sample generators
 ```
 
 Test files are co-located with source files using the `.test.ts` suffix.
+
+### Sample Generators
+
+The `samples/` directory contains a Makefile to generate sample clients from the Petstore OpenAPI spec:
+
+```bash
+cd samples
+make all              # Build all samples
+make typescript-fetch # Build specific generator
+make clean            # Clean generated output
+```
+
+Generated code goes to `samples/build/<generator-name>/`.
 
 ## Common Patterns
 
@@ -221,6 +236,29 @@ supportingFiles: [
 ],
 ```
 
+## Linting and Formatting
+
+This project uses [Biome](https://biomejs.dev/) for linting and formatting:
+
+```bash
+npm run lint   # Check for issues
+npm run fix    # Auto-fix issues
+```
+
+Configuration is in `biome.json`. Key settings:
+- Tabs for indentation
+- Double quotes for strings
+- Recommended lint rules enabled
+
+## CI/CD
+
+GitHub Actions workflow (`.github/workflows/ci.yml`) runs on push/PR to main:
+- Lint check
+- Type check
+- Unit tests
+- Sample builds
+- Semantic release (on main branch pushes)
+
 ## Key Dependencies
 
 - `@apidevtools/swagger-parser` - OpenAPI parsing and dereferencing
@@ -228,15 +266,21 @@ supportingFiles: [
 - `es-toolkit` - String transformation utilities (camelCase, snakeCase, etc.)
 - `fast-glob` - File pattern matching
 - `fs-extra` - Enhanced file system operations
+- `@biomejs/biome` - Linting and formatting (dev)
 
 ## CLI
 
-The CLI uses Node's native `util.parseArgs` (not commander):
+The CLI uses Node's native `util.parseArgs` (not commander). The binary is `ts-openapi-generator`:
 
 ```bash
-node dist/cli/index.js list                           # List generators
-node dist/cli/index.js validate -i spec.yaml          # Validate spec
-node dist/cli/index.js generate -i spec.yaml -g go -o output/  # Generate code
+ts-openapi-generator list                           # List generators
+ts-openapi-generator validate -i spec.yaml          # Validate spec
+ts-openapi-generator generate -i spec.yaml -g go -o output/  # Generate code
+```
+
+For development (without building):
+```bash
+npx tsx src/cli/index.ts generate -i spec.yaml -g go -o output/
 ```
 
 ## ESM Notes
@@ -322,3 +366,17 @@ When porting templates from Java:
 - Remove delimiter changes (`{{=<% %>=}}`)
 - Convert lambda syntax: `{{#lambda.func}}` → `{{#func}}`
 - Handlebars helpers return strings, not booleans in templates
+
+---
+
+## Maintaining This Document
+
+**Important:** After completing major work (new features, architectural changes, new tooling, etc.), review this document and update it if needed. This ensures future agents have accurate context.
+
+Things to check after major changes:
+- Are the npm scripts still accurate?
+- Are the CLI commands correct?
+- Are there new directories or files that should be documented?
+- Have any dependencies been added or removed?
+- Are the test commands up to date?
+- Has the CI/CD pipeline changed?
