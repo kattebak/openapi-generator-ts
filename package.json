@@ -17,9 +17,12 @@
   "scripts": {
     "build": "tsc",
     "watch": "tsc --watch",
-    "test": "node --test",
+    "test": "node --import tsx --test 'src/**/*.test.ts'",
+    "test:verbose": "node --import tsx --test --test-reporter=spec 'src/**/*.test.ts'",
     "lint": "eslint src",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "sync-templates": "./scripts/sync-templates.sh",
+    "sync-templates:clean": "./scripts/sync-templates.sh --clean"
   },
   "files": [
     "dist",
@@ -50,6 +53,7 @@
     "@types/fs-extra": "^11.0.4",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
     "typescript": "^5.7.0"
   }
 }
