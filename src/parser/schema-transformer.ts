@@ -33,6 +33,11 @@ export interface SchemaTransformerOptions {
 	 * Naming convention for model names
 	 */
 	modelNaming?: "PascalCase" | "camelCase" | "original";
+
+	/**
+	 * Reserved words that require model renaming (adds "Model" prefix)
+	 */
+	reservedWords?: Set<string>;
 }
 
 const DEFAULT_TYPE_MAPPINGS: Record<string, string> = {
@@ -79,6 +84,12 @@ export class SchemaTransformer {
 				continue; // Skip references at this level
 			}
 
+			// Skip array aliases (e.g., Pets = Array<Pet>)
+			// These are not generated as separate models
+			if (this.isArrayAlias(schema)) {
+				continue;
+			}
+
 			const model = this.transformSchema(name, schema);
 			models.set(name, model);
 			this.modelCache.set(name, model);
@@ -91,11 +102,30 @@ export class SchemaTransformer {
 	}
 
 	/**
+	 * Check if a schema is an array alias (type: array with $ref items, no properties)
+	 */
+	private isArrayAlias(schema: OpenAPIV3.SchemaObject): boolean {
+		if (schema.type !== "array") {
+			return false;
+		}
+		const arraySchema = schema as OpenAPIV3.ArraySchemaObject;
+		// It's an alias if items is a $ref and there are no other properties
+		return (
+			arraySchema.items !== undefined &&
+			this.isReferenceObject(arraySchema.items) &&
+			!schema.properties
+		);
+	}
+
+	/**
 	 * Transform a single schema to a CodegenModel
 	 */
 	transformSchema(name: string, schema: OpenAPIV3.SchemaObject): CodegenModel {
 		const classname = this.toModelName(name);
 		const model = createCodegenModel(name, classname);
+
+		// Set classFilename for templates (same as classname for TypeScript)
+		model.classFilename = classname;
 
 		// Basic info
 		model.title = schema.title;
@@ -176,13 +206,19 @@ export class SchemaTransformer {
 		model.isContainer = true;
 
 		const arraySchema = schema as OpenAPIV3.ArraySchemaObject;
-		if (arraySchema.items && !this.isReferenceObject(arraySchema.items)) {
-			model.items = this.transformPropertySchema(
-				"items",
-				arraySchema.items,
-				false,
-			);
-			model.arrayModelType = model.items.dataType;
+		if (arraySchema.items) {
+			if (this.isReferenceObject(arraySchema.items)) {
+				// Handle reference to another model
+				const refName = this.getRefName(arraySchema.items.$ref);
+				model.arrayModelType = refName;
+			} else {
+				model.items = this.transformPropertySchema(
+					"items",
+					arraySchema.items,
+					false,
+				);
+				model.arrayModelType = model.items.dataType;
+			}
 		}
 
 		// Constraints
@@ -597,14 +633,24 @@ export class SchemaTransformer {
 	 * Convert a name to model naming convention
 	 */
 	private toModelName(name: string): string {
+		let result: string;
 		switch (this.options.modelNaming) {
 			case "camelCase":
-				return camelCase(name);
+				result = camelCase(name);
+				break;
 			case "original":
-				return name;
+				result = name;
+				break;
 			default:
-				return pascalCase(name);
+				result = pascalCase(name);
 		}
+
+		// Check if name conflicts with reserved words (like Error, Array, etc.)
+		if (this.options.reservedWords?.has(result)) {
+			result = `Model${result}`;
+		}
+
+		return result;
 	}
 
 	/**

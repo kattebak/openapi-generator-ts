@@ -6,6 +6,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
+import { camelCase } from "es-toolkit/string";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -88,8 +89,14 @@ export class DefaultGenerator {
 			...config.typeMappings,
 		};
 
-		this.schemaTransformer = new SchemaTransformer({ typeMappings });
-		this.operationTransformer = new OperationTransformer({ typeMappings });
+		this.schemaTransformer = new SchemaTransformer({
+			typeMappings,
+			reservedWords: metadata.reservedWords,
+		});
+		this.operationTransformer = new OperationTransformer({
+			typeMappings,
+			reservedWords: metadata.reservedWords,
+		});
 
 		// Embedded templates directory - look in the original Java resources
 		this.embeddedTemplatesDir = this.findEmbeddedTemplatesDir();
@@ -147,7 +154,7 @@ export class DefaultGenerator {
 
 			const spec = await parseSpec(this.config.inputSpec, {
 				validate: this.config.validateSpec,
-				dereference: true,
+				// Use bundle mode (default) to preserve $refs for proper type resolution
 			});
 
 			// Initialize template manager
@@ -191,10 +198,12 @@ export class DefaultGenerator {
 
 				const paths = getPaths(spec.document);
 				const securitySchemes = getSecuritySchemes(spec.document);
+				const schemas = getSchemas(spec.document);
 
 				result.operations = this.operationTransformer.transformPaths(
 					paths,
 					securitySchemes,
+					schemas as Record<string, OpenAPIV3.SchemaObject>,
 				);
 
 				// Generate API files
@@ -266,7 +275,9 @@ export class DefaultGenerator {
 
 				const outputPath = path.join(
 					this.config.outputDir,
-					this.config.modelPackage?.replace(/\./g, "/") ?? "models",
+					this.config.modelPackage?.replace(/\./g, "/") ??
+						this.metadata.defaultModelPackage ??
+						"models",
 					`${model.classname}${this.metadata.modelFileExtension}`,
 				);
 
@@ -308,12 +319,36 @@ export class DefaultGenerator {
 		for (const [tag, ops] of operations) {
 			const className = this.toApiClassName(tag);
 
+			// Enhance operations with nickname and ensure classname is accessible
+			// Also include template flags for proper rendering in nested contexts
+			const enhancedOps = ops.map((op) => ({
+				...op,
+				nickname: op.nickname ?? op.operationId,
+				classname: className,
+				useSingleRequestParameter: globalData.useSingleRequestParameter ?? true,
+				withInterfaces: globalData.withInterfaces ?? true,
+				withoutRuntimeChecks: globalData.withoutRuntimeChecks ?? false,
+				prefixParameterInterfaces:
+					globalData.prefixParameterInterfaces ?? false,
+			}));
+
+			// Include global boolean flags in operations context for nested access
+			const operationContext = {
+				classname: className,
+				operation: enhancedOps,
+				useSingleRequestParameter: globalData.useSingleRequestParameter ?? true,
+				withInterfaces: globalData.withInterfaces ?? true,
+				withoutRuntimeChecks: globalData.withoutRuntimeChecks ?? false,
+				prefixParameterInterfaces:
+					globalData.prefixParameterInterfaces ?? false,
+			};
+
 			const templateData: TemplateData = {
 				...globalData,
 				classname: className,
 				baseName: tag,
-				operations: { operation: ops },
-				operation: ops,
+				operations: operationContext,
+				operation: enhancedOps,
 				models: Array.from(models.values()),
 				imports: this.collectImports(ops),
 				package: this.config.apiPackage ?? this.config.packageName,
@@ -327,7 +362,9 @@ export class DefaultGenerator {
 
 				const outputPath = path.join(
 					this.config.outputDir,
-					this.config.apiPackage?.replace(/\./g, "/") ?? "api",
+					this.config.apiPackage?.replace(/\./g, "/") ??
+						this.metadata.defaultApiPackage ??
+						"api",
 					`${className}${this.metadata.apiFileExtension}`,
 				);
 
@@ -366,20 +403,33 @@ export class DefaultGenerator {
 
 		const globalData = this.createGlobalTemplateData(spec);
 
+		// Wrap each model in { model: ... } for template compatibility
+		const wrappedModels = Array.from(models.values()).map((model) => ({
+			model,
+		}));
+
 		const templateData: TemplateData = {
 			...globalData,
-			models: Array.from(models.values()),
+			models: wrappedModels,
 			apis: Array.from(operations.entries()).map(([tag, ops]) => ({
 				classname: this.toApiClassName(tag),
 				baseName: tag,
 				operations: ops,
 			})),
 			apiInfo: {
-				apis: Array.from(operations.entries()).map(([tag, ops]) => ({
-					classname: this.toApiClassName(tag),
-					baseName: tag,
-					operations: { operation: ops },
-				})),
+				apis: Array.from(operations.entries()).map(([tag, ops]) => {
+					const className = this.toApiClassName(tag);
+					return {
+						classname: className,
+						classFilename: className,
+						baseName: tag,
+						operations: {
+							classname: className,
+							classFilename: className,
+							operation: ops,
+						},
+					};
+				}),
 			},
 		};
 
@@ -459,6 +509,13 @@ export class DefaultGenerator {
 			generatedDate: new Date().toISOString(),
 			generatedYear: new Date().getFullYear(),
 
+			// Default template properties (can be overridden by additionalProperties)
+			useSingleRequestParameter: true,
+			withInterfaces: false,
+			withoutRuntimeChecks: false,
+			prefixParameterInterfaces: false,
+			importFileExtension: "", // TypeScript imports don't need extensions
+
 			// Additional properties
 			...this.config.additionalProperties,
 
@@ -486,8 +543,11 @@ export class DefaultGenerator {
 
 	/**
 	 * Collect imports from operations
+	 * Returns array of { className, classname, classVarName } objects for template
 	 */
-	private collectImports(operations: CodegenOperation[]): string[] {
+	private collectImports(
+		operations: CodegenOperation[],
+	): { className: string; classname: string; classVarName: string }[] {
 		const imports = new Set<string>();
 
 		for (const op of operations) {
@@ -496,7 +556,13 @@ export class DefaultGenerator {
 			}
 		}
 
-		return Array.from(imports).sort();
+		return Array.from(imports)
+			.sort()
+			.map((name) => ({
+				className: name,
+				classname: name,
+				classVarName: camelCase(name),
+			}));
 	}
 }
 

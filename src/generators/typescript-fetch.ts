@@ -8,6 +8,18 @@ import type { CodegenConfig, GeneratorMetadata } from "../core/config.js";
  * TypeScript reserved words
  */
 const TYPESCRIPT_RESERVED_WORDS = new Set([
+	// Language types that conflict with model names
+	"Error",
+	"Map",
+	"Array",
+	"Object",
+	"String",
+	"Number",
+	"Boolean",
+	"Date",
+	"Symbol",
+	"Function",
+	// Keywords
 	"abstract",
 	"await",
 	"boolean",
@@ -137,6 +149,7 @@ export function createTypescriptFetchMetadata(): GeneratorMetadata {
 		embeddedTemplateDir: "typescript-fetch",
 		modelFileExtension: ".ts",
 		apiFileExtension: ".ts",
+		defaultApiPackage: "apis",
 		modelTemplateFile: "modelGeneric.mustache",
 		apiTemplateFile: "apis.mustache",
 		supportingFiles: [
@@ -171,12 +184,12 @@ export function createTypescriptFetchMetadata(): GeneratorMetadata {
 				destinationFilename: "README.md",
 			},
 			{
-				templateFile: "apis.mustache",
+				templateFile: "apis.index.mustache",
 				folder: "apis",
 				destinationFilename: "index.ts",
 			},
 			{
-				templateFile: "models.mustache",
+				templateFile: "models.index.mustache",
 				folder: "models",
 				destinationFilename: "index.ts",
 			},
@@ -197,7 +210,7 @@ export function getTypescriptAdditionalProperties(
 		supportsES6: true,
 		useSingleRequestParameter:
 			config.additionalProperties?.useSingleRequestParameter ?? true,
-		withInterfaces: config.additionalProperties?.withInterfaces ?? true,
+		withInterfaces: config.additionalProperties?.withInterfaces ?? false,
 		npmName: config.additionalProperties?.npmName ?? config.packageName,
 		npmVersion: config.additionalProperties?.npmVersion ?? "1.0.0",
 		snapshot: false,

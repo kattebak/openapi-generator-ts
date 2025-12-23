@@ -218,6 +218,16 @@ export interface GeneratorMetadata {
 	apiTemplateFile: string;
 
 	/**
+	 * Default API package/folder (defaults to "api")
+	 */
+	defaultApiPackage?: string;
+
+	/**
+	 * Default model package/folder (defaults to "models")
+	 */
+	defaultModelPackage?: string;
+
+	/**
 	 * Supporting files to generate
 	 */
 	supportingFiles: SupportingFileConfig[];

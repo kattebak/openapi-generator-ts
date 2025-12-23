@@ -12,6 +12,7 @@ export interface CodegenOperation {
 	operationId: string;
 	operationIdOriginal: string;
 	operationIdCamelCase: string;
+	operationIdPascalCase: string;
 	operationIdSnakeCase: string;
 	path: string;
 	httpMethod: string;
@@ -26,6 +27,8 @@ export interface CodegenOperation {
 	returnContainer?: string;
 	returnTypeIsPrimitive: boolean;
 	returnSimpleType: boolean;
+	isArray: boolean;
+	isMap: boolean;
 
 	// Tags
 	baseName: string;
@@ -133,6 +136,7 @@ export function createCodegenOperation(
 		operationId,
 		operationIdOriginal: operationId,
 		operationIdCamelCase: operationId,
+		operationIdPascalCase: operationId,
 		operationIdSnakeCase: operationId,
 		path,
 		httpMethod: httpMethod.toUpperCase(),
@@ -140,6 +144,8 @@ export function createCodegenOperation(
 		tags: [],
 		returnTypeIsPrimitive: false,
 		returnSimpleType: false,
+		isArray: false,
+		isMap: false,
 		allParams: [],
 		pathParams: [],
 		queryParams: [],

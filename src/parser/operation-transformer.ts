@@ -24,6 +24,11 @@ export interface OperationTransformerOptions {
 	 * Type mappings from OpenAPI types to target language types
 	 */
 	typeMappings?: Record<string, string>;
+
+	/**
+	 * Reserved words for model renaming
+	 */
+	reservedWords?: Set<string>;
 }
 
 const HTTP_METHODS = [
@@ -41,10 +46,17 @@ type HttpMethod = (typeof HTTP_METHODS)[number];
 
 export class OperationTransformer {
 	private schemaTransformer: SchemaTransformer;
+	private options: OperationTransformerOptions;
+	private schemas: Record<
+		string,
+		OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject
+	> = {};
 
 	constructor(options: OperationTransformerOptions = {}) {
+		this.options = options;
 		this.schemaTransformer = new SchemaTransformer({
 			typeMappings: options.typeMappings,
+			reservedWords: options.reservedWords,
 		});
 	}
 
@@ -54,7 +66,9 @@ export class OperationTransformer {
 	transformPaths(
 		paths: OpenAPIV3.PathsObject,
 		securitySchemes?: Record<string, OpenAPIV3.SecuritySchemeObject>,
+		schemas?: Record<string, OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject>,
 	): Map<string, CodegenOperation[]> {
+		this.schemas = schemas ?? {};
 		const operationsByTag = new Map<string, CodegenOperation[]>();
 
 		for (const [path, pathItem] of Object.entries(paths)) {
@@ -112,6 +126,7 @@ export class OperationTransformer {
 		// Basic info
 		codegenOp.operationIdOriginal = operationId;
 		codegenOp.operationIdCamelCase = camelCase(operationId);
+		codegenOp.operationIdPascalCase = pascalCase(operationId);
 		codegenOp.operationIdSnakeCase = snakeCase(operationId);
 		codegenOp.summary = operation.summary;
 		codegenOp.notes = operation.description;
@@ -169,6 +184,16 @@ export class OperationTransformer {
 						codegenOp.returnType = codegenResponse.dataType;
 						codegenOp.returnBaseType = codegenResponse.baseType;
 						codegenOp.returnContainer = codegenResponse.containerType;
+						// Set array/map flags for templates
+						codegenOp.isArray = codegenResponse.isArray ?? false;
+						codegenOp.isMap = codegenResponse.isMap ?? false;
+						// Add import for the return type model
+						if (codegenResponse.baseType && !codegenResponse.isArray) {
+							codegenOp.imports.add(codegenResponse.baseType);
+						} else if (codegenResponse.baseType && codegenResponse.isArray) {
+							// For array types, import the element type
+							codegenOp.imports.add(codegenResponse.baseType);
+						}
 					}
 				} else if (codegenResponse.is4xx || codegenResponse.is5xx) {
 					codegenOp.errorResponses.push(codegenResponse);
@@ -342,7 +367,26 @@ export class OperationTransformer {
 		for (const [mediaType, mediaTypeObj] of Object.entries(content)) {
 			if (!mediaTypeObj.schema) continue;
 
-			if (this.isReferenceObject(mediaTypeObj.schema)) continue;
+			// Handle reference objects for body parameter
+			if (this.isReferenceObject(mediaTypeObj.schema)) {
+				const refName = this.getRefName(mediaTypeObj.schema.$ref);
+				const paramName = camelCase(refName);
+				const bodyParam = createCodegenParameter(paramName, refName);
+				bodyParam.isBodyParam = true;
+				bodyParam.baseType = refName;
+				bodyParam.isModel = true;
+				bodyParam.required = requestBody.required ?? false;
+				bodyParam.description = requestBody.description;
+				bodyParam.contentType = mediaType;
+
+				operation.bodyParam = bodyParam;
+				operation.bodyParams.push(bodyParam);
+				this.addParameter(operation, bodyParam);
+
+				// Add import for the model type
+				operation.imports.add(refName);
+				break;
+			}
 
 			const isForm =
 				mediaType.includes("form") ||
@@ -412,7 +456,27 @@ export class OperationTransformer {
 			)) {
 				if (!mediaTypeObj.schema) continue;
 
-				if (this.isReferenceObject(mediaTypeObj.schema)) continue;
+				// Handle reference objects
+				if (this.isReferenceObject(mediaTypeObj.schema)) {
+					const refName = this.getRefName(mediaTypeObj.schema.$ref);
+
+					// Check if this is an array alias (e.g., Pets -> Array<Pet>)
+					const resolved = this.resolveArrayAlias(refName);
+					if (resolved) {
+						codegenResponse.dataType = `Array<${resolved.elementType}>`;
+						codegenResponse.baseType = resolved.elementType;
+						codegenResponse.isArray = true;
+						codegenResponse.containerType = "array";
+						codegenResponse.isModel = false;
+					} else {
+						// Apply reserved word renaming to the type name
+						const typeName = this.toModelName(refName);
+						codegenResponse.dataType = typeName;
+						codegenResponse.baseType = typeName;
+						codegenResponse.isModel = true;
+					}
+					break;
+				}
 
 				const property = this.schemaTransformer.transformPropertySchema(
 					"response",
@@ -421,7 +485,7 @@ export class OperationTransformer {
 				);
 
 				codegenResponse.dataType = property.dataType;
-				codegenResponse.baseType = property.dataType;
+				codegenResponse.baseType = property.baseType ?? property.dataType;
 				codegenResponse.schema = property;
 
 				// Set type flags
@@ -651,6 +715,14 @@ export class OperationTransformer {
 	}
 
 	/**
+	 * Extract ref name from $ref string
+	 */
+	private getRefName(ref: string): string {
+		const parts = ref.split("/");
+		return parts[parts.length - 1];
+	}
+
+	/**
 	 * Extract vendor extensions (x-*) from object
 	 */
 	private extractVendorExtensions(
@@ -665,6 +737,48 @@ export class OperationTransformer {
 		}
 
 		return extensions;
+	}
+
+	/**
+	 * Resolve array alias to its element type
+	 * Returns null if not an array alias
+	 */
+	private resolveArrayAlias(
+		refName: string,
+	): { elementType: string } | null {
+		const schema = this.schemas[refName];
+		if (!schema || this.isReferenceObject(schema)) {
+			return null;
+		}
+
+		if (schema.type !== "array") {
+			return null;
+		}
+
+		const arraySchema = schema as OpenAPIV3.ArraySchemaObject;
+		if (!arraySchema.items || !this.isReferenceObject(arraySchema.items)) {
+			return null;
+		}
+
+		// It's an array alias - get the element type
+		const elementRef = this.getRefName(arraySchema.items.$ref);
+		// Apply model name transformation (including reserved word handling)
+		const elementType = this.toModelName(elementRef);
+		return { elementType };
+	}
+
+	/**
+	 * Convert a name to model naming convention (with reserved word handling)
+	 */
+	private toModelName(name: string): string {
+		let result = pascalCase(name);
+
+		// Check if name conflicts with reserved words
+		if (this.options.reservedWords?.has(result)) {
+			result = `Model${result}`;
+		}
+
+		return result;
 	}
 }
 

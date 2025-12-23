@@ -11,7 +11,8 @@ export type OpenAPIV31Document = OpenAPIV3_1.Document;
 
 export interface ParseOptions {
 	/**
-	 * Fully dereference all $refs
+	 * Fully dereference all $refs (default: false)
+	 * When false, uses bundle mode which preserves internal $refs
 	 */
 	dereference?: boolean;
 
@@ -41,25 +42,25 @@ export async function parseSpec(
 	input: string,
 	options: ParseOptions = {},
 ): Promise<ParsedSpec> {
-	const { dereference = true, validate = true } = options;
+	const { dereference = false, validate = true } = options;
 
 	let document: OpenAPIDocument;
 
-	if (validate) {
-		// Validate and parse
-		document = await SwaggerParser.validate(input);
-	} else {
-		// Just parse without validation
-		document = await SwaggerParser.parse(input);
-	}
-
 	if (dereference) {
-		// Dereference all $refs
-		document = await SwaggerParser.dereference(document, {
-			dereference: {
-				circular: options.allowCircular ?? "ignore",
-			},
-		});
+		// Validate and dereference (validate() also dereferences)
+		if (validate) {
+			document = await SwaggerParser.validate(input);
+		} else {
+			document = await SwaggerParser.dereference(input, {
+				dereference: {
+					circular: options.allowCircular ?? "ignore",
+				},
+			});
+		}
+	} else {
+		// Bundle mode: resolves external refs but preserves internal $refs
+		// Note: We skip validation here as validate() would dereference
+		document = await SwaggerParser.bundle(input);
 	}
 
 	const version = getSpecVersion(document);
@@ -83,7 +84,7 @@ export async function parseSpecFromString(
 	content: string,
 	options: ParseOptions = {},
 ): Promise<ParsedSpec> {
-	const { dereference = true, validate = true } = options;
+	const { dereference = false, validate = true } = options;
 
 	// Parse the string content
 	let document: OpenAPIDocument;
@@ -97,16 +98,21 @@ export async function parseSpecFromString(
 		document = yaml.load(content) as OpenAPIDocument;
 	}
 
-	if (validate) {
-		document = await SwaggerParser.validate(document as OpenAPI.Document);
-	}
-
 	if (dereference) {
-		document = await SwaggerParser.dereference(document as OpenAPI.Document, {
-			dereference: {
-				circular: options.allowCircular ?? "ignore",
-			},
-		});
+		// Validate and dereference (validate() also dereferences)
+		if (validate) {
+			document = await SwaggerParser.validate(document as OpenAPI.Document);
+		} else {
+			document = await SwaggerParser.dereference(document as OpenAPI.Document, {
+				dereference: {
+					circular: options.allowCircular ?? "ignore",
+				},
+			});
+		}
+	} else {
+		// Bundle mode: resolves external refs but preserves internal $refs
+		// Note: We skip validation here as validate() would dereference
+		document = await SwaggerParser.bundle(document as OpenAPI.Document);
 	}
 
 	const version = getSpecVersion(document);

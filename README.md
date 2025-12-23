@@ -136,6 +136,26 @@ The sync script handles:
 - Removing Mustache delimiter changes (`{{=<% %>=}}`)
 - Converting lambda syntax (`{{#lambda.func}}` to `{{#func}}`)
 
+## Comparing Output to Original
+
+To verify this port generates compatible output, you can compare against the original Java OpenAPI Generator:
+
+```bash
+# Generate with original (using Docker, no Java needed)
+docker run --rm -v $(pwd):/local openapitools/openapi-generator-cli generate \
+  -i /local/samples/petstore.yaml \
+  -g typescript-fetch \
+  -o /local/tmp/original-output
+
+# Generate with this port
+cd samples && make typescript-fetch
+
+# Compare
+diff -r tmp/original-output samples/build/typescript-fetch
+```
+
+For detailed comparison methodology and debugging tips, see [AGENTS.md](./AGENTS.md#comparing-output-against-original-java-generator).
+
 ## Requirements
 
 - Node.js >= 22.0.0

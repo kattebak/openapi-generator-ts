@@ -1,0 +1,10 @@
+apis/PetsApi.ts
+apis/index.ts
+docs/ModelError.md
+docs/Pet.md
+docs/PetsApi.md
+index.ts
+models/ModelError.ts
+models/Pet.ts
+models/index.ts
+runtime.ts

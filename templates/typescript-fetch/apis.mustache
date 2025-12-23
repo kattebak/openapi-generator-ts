@@ -4,7 +4,7 @@
 
 
 import * as runtime from '../runtime{{importFileExtension}}';
-{{#imports.0}}
+{{#if imports}}
 import type {
   {{#imports}}
   {{className}},
@@ -18,18 +18,18 @@ import {
     {{/imports}}
 } from '../models/index{{importFileExtension}}';
 {{/withoutRuntimeChecks}}
-{{/imports.0}}
+{{/if}}
 
 {{#operations}}
 {{#operation}}
-{{#allParams.0}}
-export interface {{#prefixParameterInterfaces}}{{classname}}{{/prefixParameterInterfaces}}{{operationIdCamelCase}}Request {
+{{#if allParams}}
+export interface {{#prefixParameterInterfaces}}{{classname}}{{/prefixParameterInterfaces}}{{operationIdPascalCase}}Request {
 {{#allParams}}
     {{paramName}}{{^required}}?{{/required}}: {{#isEnum}}{{{datatypeWithEnum}}}{{/isEnum}}{{^isEnum}}{{#hasReadOnly}}Omit<{{{dataType}}}, {{#readOnlyVars}}'{{baseName}}'{{^-last}}|{{/-last}}{{/readOnlyVars}}>{{/hasReadOnly}}{{^hasReadOnly}}{{{dataType}}}{{/hasReadOnly}}{{#isNullable}} | null{{/isNullable}}{{/isEnum}};
 {{/allParams}}
 }
 
-{{/allParams.0}}
+{{/if}}
 {{/operation}}
 {{/operations}}
 {{#withInterfaces}}
@@ -48,7 +48,7 @@ export interface {{classname}}Interface {
      * @summary {{&summary}}
      {{/summary}}
      {{#allParams}}
-     * @param {<%&dataType%>}<%={{ }}=%> {{^required}}[{{/required}}{{paramName}}{{^required}}]{{/required}} {{description}}
+     * @param {{{dataType}}} {{^required}}[{{/required}}{{paramName}}{{^required}}]{{/required}} {{description}}
      {{/allParams}}
      * @param {*} [options] Override http request option.
     {{#isDeprecated}}
@@ -57,7 +57,7 @@ export interface {{classname}}Interface {
      * @throws {RequiredError}
      * @memberof {{classname}}Interface
      */
-    {{nickname}}Raw({{#allParams.0}}requestParameters: {{#prefixParameterInterfaces}}{{classname}}{{/prefixParameterInterfaces}}{{operationIdCamelCase}}Request, {{/allParams.0}}initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<{{{returnType}}}{{^returnType}}void{{/returnType}}>>;
+    {{nickname}}Raw({{#if allParams}}requestParameters: {{#prefixParameterInterfaces}}{{classname}}{{/prefixParameterInterfaces}}{{operationIdPascalCase}}Request, {{/if}}initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<{{{returnType}}}{{^returnType}}void{{/returnType}}>>;
 
     /**
      {{#notes}}
@@ -74,7 +74,7 @@ export interface {{classname}}Interface {
     {{nickname}}({{#allParams}}{{paramName}}{{^required}}?{{/required}}: {{#isEnum}}{{{datatypeWithEnum}}}{{/isEnum}}{{^isEnum}}{{{dataType}}}{{#isNullable}} | null{{/isNullable}}{{/isEnum}}, {{/allParams}}initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<{{{returnType}}}{{#returnType}}{{#isResponseOptional}} | null | undefined {{/isResponseOptional}}{{/returnType}}{{^returnType}}void{{/returnType}}>;
     {{/useSingleRequestParameter}}
     {{#useSingleRequestParameter}}
-    {{nickname}}({{#allParams.0}}requestParameters: {{#prefixParameterInterfaces}}{{classname}}{{/prefixParameterInterfaces}}{{operationIdCamelCase}}Request, {{/allParams.0}}initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<{{{returnType}}}{{#returnType}}{{#isResponseOptional}} | null | undefined {{/isResponseOptional}}{{/returnType}}{{^returnType}}void{{/returnType}}>;
+    {{nickname}}({{#if allParams}}requestParameters: {{#prefixParameterInterfaces}}{{classname}}{{/prefixParameterInterfaces}}{{operationIdPascalCase}}Request, {{/if}}initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<{{{returnType}}}{{#returnType}}{{#isResponseOptional}} | null | undefined {{/isResponseOptional}}{{/returnType}}{{^returnType}}void{{/returnType}}>;
     {{/useSingleRequestParameter}}
 
 {{/operation}}
@@ -105,13 +105,13 @@ export class {{classname}} extends runtime.BaseAPI {
      * @deprecated
      {{/isDeprecated}}
      */
-    async {{nickname}}Raw({{#allParams.0}}requestParameters: {{#prefixParameterInterfaces}}{{classname}}{{/prefixParameterInterfaces}}{{operationIdCamelCase}}Request, {{/allParams.0}}initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<{{{returnType}}}{{^returnType}}void{{/returnType}}>> {
+    async {{nickname}}Raw({{#if allParams}}requestParameters: {{#prefixParameterInterfaces}}{{classname}}{{/prefixParameterInterfaces}}{{operationIdPascalCase}}Request, {{/if}}initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<{{{returnType}}}{{^returnType}}void{{/returnType}}>> {
         {{#allParams}}
         {{#required}}
         if (requestParameters['{{paramName}}'] == null) {
             throw new runtime.RequiredError(
                 '{{paramName}}',
-                'Required parameter "{{paramName}}" was null or undefined when calling {{nickname}}().'
+                'Required parameter "{{paramName}}" was null or undefined when calling {{../nickname}}().'
             );
         }
 
@@ -157,10 +157,10 @@ export class {{classname}} extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         {{/consumes}}
-        {{#consumes.0}}
+        {{#if consumes}}
         headerParameters['Content-Type'] = '{{{mediaType}}}';
 
-        {{/consumes.0}}
+        {{/if}}
         {{/bodyParam}}
         {{#headerParams}}
         {{#isArray}}
@@ -339,7 +339,7 @@ export class {{classname}} extends runtime.BaseAPI {
             {{/hasFormParams}}
         }, initOverrides);
 
-        {{#returnType}}
+        {{#if returnType}}
         {{#isResponseFile}}
         return new runtime.BlobApiResponse(response);
         {{/isResponseFile}}
@@ -373,10 +373,10 @@ export class {{classname}} extends runtime.BaseAPI {
         {{/isArray}}
         {{/returnTypeIsPrimitive}}
         {{/isResponseFile}}
-        {{/returnType}}
-        {{^returnType}}
+        {{/if}}
+        {{#unless returnType}}
         return new runtime.VoidApiResponse(response);
-        {{/returnType}}
+        {{/unless}}
     }
 
     /**
@@ -392,8 +392,8 @@ export class {{classname}} extends runtime.BaseAPI {
      */
     {{^useSingleRequestParameter}}
     async {{nickname}}({{#allParams}}{{paramName}}{{^required}}?{{/required}}: {{#isEnum}}{{{datatypeWithEnum}}}{{/isEnum}}{{^isEnum}}{{{dataType}}}{{#isNullable}} | null{{/isNullable}}{{/isEnum}}, {{/allParams}}initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<{{{returnType}}}{{#returnType}}{{#isResponseOptional}} | null | undefined {{/isResponseOptional}}{{/returnType}}{{^returnType}}void{{/returnType}}> {
-        {{#returnType}}
-        const response = await this.{{nickname}}Raw({{#allParams.0}}{ {{#allParams}}{{paramName}}: {{paramName}}{{^-last}}, {{/-last}}{{/allParams}} }, {{/allParams.0}}initOverrides);
+        {{#if returnType}}
+        const response = await this.{{nickname}}Raw({{#if allParams}}{ {{#allParams}}{{paramName}}: {{paramName}}{{^-last}}, {{/-last}}{{/allParams}} }, {{/if}}initOverrides);
         {{#isResponseOptional}}
         switch (response.raw.status) {
             {{#responses}}
@@ -409,16 +409,16 @@ export class {{classname}} extends runtime.BaseAPI {
         {{^isResponseOptional}}
         return await response.value();
         {{/isResponseOptional}}
-        {{/returnType}}
-        {{^returnType}}
-        await this.{{nickname}}Raw({{#allParams.0}}{ {{#allParams}}{{paramName}}: {{paramName}}{{^-last}}, {{/-last}}{{/allParams}} }, {{/allParams.0}}initOverrides);
-        {{/returnType}}
+        {{/if}}
+        {{#unless returnType}}
+        await this.{{nickname}}Raw({{#if allParams}}{ {{#allParams}}{{paramName}}: {{paramName}}{{^-last}}, {{/-last}}{{/allParams}} }, {{/if}}initOverrides);
+        {{/unless}}
     }
     {{/useSingleRequestParameter}}
     {{#useSingleRequestParameter}}
-    async {{nickname}}({{#allParams.0}}requestParameters: {{#prefixParameterInterfaces}}{{classname}}{{/prefixParameterInterfaces}}{{operationIdCamelCase}}Request{{^hasRequiredParams}} = {}{{/hasRequiredParams}}, {{/allParams.0}}initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<{{{returnType}}}{{#returnType}}{{#isResponseOptional}} | null | undefined {{/isResponseOptional}}{{/returnType}}{{^returnType}}void{{/returnType}}> {
-        {{#returnType}}
-        const response = await this.{{nickname}}Raw({{#allParams.0}}requestParameters, {{/allParams.0}}initOverrides);
+    async {{nickname}}({{#if allParams}}requestParameters: {{#prefixParameterInterfaces}}{{classname}}{{/prefixParameterInterfaces}}{{operationIdPascalCase}}Request{{^hasRequiredParams}} = {}{{/hasRequiredParams}}, {{/if}}initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<{{{returnType}}}{{#returnType}}{{#isResponseOptional}} | null | undefined {{/isResponseOptional}}{{/returnType}}{{^returnType}}void{{/returnType}}> {
+        {{#if returnType}}
+        const response = await this.{{nickname}}Raw({{#if allParams}}requestParameters, {{/if}}initOverrides);
         {{#isResponseOptional}}
         switch (response.raw.status) {
             {{#responses}}
@@ -434,10 +434,10 @@ export class {{classname}} extends runtime.BaseAPI {
         {{^isResponseOptional}}
         return await response.value();
         {{/isResponseOptional}}
-        {{/returnType}}
-        {{^returnType}}
-        await this.{{nickname}}Raw({{#allParams.0}}requestParameters, {{/allParams.0}}initOverrides);
-        {{/returnType}}
+        {{/if}}
+        {{#unless returnType}}
+        await this.{{nickname}}Raw({{#if allParams}}requestParameters, {{/if}}initOverrides);
+        {{/unless}}
     }
     {{/useSingleRequestParameter}}
 

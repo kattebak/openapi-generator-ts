@@ -93,6 +93,7 @@ describe("CodegenModel", () => {
 					name: "id",
 					baseName: "id",
 					dataType: "number",
+					datatype: "number",
 					required: true,
 					deprecated: false,
 					isPrimitiveType: true,

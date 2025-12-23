@@ -8,6 +8,7 @@ export interface CodegenParameter {
 	paramName: string;
 	baseName: string;
 	dataType: string;
+	baseType?: string;
 	datatypeWithEnum?: string;
 	description?: string;
 	unescapedDescription?: string;

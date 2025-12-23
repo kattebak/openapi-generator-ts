@@ -148,18 +148,10 @@ ensure_source_repo() {
 }
 
 # Convert Mustache template syntax to Handlebars-compatible format
+# Uses the TypeScript tokenizer-based converter for robust handling
 convert_mustache_to_handlebars() {
   local file="$1"
-
-  # Remove delimiter changes (not supported in Handlebars)
-  # Convert lambda syntax: {{#lambda.funcName}} -> {{#funcName}}
-  # Convert inline lambda: {{lambda.funcName}} -> {{funcName}}
-  sed -E \
-    -e 's/\{\{=.+=\}\}//g' \
-    -e 's/\{\{#lambda\.([a-zA-Z_]+)\}\}/{{#\1}}/g' \
-    -e 's/\{\{\/lambda\.([a-zA-Z_]+)\}\}/{{\/\1}}/g' \
-    -e 's/\{\{lambda\.([a-zA-Z_]+)\}\}/{{\1}}/g' \
-    "$file"
+  npx tsx "$PACKAGE_DIR/src/cli/convert-template.ts" "$file"
 }
 
 # Sync templates for a single generator

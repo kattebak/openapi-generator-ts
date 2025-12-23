@@ -6,6 +6,8 @@ export interface CodegenProperty {
 	openApiType?: string;
 	baseName: string;
 	dataType: string;
+	datatype: string; // Alias for templates (lowercase)
+	baseType?: string; // Base type for container types
 	datatypeWithEnum?: string;
 	name: string;
 
@@ -125,6 +127,7 @@ export function createCodegenProperty(
 	return {
 		baseName,
 		dataType,
+		datatype: dataType, // Lowercase alias for templates
 		name: baseName,
 		isString: false,
 		isNumeric: false,
