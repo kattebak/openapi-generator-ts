@@ -13,19 +13,19 @@ from typing import Optional, Set
 from typing_extensions import Self
 
 {{#hasChildren}}
-{{#discriminator}}
-{{! If this model is a super class, importlib is used. So import the necessary modules for the type here. }}
+{{#if discriminator}}
+{{!If this model is a super class, importlib is used. So import the necessary modules for the type here.}}
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
 {{#mappedModels}}
     from {{packageName}}.models.{{model.classFilename}} import {{modelName}}
 {{/mappedModels}}
 
-{{/discriminator}}
+{{/if}}
 {{/hasChildren}}
-class {{classname}}({{#parent}}{{{.}}}{{/parent}}{{^parent}}BaseModel{{/parent}}):
+class {{classname}}({{#if parent}}{{{.}}}{{/if}}{{#unless parent}}BaseModel{{/unless}}):
     """
-    {{#description}}{{{description}}}{{/description}}{{^description}}{{{classname}}}{{/description}}
+    {{#if description}}{{{description}}}{{/if}}{{#unless description}}{{{classname}}}{{/unless}}
     """ # noqa: E501
 {{#vars}}
     {{name}}: {{{vendorExtensions.x-py-typing}}}
@@ -101,7 +101,7 @@ class {{classname}}({{#parent}}{{{.}}}{{/parent}}{{^parent}}BaseModel{{/parent}}
 
 
 {{#hasChildren}}
-{{#discriminator}}
+{{#if discriminator}}
     # JSON field name that stores the object type
     __discriminator_property_name: ClassVar[str] = '{{discriminator.propertyBaseName}}'
 
@@ -119,7 +119,7 @@ class {{classname}}({{#parent}}{{{.}}}{{/parent}}{{^parent}}BaseModel{{/parent}}
         else:
             return None
 
-{{/discriminator}}
+{{/if}}
 {{/hasChildren}}
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -131,7 +131,7 @@ class {{classname}}({{#parent}}{{{.}}}{{/parent}}{{^parent}}BaseModel{{/parent}}
         return json.dumps(self.to_dict())
 
     @classmethod
-    def from_json(cls, json_str: str) -> Optional[{{^hasChildren}}Self{{/hasChildren}}{{#hasChildren}}{{#discriminator}}Union[{{#mappedModels}}{{{modelName}}}{{^-last}}, {{/-last}}{{/mappedModels}}]{{/discriminator}}{{^discriminator}}Self{{/discriminator}}{{/hasChildren}}]:
+    def from_json(cls, json_str: str) -> Optional[{{^hasChildren}}Self{{/hasChildren}}{{#hasChildren}}{{#if discriminator}}Union[{{#mappedModels}}{{{modelName}}}{{^-last}}, {{/-last}}{{/mappedModels}}]{{/if}}{{#unless discriminator}}Self{{/unless}}{{/hasChildren}}]:
         """Create an instance of {{{classname}}} from a JSON string"""
         return cls.from_dict(json.loads(json_str))
 
@@ -254,9 +254,9 @@ class {{classname}}({{#parent}}{{{.}}}{{/parent}}{{^parent}}BaseModel{{/parent}}
 
     {{#hasChildren}}
     @classmethod
-    def from_dict(cls, obj: Dict[str, Any]) -> Optional[{{#discriminator}}Union[{{#mappedModels}}{{{modelName}}}{{^-last}}, {{/-last}}{{/mappedModels}}]{{/discriminator}}{{^discriminator}}Self{{/discriminator}}]:
+    def from_dict(cls, obj: Dict[str, Any]) -> Optional[{{#if discriminator}}Union[{{#mappedModels}}{{{modelName}}}{{^-last}}, {{/-last}}{{/mappedModels}}]{{/if}}{{#unless discriminator}}Self{{/unless}}]:
         """Create an instance of {{{classname}}} from a dict"""
-        {{#discriminator}}
+        {{#if discriminator}}
         # look up the object type based on discriminator mapping
         object_type = cls.get_discriminator_value(obj)
         {{#mappedModels}}
@@ -267,7 +267,7 @@ class {{classname}}({{#parent}}{{{.}}}{{/parent}}{{^parent}}BaseModel{{/parent}}
         raise ValueError("{{{classname}}} failed to lookup discriminator value from " +
                             json.dumps(obj) + ". Discriminator property name: " + cls.__discriminator_property_name +
                             ", mapping: " + json.dumps(cls.__discriminator_value_class_map))
-        {{/discriminator}}
+        {{/if}}
     {{/hasChildren}}
     {{^hasChildren}}
     @classmethod
@@ -370,16 +370,16 @@ class {{classname}}({{#parent}}{{{.}}}{{/parent}}{{^parent}}BaseModel{{/parent}}
             "{{{baseName}}}": {{{dataType}}}.from_dict(obj["{{{baseName}}}"]) if obj.get("{{{baseName}}}") is not None else None{{^-last}},{{/-last}}
             {{/isEnumOrRef}}
             {{#isEnumOrRef}}
-            "{{{baseName}}}": obj.get("{{{baseName}}}"){{#defaultValue}} if obj.get("{{baseName}}") is not None else {{{defaultValue}}}{{/defaultValue}}{{^-last}},{{/-last}}
+            "{{{baseName}}}": obj.get("{{{baseName}}}"){{#if defaultValue}} if obj.get("{{baseName}}") is not None else {{{defaultValue}}}{{/if}}{{^-last}},{{/-last}}
             {{/isEnumOrRef}}
             {{/isPrimitiveType}}
             {{#isPrimitiveType}}
-            {{#defaultValue}}
+            {{#if defaultValue}}
             "{{{baseName}}}": obj.get("{{{baseName}}}") if obj.get("{{{baseName}}}") is not None else {{{defaultValue}}}{{^-last}},{{/-last}}
-            {{/defaultValue}}
-            {{^defaultValue}}
+            {{/if}}
+            {{#unless defaultValue}}
             "{{{baseName}}}": obj.get("{{{baseName}}}"){{^-last}},{{/-last}}
-            {{/defaultValue}}
+            {{/unless}}
             {{/isPrimitiveType}}
             {{/isContainer}}
             {{/allVars}}

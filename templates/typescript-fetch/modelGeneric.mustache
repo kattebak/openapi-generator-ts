@@ -11,11 +11,11 @@ import {
 {{/tsImports}}
 
 {{/hasImports}}
-{{#discriminator}}
-{{#discriminator.mappedModels}}
+{{#if discriminator}}
+{{#if discriminator.mappedModels}}
 import { type {{modelName}}, {{modelName}}FromJSONTyped, {{modelName}}ToJSON, {{modelName}}ToJSONTyped } from './{{modelName}}{{importFileExtension}}';
-{{/discriminator.mappedModels}}
-{{/discriminator}}
+{{/if}}
+{{/if}}
 {{>modelGenericInterfaces}}
 
 
@@ -40,13 +40,13 @@ export function {{classname}}FromJSONTyped(json: any, ignoreDiscriminator: boole
     if (json == null) {
         return json;
     }
-{{#discriminator}}
+{{#if discriminator}}
     if (!ignoreDiscriminator) {
-{{#discriminator.mappedModels}}
+{{#if discriminator.mappedModels}}
         if (json['{{discriminator.propertyBaseName}}'] === '{{mappingName}}') {
             return {{modelName}}FromJSONTyped(json, ignoreDiscriminator);
         }
-{{/discriminator.mappedModels}}
+{{/if}}
     {{#hasSelfReferencingDiscriminatorMapping}}
         if (json['{{discriminator.propertyBaseName}}'] === '{{selfReferencingDiscriminatorMapping.mappingName}}') {
             return {{selfReferencingDiscriminatorMapping.modelName}}FromJSONTyped(json, true);
@@ -54,9 +54,9 @@ export function {{classname}}FromJSONTyped(json: any, ignoreDiscriminator: boole
     {{/hasSelfReferencingDiscriminatorMapping}}
 
     }
-{{/discriminator}}
+{{/if}}
     return {
-        {{#parent}}...{{{.}}}FromJSONTyped(json, true),{{/parent}}
+        {{#if parent}}...{{{.}}}FromJSONTyped(json, true),{{/if}}
         {{#additionalPropertiesType}}
             ...json,
         {{/additionalPropertiesType}}
@@ -124,22 +124,22 @@ export function {{classname}}ToJSONTyped(value?: {{#hasReadOnly}}Omit<{{classnam
     if (value == null) {
         return value;
     }
-    {{#discriminator}}
+    {{#if discriminator}}
 
     if (!ignoreDiscriminator) {
         switch (value['{{discriminator.propertyName}}']) {
-        {{#discriminator.mappedModels}}
+        {{#if discriminator.mappedModels}}
             case '{{mappingName}}':
                 return {{modelName}}ToJSONTyped(value as {{modelName}}, ignoreDiscriminator);
-        {{/discriminator.mappedModels}}
+        {{/if}}
             default:
                 return value;
         }
     }
-    {{/discriminator}}
+    {{/if}}
 
     return {
-        {{#parent}}...{{{.}}}ToJSONTyped(value, true),{{/parent}}
+        {{#if parent}}...{{{.}}}ToJSONTyped(value, true),{{/if}}
         {{#additionalPropertiesType}}
             ...value,
         {{/additionalPropertiesType}}
@@ -220,17 +220,17 @@ export const {{classname}}PropertyValidationAttributesMap: {
         {{#minLength}}
         minLength: {{minLength}},
         {{/minLength}}
-        {{#pattern}}
+        {{#if pattern}}
         pattern: '{{pattern}}',
-        {{/pattern}}
-        {{#maximum}}
+        {{/if}}
+        {{#if maximum}}
         maximum: {{maximum}},
         exclusiveMaximum: {{exclusiveMaximum}},
-        {{/maximum}}
-        {{#minimum}}
+        {{/if}}
+        {{#if minimum}}
         minimum: {{minimum}},
         exclusiveMinimum: {{exclusiveMinimum}},
-        {{/minimum}}
+        {{/if}}
         {{#multipleOf}}
         multipleOf: {{multipleOf}},
         {{/multipleOf}}

@@ -1,11 +1,11 @@
-        """{{#isDeprecated}}(Deprecated) {{/isDeprecated}}{{{summary}}}{{^summary}}{{operationId}}{{/summary}}
+        """{{#isDeprecated}}(Deprecated) {{/isDeprecated}}{{{summary}}}{{#unless summary}}{{operationId}}{{/unless}}
 
-        {{#notes}}
+        {{#if notes}}
         {{{.}}}
-        {{/notes}}
+        {{/if}}
 
         {{#allParams}}
-        :param {{paramName}}:{{#description}} {{{.}}}{{/description}}{{#required}} (required){{/required}}{{#optional}}(optional){{/optional}}
+        :param {{paramName}}:{{#if description}} {{{.}}}{{/if}}{{#required}} (required){{/required}}{{#optional}}(optional){{/optional}}
         :type {{paramName}}: {{dataType}}{{#optional}}, optional{{/optional}}
         {{/allParams}}
         :param _request_timeout: timeout setting for this request. If one
@@ -46,7 +46,7 @@
         _response_types_map: Dict[str, Optional[str]] = {
             {{#responses}}
             {{^isWildcard}}
-            '{{code}}': {{#dataType}}"{{.}}"{{/dataType}}{{^dataType}}None{{/dataType}},
+            '{{code}}': {{#if dataType}}"{{.}}"{{/if}}{{#unless dataType}}None{{/unless}},
             {{/isWildcard}}
             {{/responses}}
         }

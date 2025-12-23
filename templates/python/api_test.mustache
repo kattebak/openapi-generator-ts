@@ -35,9 +35,9 @@ class {{#operations}}Test{{classname}}(unittest.{{#async}}IsolatedAsyncio{{/asyn
     {{/async}}
         """Test case for {{{operationId}}}
 
-{{#summary}}
+{{#if summary}}
         {{{.}}}
-{{/summary}}
+{{/if}}
         """
         pass
 

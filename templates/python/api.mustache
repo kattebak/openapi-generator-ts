@@ -32,7 +32,7 @@ class {{classname}}:
 
 
     @validate_call
-    {{#async}}async {{/async}}def {{operationId}}{{>partial_api_args}} -> {{{returnType}}}{{^returnType}}None{{/returnType}}:
+    {{#async}}async {{/async}}def {{operationId}}{{>partial_api_args}} -> {{{returnType}}}{{#unless returnType}}None{{/unless}}:
 {{>partial_api}}
 
         response_data = {{#async}}await {{/async}}self.api_client.call_api(
@@ -47,7 +47,7 @@ class {{classname}}:
 
 
     @validate_call
-    {{#async}}async {{/async}}def {{operationId}}_with_http_info{{>partial_api_args}} -> ApiResponse[{{{returnType}}}{{^returnType}}None{{/returnType}}]:
+    {{#async}}async {{/async}}def {{operationId}}_with_http_info{{>partial_api_args}} -> ApiResponse[{{{returnType}}}{{#unless returnType}}None{{/unless}}]:
 {{>partial_api}}
 
         response_data = {{#async}}await {{/async}}self.api_client.call_api(
@@ -83,15 +83,15 @@ class {{classname}}:
         _host_index,
     ) -> RequestSerialized:
 
-        {{#servers.0}}
+        {{#if servers}}
         _hosts = [{{#servers}}
             '{{{url}}}'{{^-last}},{{/-last}}{{/servers}}
         ]
         _host = _hosts[_host_index]
-        {{/servers.0}}
-        {{^servers.0}}
+        {{/if}}
+        {{#unless servers}}
         _host = None
-        {{/servers.0}}
+        {{/unless}}
 
         _collection_formats: Dict[str, str] = {
             {{#allParams}}

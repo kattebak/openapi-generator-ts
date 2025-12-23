@@ -13,9 +13,9 @@ from typing_extensions import Literal, Self
 
 {{#uppercase}}{{{classname}}}{{/uppercase}}_ONE_OF_SCHEMAS = [{{#oneOf}}"{{.}}"{{^-last}}, {{/-last}}{{/oneOf}}]
 
-class {{classname}}({{#parent}}{{{.}}}{{/parent}}{{^parent}}BaseModel{{/parent}}):
+class {{classname}}({{#if parent}}{{{.}}}{{/if}}{{#unless parent}}BaseModel{{/unless}}):
     """
-    {{{description}}}{{^description}}{{{classname}}}{{/description}}
+    {{{description}}}{{#unless description}}{{{classname}}}{{/unless}}
     """
 {{#composedSchemas.oneOf}}
     # data type: {{{dataType}}}
@@ -29,14 +29,14 @@ class {{classname}}({{#parent}}{{{.}}}{{/parent}}{{^parent}}BaseModel{{/parent}}
         protected_namespaces=(),
     )
 
-{{#discriminator}}
+{{#if discriminator}}
 
     discriminator_value_class_map: Dict[str, str] = {
 {{#children}}
         '{{^vendorExtensions.x-discriminator-value}}{{name}}{{/vendorExtensions.x-discriminator-value}}{{#vendorExtensions.x-discriminator-value}}{{{vendorExtensions.x-discriminator-value}}}{{/vendorExtensions.x-discriminator-value}}': '{{{classname}}}'{{^-last}},{{/-last}}
 {{/children}}
     }
-{{/discriminator}}
+{{/if}}
 
     def __init__(self, *args, **kwargs) -> None:
         if args:
@@ -114,7 +114,7 @@ class {{classname}}({{#parent}}{{{.}}}{{/parent}}{{^parent}}BaseModel{{/parent}}
         match = 0
 
         {{#useOneOfDiscriminatorLookup}}
-        {{#discriminator}}
+        {{#if discriminator}}
         {{#mappedModels}}
         {{#-first}}
         # use oneOf discriminator to lookup the data type
@@ -129,7 +129,7 @@ class {{classname}}({{#parent}}{{{.}}}{{/parent}}{{^parent}}BaseModel{{/parent}}
             return instance
 
         {{/mappedModels}}
-        {{/discriminator}}
+        {{/if}}
         {{/useOneOfDiscriminatorLookup}}
         {{#composedSchemas.oneOf}}
         {{#isContainer}}

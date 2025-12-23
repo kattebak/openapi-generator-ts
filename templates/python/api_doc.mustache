@@ -1,5 +1,5 @@
-# {{packageName}}.{{classname}}{{#description}}
-{{.}}{{/description}}
+# {{packageName}}.{{classname}}{{#if description}}
+{{.}}{{/if}}
 
 All URIs are relative to *{{basePath}}*
 
@@ -11,12 +11,12 @@ Method | HTTP request | Description
 {{#operations}}
 {{#operation}}
 # **{{{operationId}}}**
-> {{#returnType}}{{{.}}} {{/returnType}}{{{operationId}}}({{#allParams}}{{#required}}{{{paramName}}}{{/required}}{{^required}}{{{paramName}}}={{{paramName}}}{{/required}}{{^-last}}, {{/-last}}{{/allParams}})
+> {{#if returnType}}{{{.}}} {{/if}}{{{operationId}}}({{#allParams}}{{#required}}{{{paramName}}}{{/required}}{{^required}}{{{paramName}}}={{{paramName}}}{{/required}}{{^-last}}, {{/-last}}{{/allParams}})
 
-{{#summary}}
+{{#if summary}}
 {{{summary}}}
 
-{{/summary}}
+{{/if}}
 {{#unescapedNotes}}
 {{{.}}}
 
@@ -35,13 +35,13 @@ Method | HTTP request | Description
 {{/isBasic}}
 {{#isApiKey}}
 * Api Key Authentication ({{name}}):
-{{/isApiKey }}
+{{/isApiKey}}
 {{#isOAuth}}
 * OAuth Authentication ({{name}}):
-{{/isOAuth }}
+{{/isOAuth}}
 {{/authMethods}}
 {{/hasAuthMethods}}
-{{> api_doc_example }}
+{{>api_doc_example}}
 
 
 ### Parameters
@@ -49,12 +49,12 @@ Method | HTTP request | Description
 {{^allParams}}This endpoint does not need any parameter.{{/allParams}}{{#allParams}}{{#-last}}
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------{{/-last}}{{/allParams}}
-{{#allParams}} **{{paramName}}** | {{#isFile}}**{{dataType}}**{{/isFile}}{{^isFile}}{{#isPrimitiveType}}**{{dataType}}**{{/isPrimitiveType}}{{^isPrimitiveType}}[**{{dataType}}**]({{baseType}}.md){{/isPrimitiveType}}{{/isFile}}| {{description}} | {{^required}}[optional] {{/required}}{{#defaultValue}}[default to {{.}}]{{/defaultValue}}
+{{#allParams}} **{{paramName}}** | {{#isFile}}**{{dataType}}**{{/isFile}}{{^isFile}}{{#isPrimitiveType}}**{{dataType}}**{{/isPrimitiveType}}{{^isPrimitiveType}}[**{{dataType}}**]({{baseType}}.md){{/isPrimitiveType}}{{/isFile}}| {{description}} | {{^required}}[optional] {{/required}}{{#if defaultValue}}[default to {{.}}]{{/if}}
 {{/allParams}}
 
 ### Return type
 
-{{#returnType}}{{#returnTypeIsPrimitive}}**{{{returnType}}}**{{/returnTypeIsPrimitive}}{{^returnTypeIsPrimitive}}[**{{{returnType}}}**]({{returnBaseType}}.md){{/returnTypeIsPrimitive}}{{/returnType}}{{^returnType}}void (empty response body){{/returnType}}
+{{#if returnType}}{{#returnTypeIsPrimitive}}**{{{returnType}}}**{{/returnTypeIsPrimitive}}{{^returnTypeIsPrimitive}}[**{{{returnType}}}**]({{returnBaseType}}.md){{/returnTypeIsPrimitive}}{{/if}}{{#unless returnType}}void (empty response body){{/unless}}
 
 ### Authorization
 
@@ -65,15 +65,15 @@ Name | Type | Description  | Notes
  - **Content-Type**: {{#consumes}}{{{mediaType}}}{{^-last}}, {{/-last}}{{/consumes}}{{^consumes}}Not defined{{/consumes}}
  - **Accept**: {{#produces}}{{{mediaType}}}{{^-last}}, {{/-last}}{{/produces}}{{^produces}}Not defined{{/produces}}
 
-{{#responses.0}}
+{{#if responses}}
 ### HTTP response details
 
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 {{#responses}}
-**{{code}}** | {{message}} | {{#headers}} * {{baseName}} - {{description}} <br> {{/headers}}{{^headers.0}} - {{/headers.0}} |
+**{{code}}** | {{message}} | {{#headers}} * {{baseName}} - {{description}} <br> {{/headers}}{{#unless headers}} - {{/unless}} |
 {{/responses}}
-{{/responses.0}}
+{{/if}}
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

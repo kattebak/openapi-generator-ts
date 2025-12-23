@@ -4,7 +4,7 @@ import {{{packageName}}}
 from {{{packageName}}}.rest import ApiException
 from pprint import pprint
 {{#apiInfo}}{{#apis}}{{#-first}}{{#operations}}{{#operation}}{{#-first}}
-{{> python_doc_auth_partial}}
+{{>python_doc_auth_partial}}
 
 
 # Enter a context with an instance of the API client
@@ -12,18 +12,18 @@ from pprint import pprint
     # Create an instance of the API class
     api_instance = {{{packageName}}}.{{{classname}}}(api_client)
     {{#allParams}}
-    {{paramName}} = {{{example}}} # {{{dataType}}} | {{{description}}}{{^required}} (optional){{/required}}{{#defaultValue}} (default to {{{.}}}){{/defaultValue}}
+    {{paramName}} = {{{example}}} # {{{dataType}}} | {{{description}}}{{^required}} (optional){{/required}}{{#if defaultValue}} (default to {{{.}}}){{/if}}
     {{/allParams}}
 
     try:
-        {{#summary}}
+        {{#if summary}}
         # {{{.}}}
-        {{/summary}}
-        {{#returnType}}api_response = {{/returnType}}{{#async}}await {{/async}}api_instance.{{{operationId}}}({{#allParams}}{{#required}}{{paramName}}{{/required}}{{^required}}{{paramName}}={{paramName}}{{/required}}{{^-last}}, {{/-last}}{{/allParams}})
-        {{#returnType}}
+        {{/if}}
+        {{#if returnType}}api_response = {{/if}}{{#async}}await {{/async}}api_instance.{{{operationId}}}({{#allParams}}{{#required}}{{paramName}}{{/required}}{{^required}}{{paramName}}={{paramName}}{{/required}}{{^-last}}, {{/-last}}{{/allParams}})
+        {{#if returnType}}
         print("The response of {{classname}}->{{operationId}}:\n")
         pprint(api_response)
-        {{/returnType}}
+        {{/if}}
     except ApiException as e:
         print("Exception when calling {{classname}}->{{operationId}}: %s\n" % e)
 {{/-first}}{{/operation}}{{/operations}}{{/-first}}{{/apis}}{{/apiInfo}}

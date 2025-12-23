@@ -718,13 +718,13 @@ conf = {{{packageName}}}.Configuration(
             {{#servers}}
             {
                 'url': "{{{url}}}",
-                'description': "{{{description}}}{{^description}}No description provided{{/description}}",
+                'description': "{{{description}}}{{#unless description}}No description provided{{/unless}}",
                 {{#variables}}
                 {{#-first}}
                 'variables': {
                 {{/-first}}
                     '{{{name}}}': {
-                        'description': "{{{description}}}{{^description}}No description provided{{/description}}",
+                        'description': "{{{description}}}{{#unless description}}No description provided{{/unless}}",
                         'default_value': "{{{defaultValue}}}",
                         {{#enumValues}}
                         {{#-first}}

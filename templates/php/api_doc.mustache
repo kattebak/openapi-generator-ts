@@ -12,26 +12,26 @@ All URIs are relative to {{basePath}}, except if the operation defines another b
 ## `{{{operationId}}}()`
 
 ```php
-{{{operationId}}}({{#allParams}}${{paramName}}{{^-last}}, {{/-last}}{{/allParams}}){{#returnType}}: {{{.}}}{{/returnType}}
+{{{operationId}}}({{#allParams}}${{paramName}}{{^-last}}, {{/-last}}{{/allParams}}){{#if returnType}}: {{{.}}}{{/if}}
 ```
 {{#servers}}
 {{#-first}}
 ### URI(s):
 {{/-first}}
-- {{{url}}} {{#description}}{{.}}{{/description}}{{#variables}}
+- {{{url}}} {{#if description}}{{.}}{{/if}}{{#variables}}
 {{#-first}}
     - Variables:
 {{/-first}}
-      - {{{name}}}: {{{description}}}{{^description}} No description provided{{/description}}{{#enumValues}}
+      - {{{name}}}: {{{description}}}{{#unless description}} No description provided{{/unless}}{{#enumValues}}
 {{#-first}}
         - Allowed values:
 {{/-first}}
-          - {{{.}}}{{/enumValues}}{{#defaultValue}}
+          - {{{.}}}{{/enumValues}}{{#if defaultValue}}
         - Default value: {{{.}}}
-{{/defaultValue}}{{/variables}}{{/servers}}
-{{{summary}}}{{#notes}}
+{{/if}}{{/variables}}{{/servers}}
+{{{summary}}}{{#if notes}}
 
-{{{.}}}{{/notes}}
+{{{.}}}{{/if}}
 
 ### Example
 
@@ -39,7 +39,7 @@ All URIs are relative to {{basePath}}, except if the operation defines another b
 <?php
 require_once(__DIR__ . '/vendor/autoload.php');
 
-{{> php_doc_auth_partial}}
+{{>php_doc_auth_partial}}
 
 $apiInstance = new {{invokerPackage}}\Api\{{classname}}(
     // If you want use custom http client, pass your client which implements `GuzzleHttp\ClientInterface`.
@@ -48,7 +48,7 @@ $apiInstance = new {{invokerPackage}}\Api\{{classname}}(
     $config{{/hasAuthMethods}}
 );
 {{^exts.x-group-parameters}}
-{{#allParams}}${{paramName}} = {{{example}}}; // {{{dataType}}}{{#description}} | {{{.}}}{{/description}}
+{{#allParams}}${{paramName}} = {{{example}}}; // {{{dataType}}}{{#if description}} | {{{.}}}{{/if}}
 {{/allParams}}{{#servers}}{{#-first}}
 $hostIndex = 0;
 $variables = [{{#variables}}
@@ -56,7 +56,7 @@ $variables = [{{#variables}}
 ];
 {{/-first}}{{/servers}}{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}
 $associative_array = [
-{{#allParams}}    '{{paramName}}' => {{{example}}}, // {{{dataType}}}{{#description}} | {{{.}}}{{/description}}
+{{#allParams}}    '{{paramName}}' => {{{example}}}, // {{{dataType}}}{{#if description}} | {{{.}}}{{/if}}
 {{/allParams}}
 {{#servers}}{{#-first}}
     'hostIndex' => 0,
@@ -67,8 +67,8 @@ $associative_array = [
 {{/exts.x-group-parameters}}
 
 try {
-    {{#returnType}}$result = {{/returnType}}$apiInstance->{{{operationId}}}({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{^-last}}, {{/-last}}{{/allParams}}{{#servers}}{{#-first}}{{#allParams}}{{#-first}}, {{/-first}}{{/allParams}}$hostIndex, $variables{{/-first}}{{/servers}}{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associate_array{{/exts.x-group-parameters}});{{#returnType}}
-    print_r($result);{{/returnType}}
+    {{#if returnType}}$result = {{/if}}$apiInstance->{{{operationId}}}({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{^-last}}, {{/-last}}{{/allParams}}{{#servers}}{{#-first}}{{#allParams}}{{#-first}}, {{/-first}}{{/allParams}}$hostIndex, $variables{{/-first}}{{/servers}}{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associate_array{{/exts.x-group-parameters}});{{#if returnType}}
+    print_r($result);{{/if}}
 } catch (Exception $e) {
     echo 'Exception when calling {{classname}}->{{operationId}}: ', $e->getMessage(), PHP_EOL;
 }
@@ -82,14 +82,14 @@ Note: the input parameter is an associative array with the keys listed as the pa
 {{/exts.x-group-parameters}}
 {{^allParams}}This endpoint does not need any parameter.{{/allParams}}{{#allParams}}{{#-last}}| Name | Type | Description  | Notes |
 | ------------- | ------------- | ------------- | ------------- |{{/-last}}{{/allParams}}
-{{#allParams}}| **{{paramName}}** | {{#isFile}}**{{{dataType}}}**{{/isFile}}{{#isPrimitiveType}}**{{{dataType}}}**{{/isPrimitiveType}}{{^isPrimitiveType}}{{^isFile}}[**{{{dataType}}}**](../Model/{{baseType}}.md){{/isFile}}{{/isPrimitiveType}}| {{description}} |{{^required}} [optional]{{/required}}{{#defaultValue}} [default to {{.}}]{{/defaultValue}} |
+{{#allParams}}| **{{paramName}}** | {{#isFile}}**{{{dataType}}}**{{/isFile}}{{#isPrimitiveType}}**{{{dataType}}}**{{/isPrimitiveType}}{{^isPrimitiveType}}{{^isFile}}[**{{{dataType}}}**](../Model/{{baseType}}.md){{/isFile}}{{/isPrimitiveType}}| {{description}} |{{^required}} [optional]{{/required}}{{#if defaultValue}} [default to {{.}}]{{/if}} |
 {{/allParams}}{{#servers}}{{#-first}}| hostIndex | null|int | Host index. Defaults to null. If null, then the library will use $this->hostIndex instead | [optional] |
 | variables | array | Associative array of variables to pass to the host. Defaults to empty array. | [optional] |{{/-first}}
 {{/servers}}
 
 ### Return type
 
-{{#returnType}}{{#returnTypeIsPrimitive}}**{{{returnType}}}**{{/returnTypeIsPrimitive}}{{^returnTypeIsPrimitive}}[**{{{returnType}}}**](../Model/{{returnBaseType}}.md){{/returnTypeIsPrimitive}}{{/returnType}}{{^returnType}}void (empty response body){{/returnType}}
+{{#if returnType}}{{#returnTypeIsPrimitive}}**{{{returnType}}}**{{/returnTypeIsPrimitive}}{{^returnTypeIsPrimitive}}[**{{{returnType}}}**](../Model/{{returnBaseType}}.md){{/returnTypeIsPrimitive}}{{/if}}{{#unless returnType}}void (empty response body){{/unless}}
 
 ### Authorization
 

@@ -1,7 +1,7 @@
 // checks if the {{classname}} type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &{{classname}}{}
 
-// {{classname}} {{{description}}}{{^description}}struct for {{{classname}}}{{/description}}
+// {{classname}} {{{description}}}{{#unless description}}struct for {{{classname}}}{{/unless}}
 type {{classname}} struct {
 {{#parentModel.name}}
 {{^isArray}}
@@ -14,9 +14,9 @@ type {{classname}} struct {
 {{#vars}}
 {{^-first}}
 {{/-first}}
-{{#description}}
+{{#if description}}
 	// {{{.}}}
-{{/description}}
+{{/if}}
 {{#deprecated}}
 	// Deprecated
 {{/deprecated}}
@@ -48,7 +48,7 @@ func New{{classname}}({{#requiredVars}}{{nameInCamelCase}} {{dataType}}{{^-last}
 	this.{{name}} = {{nameInCamelCase}}
 {{/required}}
 {{^required}}
-{{#defaultValue}}
+{{#if defaultValue}}
 {{^vendorExtensions.x-golang-is-container}}
 {{^isReadOnly}}
 {{#isNullable}}
@@ -61,7 +61,7 @@ func New{{classname}}({{#requiredVars}}{{nameInCamelCase}} {{dataType}}{{^-last}
 {{/isNullable}}
 {{/isReadOnly}}
 {{/vendorExtensions.x-golang-is-container}}
-{{/defaultValue}}
+{{/if}}
 {{/required}}
 {{/allVars}}
 	return &this
@@ -73,7 +73,7 @@ func New{{classname}}({{#requiredVars}}{{nameInCamelCase}} {{dataType}}{{^-last}
 func New{{classname}}WithDefaults() *{{classname}} {
 	this := {{classname}}{}
 {{#vars}}
-{{#defaultValue}}
+{{#if defaultValue}}
 {{^vendorExtensions.x-golang-is-container}}
 {{^isReadOnly}}
 {{#isNullable}}
@@ -87,7 +87,7 @@ func New{{classname}}WithDefaults() *{{classname}} {
 {{/isNullable}}
 {{/isReadOnly}}
 {{/vendorExtensions.x-golang-is-container}}
-{{/defaultValue}}
+{{/if}}
 {{/vars}}
 	return &this
 }
@@ -170,12 +170,12 @@ func (o *{{classname}}) Set{{name}}(v {{vendorExtensions.x-go-base-type}}) {
 
 {{#useDefaultValuesForRequiredVars}}
 {{^isReadOnly}}
-{{#defaultValue}}
+{{#if defaultValue}}
 // GetDefault{{{nameInPascalCase}}} returns the default value {{{defaultValue}}} of the {{{name}}} field.
 func (o *{{classname}}) GetDefault{{nameInPascalCase}}() interface{}  {
 	return {{{defaultValue}}}
 }
-{{/defaultValue}}
+{{/if}}
 {{/isReadOnly}}
 
 {{/useDefaultValuesForRequiredVars}}
@@ -287,7 +287,7 @@ func (o {{classname}}) MarshalJSON() ([]byte, error) {
 {{/vendorExtensions.x-go-generate-marshal-json}}
 func (o {{classname}}) ToMap() (map[string]interface{}, error) {
 	toSerialize := {{#isArray}}make([]interface{}, len(o.Items)){{/isArray}}{{^isArray}}map[string]interface{}{}{{/isArray}}
-	{{#parent}}
+	{{#if parent}}
 	{{^isMap}}
 	{{^isArray}}
 	serialized{{parent}}, err{{parent}} := json.Marshal(o.{{parent}})
@@ -305,12 +305,12 @@ func (o {{classname}}) ToMap() (map[string]interface{}, error) {
 		toSerialize[i] = item
 	}
 	{{/isArray}}
-	{{/parent}}
+	{{/if}}
 	{{#vars}}
-	{{! if argument is nullable, only serialize it if it is set}}
+	{{!if argument is nullable, only serialize it if it is set}}
 	{{#isNullable}}
 	{{#vendorExtensions.x-golang-is-container}}
-	{{! support for container fields is not ideal at this point because of lack of Nullable* types}}
+	{{!support for container fields is not ideal at this point because of lack of Nullable* types}}
 	if o.{{name}} != nil {
 		toSerialize["{{{baseName}}}"] = o.{{name}}
 	}
@@ -326,16 +326,16 @@ func (o {{classname}}) ToMap() (map[string]interface{}, error) {
 	{{/required}}
 	{{/vendorExtensions.x-golang-is-container}}
 	{{/isNullable}}
-	{{! if argument is not nullable, don't set it if it is nil}}
+	{{!if argument is not nullable, don't set it if it is nil}}
 	{{^isNullable}}
 	{{#required}}
 	{{#useDefaultValuesForRequiredVars}}
 	{{^isReadOnly}}
-	{{#defaultValue}}
+	{{#if defaultValue}}
 	if _, exists := toSerialize["{{{baseName}}}"]; !exists {
 		toSerialize["{{{baseName}}}"] = o.GetDefault{{nameInPascalCase}}()
 	}
-	{{/defaultValue}}
+	{{/if}}
 	{{/isReadOnly}}
 	{{/useDefaultValuesForRequiredVars}}
 	toSerialize["{{{baseName}}}"] = o.{{name}}
@@ -381,11 +381,11 @@ func (o *{{{classname}}}) UnmarshalJSON(data []byte) (err error) {
 	// These values are used when required properties are missing from the payload.
 	defaultValueFuncMap := map[string]func() interface{} {
 {{#requiredVars}}
-{{#defaultValue}}
+{{#if defaultValue}}
 {{^isReadOnly}}
 		"{{baseName}}": o.GetDefault{{nameInPascalCase}},
 {{/isReadOnly}}
-{{/defaultValue}}
+{{/if}}
 {{/requiredVars}}
 	}
 	var defaultValueApplied bool
@@ -425,15 +425,15 @@ func (o *{{{classname}}}) UnmarshalJSON(data []byte) (err error) {
 	{{/useDefaultValuesForRequiredVars}}
 {{/hasRequired}}
 {{#isAdditionalPropertiesTrue}}
-{{#parent}}
+{{#if parent}}
 {{^isMap}}
 	type {{classname}}WithoutEmbeddedStruct struct {
 	{{#vars}}
 	{{^-first}}
 	{{/-first}}
-	{{#description}}
+	{{#if description}}
 		// {{{.}}}
-	{{/description}}
+	{{/if}}
 	{{#deprecated}}
 		// Deprecated
 	{{/deprecated}}
@@ -515,8 +515,8 @@ func (o *{{{classname}}}) UnmarshalJSON(data []byte) (err error) {
 
 	return err
 {{/isMap}}
-{{/parent}}
-{{^parent}}
+{{/if}}
+{{#unless parent}}
 	var{{{classname}}} := _{{{classname}}}{}
 
 	err = json.Unmarshal(data, &var{{{classname}}})
@@ -537,7 +537,7 @@ func (o *{{{classname}}}) UnmarshalJSON(data []byte) (err error) {
 	}
 
 	return err
-{{/parent}}
+{{/unless}}
 {{/isAdditionalPropertiesTrue}}
 {{#isAdditionalPropertiesTrue}}
 }

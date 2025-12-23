@@ -15,9 +15,9 @@ from pydantic import Field
 
 {{#uppercase}}{{{classname}}}{{/uppercase}}_ANY_OF_SCHEMAS = [{{#anyOf}}"{{.}}"{{^-last}}, {{/-last}}{{/anyOf}}]
 
-class {{classname}}({{#parent}}{{{.}}}{{/parent}}{{^parent}}BaseModel{{/parent}}):
+class {{classname}}({{#if parent}}{{{.}}}{{/if}}{{#unless parent}}BaseModel{{/unless}}):
     """
-    {{{description}}}{{^description}}{{{classname}}}{{/description}}
+    {{{description}}}{{#unless description}}{{{classname}}}{{/unless}}
     """
 
 {{#composedSchemas.anyOf}}
@@ -34,14 +34,14 @@ class {{classname}}({{#parent}}{{{.}}}{{/parent}}{{^parent}}BaseModel{{/parent}}
         "validate_assignment": True,
         "protected_namespaces": (),
     }
-{{#discriminator}}
+{{#if discriminator}}
 
     discriminator_value_class_map: Dict[str, str] = {
 {{#children}}
         '{{^vendorExtensions.x-discriminator-value}}{{name}}{{/vendorExtensions.x-discriminator-value}}{{#vendorExtensions.x-discriminator-value}}{{{vendorExtensions.x-discriminator-value}}}{{/vendorExtensions.x-discriminator-value}}': '{{{classname}}}'{{^-last}},{{/-last}}
 {{/children}}
     }
-{{/discriminator}}
+{{/if}}
 
     def __init__(self, *args, **kwargs) -> None:
         if args:

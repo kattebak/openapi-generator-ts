@@ -169,15 +169,15 @@ use function sprintf;
 {{#operation}}
     /**
      * Operation {{{operationId}}}
-{{#summary}}
+{{#if summary}}
      *
      * {{.}}
-{{/summary}}
+{{/if}}
      *
-{{#description}}
+{{#if description}}
      * {{.}}
      *
-{{/description}}
+{{/if}}
 {{#exts.x-group-parameters}}
      * Note: the input parameter is an associative array with the keys listed as the parameter name below
      *
@@ -192,30 +192,30 @@ use function sprintf;
 {{/-last}}
 {{/servers}}
 {{#allParams}}
-     * @param  {{{dataType}}} ${{paramName}}{{#description}} {{description}}{{/description}}{{^description}} {{paramName}}{{/description}} {{#required}}(required){{/required}}{{^required}}(optional{{#defaultValue}}, default to {{{.}}}{{/defaultValue}}){{/required}}
+     * @param  {{{dataType}}} ${{paramName}}{{#if description}} {{description}}{{/if}}{{#unless description}} {{paramName}}{{/unless}} {{#required}}(required){{/required}}{{^required}}(optional{{#if defaultValue}}, default to {{{.}}}{{/if}}){{/required}}
 {{/allParams}}
      *
      * @throws \{{invokerPackage}}\ApiException on non-2xx response
      * @throws \InvalidArgumentException
-     * @return {{#returnType}}{{#responses}}{{#dataType}}{{^-first}}|{{/-first}}{{/dataType}}{{{dataType}}}{{/responses}}{{/returnType}}{{^returnType}}void{{/returnType}}
+     * @return {{#if returnType}}{{#responses}}{{#if dataType}}{{^-first}}|{{/-first}}{{/if}}{{{dataType}}}{{/responses}}{{/if}}{{#unless returnType}}void{{/unless}}
      */
-    public function {{operationId}}({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{^required}} = {{#defaultValue}}{{{.}}}{{/defaultValue}}{{^defaultValue}}null{{/defaultValue}}{{/required}}{{^-last}}, {{/-last}}{{/allParams}}{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}})
+    public function {{operationId}}({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{^required}} = {{#if defaultValue}}{{{.}}}{{/if}}{{#unless defaultValue}}null{{/unless}}{{/required}}{{^-last}}, {{/-last}}{{/allParams}}{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}})
     {
-        {{#returnType}}list($response) = {{/returnType}}$this->{{operationId}}WithHttpInfo({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{^-last}}, {{/-last}}{{/allParams}}{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}});{{#returnType}}
-        return $response;{{/returnType}}
+        {{#if returnType}}list($response) = {{/if}}$this->{{operationId}}WithHttpInfo({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{^-last}}, {{/-last}}{{/allParams}}{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}});{{#if returnType}}
+        return $response;{{/if}}
     }
 
     /**
      * Operation {{{operationId}}}WithHttpInfo
-{{#summary}}
+{{#if summary}}
      *
      * {{.}}
-{{/summary}}
+{{/if}}
      *
-{{#description}}
+{{#if description}}
      * {{.}}
      *
-{{/description}}
+{{/if}}
 {{#exts.x-group-parameters}}
      * Note: the input parameter is an associative array with the keys listed as the parameter name below
      *
@@ -230,14 +230,14 @@ use function sprintf;
 {{/-last}}
 {{/servers}}
 {{#allParams}}
-     * @param  {{{dataType}}} ${{paramName}}{{#description}} {{description}}{{/description}} {{#required}}(required){{/required}}{{^required}}(optional{{#defaultValue}}, default to {{{.}}}{{/defaultValue}}){{/required}}
+     * @param  {{{dataType}}} ${{paramName}}{{#if description}} {{description}}{{/if}} {{#required}}(required){{/required}}{{^required}}(optional{{#if defaultValue}}, default to {{{.}}}{{/if}}){{/required}}
 {{/allParams}}
      *
      * @throws \{{invokerPackage}}\ApiException on non-2xx response
      * @throws \InvalidArgumentException
-     * @return array of {{#returnType}}{{#responses}}{{#dataType}}{{^-first}}|{{/-first}}{{/dataType}}{{{dataType}}}{{/responses}}{{/returnType}}{{^returnType}}null{{/returnType}}, HTTP status code, HTTP response headers (array of strings)
+     * @return array of {{#if returnType}}{{#responses}}{{#if dataType}}{{^-first}}|{{/-first}}{{/if}}{{{dataType}}}{{/responses}}{{/if}}{{#unless returnType}}null{{/unless}}, HTTP status code, HTTP response headers (array of strings)
      */
-    public function {{operationId}}WithHttpInfo({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{^required}} = {{#defaultValue}}{{{.}}}{{/defaultValue}}{{^defaultValue}}null{{/defaultValue}}{{/required}}{{^-last}}, {{/-last}}{{/allParams}}{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}})
+    public function {{operationId}}WithHttpInfo({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{^required}} = {{#if defaultValue}}{{{.}}}{{/if}}{{#unless defaultValue}}null{{/unless}}{{/required}}{{^-last}}, {{/-last}}{{/allParams}}{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}})
     {
         $request = $this->{{operationId}}Request({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{^-last}}, {{/-last}}{{/allParams}}{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}});
 
@@ -267,32 +267,32 @@ use function sprintf;
 
             $statusCode = $response->getStatusCode();
 
-            {{#returnType}}
+            {{#if returnType}}
             {{#responses}}
             {{#-first}}
 
             switch($statusCode) {
             {{/-first}}
-            {{#dataType}}
+            {{#if dataType}}
                 {{^isRange}}{{^isWildcard}}case {{code}}:{{/isWildcard}}{{#isWildcard}}default:{{/isWildcard}}
                     return $this->handleResponseWithDataType(
                         '{{{dataType}}}',
                         $request,
                         $response,
                     );{{/isRange}}
-            {{/dataType}}
+            {{/if}}
             {{#-last}}
             }
             {{/-last}}
             {{/responses}}
 
-            {{#responses}}{{#dataType}}{{#isRange}}{{^isWildcard}}if ($this->responseWithinRangeCode('{{code}}', $statusCode)) {
+            {{#responses}}{{#if dataType}}{{#isRange}}{{^isWildcard}}if ($this->responseWithinRangeCode('{{code}}', $statusCode)) {
                 return $this->handleResponseWithDataType(
                     '{{{dataType}}}',
                     $request,
                     $response,
                 );
-            }{{/isWildcard}}{{/isRange}}{{/dataType}}{{/responses}}
+            }{{/isWildcard}}{{/isRange}}{{/if}}{{/responses}}
 
             if ($statusCode < 200 || $statusCode > 299) {
                 throw new ApiException(
@@ -311,15 +311,15 @@ use function sprintf;
                 $request,
                 $response,
             );
-            {{/returnType}}
-            {{^returnType}}
+            {{/if}}
+            {{#unless returnType}}
 
             return [null, $statusCode, $response->getHeaders()];
-            {{/returnType}}
+            {{/unless}}
         } catch (ApiException $e) {
             switch ($e->getCode()) {
         {{#responses}}
-            {{#dataType}}
+            {{#if dataType}}
                 {{^isRange}}{{^isWildcard}}case {{code}}:{{/isWildcard}}{{#isWildcard}}default:{{/isWildcard}}
                     $data = ObjectSerializer::deserialize(
                         $e->getResponseBody(),
@@ -328,10 +328,10 @@ use function sprintf;
                     );
                     $e->setResponseObject($data);
                     throw $e;{{/isRange}}
-            {{/dataType}}
+            {{/if}}
         {{/responses}}
             }
-        {{#responses}}{{#dataType}}{{#isRange}}{{^isWildcard}}
+        {{#responses}}{{#if dataType}}{{#isRange}}{{^isWildcard}}
             if ($this->responseWithinRangeCode('{{code}}', $e->getCode())) {
                 $data = ObjectSerializer::deserialize(
                     $e->getResponseBody(),
@@ -340,7 +340,7 @@ use function sprintf;
                 );
                 $e->setResponseObject($data);
                 throw $e;
-            }{{/isWildcard}}{{/isRange}}{{/dataType}}{{/responses}}
+            }{{/isWildcard}}{{/isRange}}{{/if}}{{/responses}}
 
             throw $e;
         }
@@ -349,14 +349,14 @@ use function sprintf;
     /**
      * Operation {{{operationId}}}Async
      *
-{{#summary}}
+{{#if summary}}
      * {{.}}
      *
-{{/summary}}
-{{#description}}
+{{/if}}
+{{#if description}}
      * {{.}}
      *
-{{/description}}
+{{/if}}
 {{#exts.x-group-parameters}}
      * Note: the input parameter is an associative array with the keys listed as the parameter name below
      *
@@ -371,13 +371,13 @@ use function sprintf;
 {{/-last}}
 {{/servers}}
 {{#allParams}}
-     * @param  {{{dataType}}} ${{paramName}}{{#description}} {{description}}{{/description}} {{#required}}(required){{/required}}{{^required}}(optional{{#defaultValue}}, default to {{{.}}}{{/defaultValue}}){{/required}}
+     * @param  {{{dataType}}} ${{paramName}}{{#if description}} {{description}}{{/if}} {{#required}}(required){{/required}}{{^required}}(optional{{#if defaultValue}}, default to {{{.}}}{{/if}}){{/required}}
 {{/allParams}}
      *
      * @throws \InvalidArgumentException
      * @return Promise
      */
-    public function {{operationId}}Async({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{^required}} = {{#defaultValue}}{{{.}}}{{/defaultValue}}{{^defaultValue}}null{{/defaultValue}}{{/required}}{{^-last}}, {{/-last}}{{/allParams}}{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}})
+    public function {{operationId}}Async({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{^required}} = {{#if defaultValue}}{{{.}}}{{/if}}{{#unless defaultValue}}null{{/unless}}{{/required}}{{^-last}}, {{/-last}}{{/allParams}}{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}})
     {
         return $this->{{operationId}}AsyncWithHttpInfo({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{^-last}}, {{/-last}}{{/allParams}}{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}})
             ->then(
@@ -390,14 +390,14 @@ use function sprintf;
     /**
      * Operation {{{operationId}}}AsyncWithHttpInfo
      *
-{{#summary}}
+{{#if summary}}
      * {{.}}
      *
-{{/summary}}
-{{#description}}
+{{/if}}
+{{#if description}}
      * {{.}}
      *
-{{/description}}
+{{/if}}
 {{#exts.x-group-parameters}}
      * Note: the input parameter is an associative array with the keys listed as the parameter name below
      *
@@ -412,13 +412,13 @@ use function sprintf;
 {{/-last}}
 {{/servers}}
 {{#allParams}}
-     * @param  {{{dataType}}} ${{paramName}}{{#description}} {{description}}{{/description}} {{#required}}(required){{/required}}{{^required}}(optional{{#defaultValue}}, default to {{{.}}}{{/defaultValue}}){{/required}}
+     * @param  {{{dataType}}} ${{paramName}}{{#if description}} {{description}}{{/if}} {{#required}}(required){{/required}}{{^required}}(optional{{#if defaultValue}}, default to {{{.}}}{{/if}}){{/required}}
 {{/allParams}}
      *
      * @throws \InvalidArgumentException
      * @return Promise
      */
-    public function {{operationId}}AsyncWithHttpInfo({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{^required}} = {{#defaultValue}}{{{.}}}{{/defaultValue}}{{^defaultValue}}null{{/defaultValue}}{{/required}}{{^-last}}, {{/-last}}{{/allParams}}{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}})
+    public function {{operationId}}AsyncWithHttpInfo({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{^required}} = {{#if defaultValue}}{{{.}}}{{/if}}{{#unless defaultValue}}null{{/unless}}{{/required}}{{^-last}}, {{/-last}}{{/allParams}}{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}})
     {
         $returnType = '{{{returnType}}}';
         $request = $this->{{operationId}}Request({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{^-last}}, {{/-last}}{{/allParams}}{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}});
@@ -426,7 +426,7 @@ use function sprintf;
         return $this->httpAsyncClient->sendAsyncRequest($request)
             ->then(
                 function ($response) use ($returnType) {
-                    {{#returnType}}
+                    {{#if returnType}}
                     if ($returnType === '\SplFileObject') {
                         $content = $response->getBody(); //stream goes to serializer
                     } else {
@@ -438,10 +438,10 @@ use function sprintf;
                         $response->getStatusCode(),
                         $response->getHeaders()
                     ];
-                    {{/returnType}}
-                    {{^returnType}}
+                    {{/if}}
+                    {{#unless returnType}}
                     return [null, $response->getStatusCode(), $response->getHeaders()];
-                    {{/returnType}}
+                    {{/unless}}
                 },
                 function (HttpException $exception) {
                     $response = $exception->getResponse();
@@ -477,18 +477,18 @@ use function sprintf;
 {{/-last}}
 {{/servers}}
 {{#allParams}}
-     * @param  {{{dataType}}} ${{paramName}}{{#description}} {{description}}{{/description}} {{#required}}(required){{/required}}{{^required}}(optional{{#defaultValue}}, default to {{{.}}}{{/defaultValue}}){{/required}}
+     * @param  {{{dataType}}} ${{paramName}}{{#if description}} {{description}}{{/if}} {{#required}}(required){{/required}}{{^required}}(optional{{#if defaultValue}}, default to {{{.}}}{{/if}}){{/required}}
 {{/allParams}}
      *
      * @throws \InvalidArgumentException
      * @return RequestInterface
      */
-    public function {{operationId}}Request({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{^required}} = {{#defaultValue}}{{{.}}}{{/defaultValue}}{{^defaultValue}}null{{/defaultValue}}{{/required}}{{^-last}}, {{/-last}}{{/allParams}}{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}})
+    public function {{operationId}}Request({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{^required}} = {{#if defaultValue}}{{{.}}}{{/if}}{{#unless defaultValue}}null{{/unless}}{{/required}}{{^-last}}, {{/-last}}{{/allParams}}{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}})
     {
         {{#exts.x-group-parameters}}
         // unbox the parameters from the associative array
         {{#allParams}}
-        ${{paramName}} = array_key_exists('{{paramName}}', $associative_array) ? $associative_array['{{paramName}}'] : {{#defaultValue}}{{{.}}}{{/defaultValue}}{{^defaultValue}}null{{/defaultValue}};
+        ${{paramName}} = array_key_exists('{{paramName}}', $associative_array) ? $associative_array['{{paramName}}'] : {{#if defaultValue}}{{{.}}}{{/if}}{{#unless defaultValue}}null{{/unless}};
         {{/allParams}}
 
         {{/exts.x-group-parameters}}
@@ -512,21 +512,21 @@ use function sprintf;
             throw new \InvalidArgumentException('invalid length for "${{paramName}}" when calling {{classname}}.{{operationId}}, must be bigger than or equal to {{minLength}}.');
         }
         {{/minLength}}
-        {{#maximum}}
+        {{#if maximum}}
         if ({{^required}}${{paramName}} !== null && {{/required}}${{paramName}} >{{#exclusiveMaximum}}={{/exclusiveMaximum}} {{maximum}}) {
             throw new \InvalidArgumentException('invalid value for "${{paramName}}" when calling {{classname}}.{{operationId}}, must be smaller than {{^exclusiveMaximum}}or equal to {{/exclusiveMaximum}}{{maximum}}.');
         }
-        {{/maximum}}
-        {{#minimum}}
+        {{/if}}
+        {{#if minimum}}
         if ({{^required}}${{paramName}} !== null && {{/required}}${{paramName}} <{{#exclusiveMinimum}}={{/exclusiveMinimum}} {{minimum}}) {
             throw new \InvalidArgumentException('invalid value for "${{paramName}}" when calling {{classname}}.{{operationId}}, must be bigger than {{^exclusiveMinimum}}or equal to {{/exclusiveMinimum}}{{minimum}}.');
         }
-        {{/minimum}}
-        {{#pattern}}
+        {{/if}}
+        {{#if pattern}}
         if ({{^required}}${{paramName}} !== null && {{/required}}!preg_match("{{{pattern}}}", ${{paramName}})) {
             throw new \InvalidArgumentException("invalid value for \"{{paramName}}\" when calling {{classname}}.{{operationId}}, must conform to the pattern {{{pattern}}}.");
         }
-        {{/pattern}}
+        {{/if}}
         {{#maxItems}}
         if ({{^required}}${{paramName}} !== null && {{/required}}count(${{paramName}}) > {{maxItems}}) {
             throw new \InvalidArgumentException('invalid value for "${{paramName}}" when calling {{classname}}.{{operationId}}, number of items must be less than or equal to {{maxItems}}.');
@@ -704,16 +704,16 @@ use function sprintf;
             $headers
         );
 
-        {{^servers.0}}
+        {{#unless servers}}
         $operationHost = $this->config->getHost();
-        {{/servers.0}}
-        {{#servers.0}}
+        {{/unless}}
+        {{#if servers}}
         $operationHosts = [{{#servers}}"{{{url}}}"{{^-last}}, {{/-last}}{{/servers}}];
         if ($this->hostIndex < 0 || $this->hostIndex >= sizeof($operationHosts)) {
             throw new \InvalidArgumentException("Invalid index {$this->hostIndex} when selecting the host. Must be less than ".sizeof($operationHosts));
         }
         $operationHost = $operationHosts[$this->hostIndex];
-        {{/servers.0}}
+        {{/if}}
 
         $uri = $this->createUri($operationHost, $resourcePath, $queryParams);
 

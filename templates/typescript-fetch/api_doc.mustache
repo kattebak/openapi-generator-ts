@@ -1,6 +1,6 @@
-# {{classname}}{{#description}}
+# {{classname}}{{#if description}}
 
-{{.}}{{/description}}
+{{.}}{{/if}}
 
 All URIs are relative to *{{basePath}}*
 
@@ -14,11 +14,11 @@ All URIs are relative to *{{basePath}}*
 
 ## {{operationId}}
 
-> {{#returnType}}{{.}} {{/returnType}}{{operationId}}({{#allParams}}{{{paramName}}}{{^-last}}, {{/-last}}{{/allParams}})
+> {{#if returnType}}{{.}} {{/if}}{{operationId}}({{#allParams}}{{{paramName}}}{{^-last}}, {{/-last}}{{/allParams}})
 
-{{summary}}{{#notes}}
+{{summary}}{{#if notes}}
 
-{{.}}{{/notes}}
+{{.}}{{/if}}
 
 ### Example
 
@@ -31,12 +31,12 @@ All URIs are relative to *{{basePath}}*
 {{^allParams}}This endpoint does not need any parameter.{{/allParams}}{{#allParams}}{{#-last}}
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|{{/-last}}{{/allParams}}
-{{#allParams}}| **{{paramName}}** | {{#isEnum}}{{#allowableValues}}{{#values}}`{{{.}}}`{{^-last}}, {{/-last}}{{/values}}{{/allowableValues}}{{/isEnum}}{{^isEnum}}{{#isModel}}[{{baseType}}]({{baseType}}.md){{/isModel}}{{^isModel}}`{{{dataType}}}`{{/isModel}}{{/isEnum}} | {{description}} |{{^required}} [Optional]{{/required}}{{^isContainer}}{{#defaultValue}} [Defaults to `{{.}}`]{{/defaultValue}}{{/isContainer}}{{#allowableValues}} [Enum: {{#values}}{{{.}}}{{^-last}}, {{/-last}}{{/values}}]{{/allowableValues}} |
+{{#allParams}}| **{{paramName}}** | {{#isEnum}}{{#allowableValues}}{{#values}}`{{{.}}}`{{^-last}}, {{/-last}}{{/values}}{{/allowableValues}}{{/isEnum}}{{^isEnum}}{{#isModel}}[{{baseType}}]({{baseType}}.md){{/isModel}}{{^isModel}}`{{{dataType}}}`{{/isModel}}{{/isEnum}} | {{description}} |{{^required}} [Optional]{{/required}}{{^isContainer}}{{#if defaultValue}} [Defaults to `{{.}}`]{{/if}}{{/isContainer}}{{#allowableValues}} [Enum: {{#values}}{{{.}}}{{^-last}}, {{/-last}}{{/values}}]{{/allowableValues}} |
 {{/allParams}}
 
 ### Return type
 
-{{#returnType}}{{#returnTypeIsPrimitive}}**{{{returnType}}}**{{/returnTypeIsPrimitive}}{{^returnTypeIsPrimitive}}[**{{returnType}}**]({{returnBaseType}}.md){{/returnTypeIsPrimitive}}{{/returnType}}{{^returnType}}`void` (Empty response body){{/returnType}}
+{{#if returnType}}{{#returnTypeIsPrimitive}}**{{{returnType}}}**{{/returnTypeIsPrimitive}}{{^returnTypeIsPrimitive}}[**{{returnType}}**]({{returnBaseType}}.md){{/returnTypeIsPrimitive}}{{/if}}{{#unless returnType}}`void` (Empty response body){{/unless}}
 
 ### Authorization
 
@@ -47,15 +47,15 @@ All URIs are relative to *{{basePath}}*
 - **Content-Type**: {{#consumes}}`{{{mediaType}}}`{{^-last}}, {{/-last}}{{/consumes}}{{^consumes}}Not defined{{/consumes}}
 - **Accept**: {{#produces}}`{{{mediaType}}}`{{^-last}}, {{/-last}}{{/produces}}{{^produces}}Not defined{{/produces}}
 
-{{#responses.0}}
+{{#if responses}}
 
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 {{#responses}}
-| **{{code}}** | {{message}} | {{#headers}} * {{baseName}} - {{description}} <br> {{/headers}}{{^headers.0}} - {{/headers.0}} |
+| **{{code}}** | {{message}} | {{#headers}} * {{baseName}} - {{description}} <br> {{/headers}}{{#unless headers}} - {{/unless}} |
 {{/responses}}
-{{/responses.0}}
+{{/if}}
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
