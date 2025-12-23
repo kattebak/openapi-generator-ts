@@ -216,6 +216,15 @@ export interface GeneratorMetadata {
 	 * API template name
 	 */
 	apiTemplateFile: string;
+	/**
+	 * Template file for model documentation
+	 */
+	modelDocTemplateFile?: string;
+
+	/**
+	 * Template file for API documentation
+	 */
+	apiDocTemplateFile?: string;
 
 	/**
 	 * Default API package/folder (defaults to "api")
@@ -246,6 +255,59 @@ export interface GeneratorMetadata {
 	 * Default import mappings
 	 */
 	defaultImportMappings: Record<string, string>;
+
+	/**
+	 * API name suffix (e.g., "Api" for TypeScript, "API" for Go)
+	 */
+	apiNameSuffix?: string;
+
+	/**
+	 * Convert API tag to class name (e.g., "pets" -> "PetsApi" or "PetsAPI")
+	 */
+	toApiClassName?: (tag: string, suffix: string) => string;
+
+	/**
+	 * Convert model name to file name (e.g., "Pet" -> "Pet.ts" or "model_pet.go")
+	 */
+	toModelFilename?: (modelName: string) => string;
+
+	/**
+	 * Convert API class name to file name (e.g., "PetsApi" -> "PetsApi.ts" or "api_pets.go")
+	 */
+	toApiFilename?: (className: string) => string;
+	/**
+	 * Convert operation ID for the target language (e.g., "getPet" -> "GetPet" for Go)
+	 */
+	toOperationId?: (name: string) => string;
+
+	/**
+	 * Convert property name for the target language (e.g., "petId" -> "PetId" for Go)
+	 */
+	toVarName?: (name: string) => string;
+
+	/**
+	 * Post-process a property for generator-specific transformations.
+	 * For Go, this adds x-go-base-type and x-go-datatag vendor extensions.
+	 */
+	postProcessProperty?: (
+		property: import("../models/index.js").CodegenProperty,
+	) => void;
+
+	/**
+	 * Post-process a model for generator-specific transformations.
+	 * For Go, this adds x-go-generate-marshal-json and x-go-generate-unmarshal-json.
+	 */
+	postProcessModel?: (
+		model: import("../models/index.js").CodegenModel,
+		config: CodegenConfig,
+	) => void;
+	/**
+	 * Post-process an operation for generator-specific transformations.
+	 */
+	postProcessOperation?: (
+		operation: import("../models/index.js").CodegenOperation,
+		config: CodegenConfig,
+	) => void;
 }
 
 /**

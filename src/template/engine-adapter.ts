@@ -129,6 +129,13 @@ export class HandlebarsAdapter implements TemplatingEngine {
 			},
 		);
 
+		// Helper for wrapping values in braces - used for JSDoc type annotations
+		// Converts Mustache's delimiter-change pattern: {{=<% %>=}}{<%&datatype%>}<%={{ }}=%>
+		// to a simple helper call: {{braceWrap datatype}}
+		this.handlebars.registerHelper("braceWrap", (value: unknown) => {
+			return new Handlebars.SafeString(`{${value ?? ""}}`);
+		});
+
 		// Helper for comparing values
 		this.handlebars.registerHelper("eq", (a: unknown, b: unknown) => a === b);
 

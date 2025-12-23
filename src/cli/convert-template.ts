@@ -58,6 +58,14 @@ export function convertTemplate(content: string): string {
 	// <%&varname%> -> {{{varname}}}
 	result = result.replace(/<%&(\w+)%>/g, "{{{$1}}}");
 
+	// Handle alternate delimiter block helpers
+	// <%#section%> -> {{#section}}
+	result = result.replace(/<%#([\w-]+)%>/g, "{{#$1}}");
+	// <%/section%> -> {{/$1}}
+	result = result.replace(/<%\/([\w-]+)%>/g, "{{/$1}}");
+	// <%^inverted%> -> {{^inverted}}
+	result = result.replace(/<%\^([\w-]+)%>/g, "{{^$1}}");
+
 	// 5. Convert lambda block helpers: {{#lambda.xxx}} -> {{#xxx}}
 	result = result.replace(/\{\{#lambda\.(\w+)\}\}/g, "{{#$1}}");
 	result = result.replace(/\{\{\/lambda\.(\w+)\}\}/g, "{{/$1}}");
@@ -220,7 +228,7 @@ export function convertTemplate(content: string): string {
 	// Add whitespace to disambiguate: {{#if foo}}} -> {{#if foo}} }
 	// Pattern: Match {{...}} where ... doesn't start with { (not unescaped output)
 	// followed by } that isn't part of another tag
-	result = result.replace(/(\{\{[#^\/][\w@\s]+\}\})\}([^}])/g, "$1 }$2");
+	result = result.replace(/(\{\{[#^/][\w@\s]+\}\})\}([^}])/g, "$1 }$2");
 
 	return result;
 }

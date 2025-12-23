@@ -29,6 +29,11 @@ export interface OperationTransformerOptions {
 	 * Reserved words for model renaming
 	 */
 	reservedWords?: Set<string>;
+
+	/**
+	 * Custom function to convert operation IDs for the target language.
+	 */
+	toOperationId?: (name: string) => string;
 }
 
 const HTTP_METHODS = [
@@ -66,7 +71,10 @@ export class OperationTransformer {
 	transformPaths(
 		paths: OpenAPIV3.PathsObject,
 		securitySchemes?: Record<string, OpenAPIV3.SecuritySchemeObject>,
-		schemas?: Record<string, OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject>,
+		schemas?: Record<
+			string,
+			OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject
+		>,
 	): Map<string, CodegenOperation[]> {
 		this.schemas = schemas ?? {};
 		const operationsByTag = new Map<string, CodegenOperation[]>();
@@ -117,17 +125,25 @@ export class OperationTransformer {
 	): CodegenOperation {
 		const operationId =
 			operation.operationId ?? this.generateOperationId(path, method);
+
+		const transformedOperationId = this.options.toOperationId
+			? this.options.toOperationId(operationId)
+			: operationId;
+
 		const codegenOp = createCodegenOperation(
-			operationId,
+			transformedOperationId,
 			path,
 			method.toUpperCase(),
 		);
 
 		// Basic info
 		codegenOp.operationIdOriginal = operationId;
-		codegenOp.operationIdCamelCase = camelCase(operationId);
-		codegenOp.operationIdPascalCase = pascalCase(operationId);
-		codegenOp.operationIdSnakeCase = snakeCase(operationId);
+		// Note: In Java OpenAPI Generator, "CamelCase" actually means PascalCase (first letter uppercase)
+		// We maintain this naming for template compatibility
+		codegenOp.operationIdCamelCase = pascalCase(transformedOperationId);
+		codegenOp.operationIdPascalCase = pascalCase(transformedOperationId);
+		codegenOp.operationIdSnakeCase = snakeCase(transformedOperationId);
+		codegenOp.nickname = transformedOperationId; // Alias for templates using {{nickname}}
 		codegenOp.summary = operation.summary;
 		codegenOp.notes = operation.description;
 		codegenOp.unescapedNotes = operation.description;
@@ -172,10 +188,18 @@ export class OperationTransformer {
 
 		// Responses
 		if (operation.responses) {
+			const produces = new Set<string>();
 			for (const [code, response] of Object.entries(operation.responses)) {
 				if (this.isReferenceObject(response)) continue;
 				const codegenResponse = this.transformResponse(code, response);
 				codegenOp.responses.push(codegenResponse);
+
+				// Collect content types
+				if (response.content) {
+					for (const ct of Object.keys(response.content)) {
+						produces.add(ct);
+					}
+				}
 
 				if (codegenResponse.is2xx) {
 					codegenOp.successResponses.push(codegenResponse);
@@ -203,6 +227,12 @@ export class OperationTransformer {
 					codegenOp.defaultResponse = codegenResponse;
 				}
 			}
+
+			// Set produces
+			codegenOp.produces = Array.from(produces).map((ct) =>
+				this.parseContentType(ct),
+			);
+			codegenOp.hasProduces = codegenOp.produces.length > 0;
 		}
 
 		// Security
@@ -255,6 +285,18 @@ export class OperationTransformer {
 		codegenOp.hasRequiredParams = codegenOp.requiredParams.length > 0;
 		codegenOp.hasOptionalParams = codegenOp.optionalParams.length > 0;
 
+		// Add operation-level fields to parameters for template access
+		// Handlebars doesn't auto-traverse parent context, so we need to provide these
+		const operationFields = {
+			operationId: codegenOp.operationId,
+			operationIdCamelCase: codegenOp.operationIdCamelCase,
+			operationIdPascalCase: codegenOp.operationIdPascalCase,
+			nickname: codegenOp.nickname,
+		};
+		for (const param of codegenOp.allParams) {
+			Object.assign(param, operationFields);
+		}
+
 		return codegenOp;
 	}
 
@@ -280,6 +322,15 @@ export class OperationTransformer {
 		codegenParam.isQueryParam = param.in === "query";
 		codegenParam.isHeaderParam = param.in === "header";
 		codegenParam.isCookieParam = param.in === "cookie";
+
+		// Default style if not specified
+		if (!codegenParam.style) {
+			if (codegenParam.isQueryParam || codegenParam.isCookieParam) {
+				codegenParam.style = "form";
+			} else if (codegenParam.isPathParam || codegenParam.isHeaderParam) {
+				codegenParam.style = "simple";
+			}
+		}
 
 		// Path params are always required
 		if (codegenParam.isPathParam) {
@@ -463,7 +514,12 @@ export class OperationTransformer {
 					// Check if this is an array alias (e.g., Pets -> Array<Pet>)
 					const resolved = this.resolveArrayAlias(refName);
 					if (resolved) {
-						codegenResponse.dataType = `Array<${resolved.elementType}>`;
+						const arrayType = this.options.typeMappings?.array ?? "Array";
+						if (arrayType === "[]") {
+							codegenResponse.dataType = `[]${resolved.elementType}`;
+						} else {
+							codegenResponse.dataType = `${arrayType}<${resolved.elementType}>`;
+						}
 						codegenResponse.baseType = resolved.elementType;
 						codegenResponse.isArray = true;
 						codegenResponse.containerType = "array";
@@ -743,9 +799,7 @@ export class OperationTransformer {
 	 * Resolve array alias to its element type
 	 * Returns null if not an array alias
 	 */
-	private resolveArrayAlias(
-		refName: string,
-	): { elementType: string } | null {
+	private resolveArrayAlias(refName: string): { elementType: string } | null {
 		const schema = this.schemas[refName];
 		if (!schema || this.isReferenceObject(schema)) {
 			return null;

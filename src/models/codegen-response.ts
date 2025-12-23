@@ -12,6 +12,7 @@ export interface CodegenResponse {
 	is4xx: boolean;
 	is5xx: boolean;
 	isDefault: boolean;
+	wildcard: boolean;
 
 	// Documentation
 	message: string;
@@ -94,6 +95,7 @@ export function createCodegenResponse(
 		is4xx: codeNum >= 400 && codeNum < 500,
 		is5xx: codeNum >= 500 && codeNum < 600,
 		isDefault: code === "default",
+		wildcard: code === "default",
 		isString: false,
 		isNumeric: false,
 		isInteger: false,

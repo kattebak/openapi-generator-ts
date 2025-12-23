@@ -7,6 +7,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import { camelCase } from "es-toolkit/string";
+import * as yaml from "js-yaml";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -92,10 +93,13 @@ export class DefaultGenerator {
 		this.schemaTransformer = new SchemaTransformer({
 			typeMappings,
 			reservedWords: metadata.reservedWords,
+			toVarName: metadata.toVarName,
+			postProcessProperty: metadata.postProcessProperty,
 		});
 		this.operationTransformer = new OperationTransformer({
 			typeMappings,
 			reservedWords: metadata.reservedWords,
+			toOperationId: metadata.toOperationId,
 		});
 
 		// Embedded templates directory - look in the original Java resources
@@ -206,6 +210,15 @@ export class DefaultGenerator {
 					schemas as Record<string, OpenAPIV3.SchemaObject>,
 				);
 
+				// Post-process operations
+				if (this.metadata.postProcessOperation) {
+					for (const ops of result.operations.values()) {
+						for (const op of ops) {
+							this.metadata.postProcessOperation(op, this.config);
+						}
+					}
+				}
+
 				// Generate API files
 				const apiFiles = await this.generateApis(
 					result.operations,
@@ -258,12 +271,37 @@ export class DefaultGenerator {
 		const globalData = this.createGlobalTemplateData(spec);
 
 		for (const [name, model] of models) {
+			// Apply generator-specific model post-processing
+			if (this.metadata.postProcessModel) {
+				this.metadata.postProcessModel(model, this.config);
+			}
+
+			// Convert model imports Set to array format expected by templates
+			const modelImports = Array.from(model.imports)
+				.sort()
+				.map((imp) => ({ import: imp }));
+
 			const templateData: TemplateData = {
 				...globalData,
+				// Wrap model in the structure expected by models.mustache: {{#models}}{{#model}}
+				// The imports array must be a sibling of model (not inside it) because
+				// the template uses {{#models}}{{#imports}}...{{/imports}}{{#model}}...{{/model}}{{/models}}
+				models: [
+					{
+						// imports at the same level as model for {{#models}}{{#imports}}
+						imports: modelImports,
+						model: {
+							...model,
+							classname: model.classname,
+						},
+					},
+				],
+				// Also provide at top level for partials that access directly
 				...model,
 				model,
-				models: Array.from(models.values()),
 				classname: model.classname,
+				// Provide imports at top level for templates that access {{#imports}}
+				imports: modelImports,
 				package: this.config.modelPackage ?? this.config.packageName,
 			};
 
@@ -273,12 +311,17 @@ export class DefaultGenerator {
 					templateData,
 				);
 
+				// Use generator-specific filename conversion if provided
+				const filename = this.metadata.toModelFilename
+					? this.metadata.toModelFilename(model.classname)
+					: `${model.classname}${this.metadata.modelFileExtension}`;
+
 				const outputPath = path.join(
 					this.config.outputDir,
 					this.config.modelPackage?.replace(/\./g, "/") ??
 						this.metadata.defaultModelPackage ??
-						"models",
-					`${model.classname}${this.metadata.modelFileExtension}`,
+						"",
+					filename,
 				);
 
 				const result = await this.templateManager.writeFile(
@@ -308,6 +351,7 @@ export class DefaultGenerator {
 		models: Map<string, CodegenModel>,
 		spec: ParsedSpec,
 	): Promise<GeneratedFile[]> {
+		console.log(`Generating APIs for ${operations.size} tags`);
 		const files: GeneratedFile[] = [];
 
 		if (!this.templateManager) {
@@ -319,9 +363,14 @@ export class DefaultGenerator {
 		for (const [tag, ops] of operations) {
 			const className = this.toApiClassName(tag);
 
+			// Sort operations by operationId for consistent output matching original generator
+			const sortedOps = [...ops].sort((a, b) =>
+				a.operationId.localeCompare(b.operationId),
+			);
+
 			// Enhance operations with nickname and ensure classname is accessible
 			// Also include template flags for proper rendering in nested contexts
-			const enhancedOps = ops.map((op) => ({
+			const enhancedOps = sortedOps.map((op) => ({
 				...op,
 				nickname: op.nickname ?? op.operationId,
 				classname: className,
@@ -360,12 +409,19 @@ export class DefaultGenerator {
 					templateData,
 				);
 
+				// Use generator-specific filename conversion if provided
+				const filename = this.metadata.toApiFilename
+					? this.metadata.toApiFilename(className)
+					: `${className}${this.metadata.apiFileExtension}`;
+
+				console.log(`Generating API: ${className} -> ${filename}`);
+
 				const outputPath = path.join(
 					this.config.outputDir,
 					this.config.apiPackage?.replace(/\./g, "/") ??
 						this.metadata.defaultApiPackage ??
-						"api",
-					`${className}${this.metadata.apiFileExtension}`,
+						"",
+					filename,
 				);
 
 				const result = await this.templateManager.writeFile(
@@ -474,6 +530,18 @@ export class DefaultGenerator {
 	}
 
 	/**
+	 * Derive a package name from the API title
+	 * This is used when packageName is not explicitly set
+	 */
+	private derivePackageName(title: string): string {
+		// Remove common prefixes like "Swagger", lowercase, remove non-alphanumeric
+		return title
+			.replace(/^swagger\s+/i, "")
+			.toLowerCase()
+			.replace(/[^a-z0-9]/g, "");
+	}
+
+	/**
 	 * Create global template data available to all templates
 	 */
 	private createGlobalTemplateData(spec: ParsedSpec): TemplateData {
@@ -481,11 +549,19 @@ export class DefaultGenerator {
 		const servers = getServers(spec.document);
 		const tags = getTags(spec.document);
 
+		// Derive package name from API title if not explicitly set
+		const packageName =
+			this.config.packageName ??
+			(info.title ? this.derivePackageName(info.title) : "openapi");
+
 		return {
 			// OpenAPI info
 			appName: info.title,
 			appVersion: info.version,
-			appDescription: info.description,
+			version: info.version, // Alias for templates using {{version}}
+			appDescription:
+				info.description ||
+				"No description provided (generated by Openapi Generator https://github.com/openapitools/openapi-generator)",
 			infoUrl: info.termsOfService,
 			infoEmail: info.contact?.email,
 			licenseInfo: info.license?.name,
@@ -499,10 +575,10 @@ export class DefaultGenerator {
 			tags,
 
 			// Config
-			packageName: this.config.packageName,
-			apiPackage: this.config.apiPackage ?? this.config.packageName,
-			modelPackage: this.config.modelPackage ?? this.config.packageName,
-			invokerPackage: this.config.invokerPackage ?? this.config.packageName,
+			packageName: packageName,
+			apiPackage: this.config.apiPackage ?? packageName,
+			modelPackage: this.config.modelPackage ?? packageName,
+			invokerPackage: this.config.invokerPackage ?? packageName,
 
 			// Generator info
 			generatorClass: this.metadata.name,
@@ -524,6 +600,9 @@ export class DefaultGenerator {
 
 			// Lambda functions are registered in the template engine
 			lambda: {},
+
+			// OpenAPI spec in YAML format
+			"openapi-yaml": yaml.dump(spec.document),
 		};
 	}
 
@@ -531,14 +610,21 @@ export class DefaultGenerator {
 	 * Convert tag to API class name
 	 */
 	private toApiClassName(tag: string): string {
-		// Remove special characters and capitalize
+		const suffix = this.metadata.apiNameSuffix ?? "Api";
+
+		// Use generator-specific conversion if provided
+		if (this.metadata.toApiClassName) {
+			return this.metadata.toApiClassName(tag, suffix);
+		}
+
+		// Default: Remove special characters and capitalize
 		const cleaned = tag.replace(/[^a-zA-Z0-9]/g, " ");
 		const words = cleaned.split(/\s+/).filter(Boolean);
 		const pascalCase = words
 			.map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
 			.join("");
 
-		return `${pascalCase}Api`;
+		return `${pascalCase}${suffix}`;
 	}
 
 	/**

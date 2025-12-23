@@ -232,7 +232,7 @@ func (a *{{{classname}}}Service) {{nickname}}Execute(r {{#structPrefix}}{{&class
 	{{/queryParams}}
 	// to determine the Content-Type header
 
-	localVarHTTPContentTypes := []string{<%#consumes%>"{{{mediaType}}}"<%^-last%>, <%/-last%><%/consumes%>}
+	localVarHTTPContentTypes := []string{ {{#consumes}}"{{{mediaType}}}"{{#unless @last}}, {{/unless}}{{/consumes}} }
 
 
 	// set Content-Type header
@@ -243,7 +243,7 @@ func (a *{{{classname}}}Service) {{nickname}}Execute(r {{#structPrefix}}{{&class
 
 	// to determine the Accept header
 
-	localVarHTTPHeaderAccepts := []string{<%#produces%>"{{{mediaType}}}"<%^-last%>, <%/-last%><%/produces%>}
+	localVarHTTPHeaderAccepts := []string{ {{#produces}}"{{{mediaType}}}"{{#unless @last}}, {{/unless}}{{/produces}} }
 
 
 	// set Accept header
@@ -396,25 +396,25 @@ func (a *{{{classname}}}Service) {{nickname}}Execute(r {{#structPrefix}}{{&class
 		}
 		{{#responses}}
 		{{#dataType}}
-		{{^is1xx}}
-		{{^is2xx}}
-		{{#range}}
-		{{#is3xx}}
+		{{^../is1xx}}
+		{{^../is2xx}}
+		{{#../range}}
+		{{#../is3xx}}
 		if localVarHTTPResponse.StatusCode >= 300 && localVarHTTPResponse.StatusCode < 400 {
-		{{/is3xx}}
-		{{#is4xx}}
+		{{/../is3xx}}
+		{{#../is4xx}}
 		if localVarHTTPResponse.StatusCode >= 400 && localVarHTTPResponse.StatusCode < 500 {
-		{{/is4xx}}
-		{{#is5xx}}
+		{{/../is4xx}}
+		{{#../is5xx}}
 		if localVarHTTPResponse.StatusCode >= 500 {
-		{{/is5xx}}
-		{{/range}}
-		{{^range}}
-		{{^wildcard}}
-		if localVarHTTPResponse.StatusCode == {{{code}}} {
-		{{/wildcard}}
-		{{/range}}
-			var v {{{dataType}}}
+		{{/../is5xx}}
+		{{/../range}}
+		{{^../range}}
+		{{^../wildcard}}
+		if localVarHTTPResponse.StatusCode == {{{../code}}} {
+		{{/../wildcard}}
+		{{/../range}}
+			var v {{{.}}}
 			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
 			if err != nil {
 				newErr.error = err.Error()
@@ -425,11 +425,11 @@ func (a *{{{classname}}}Service) {{nickname}}Execute(r {{#structPrefix}}{{&class
 			{{#unless @last}}
 			return {{#if returnType}}localVarReturnValue, {{/if}}localVarHTTPResponse, newErr
 			{{/unless}}
-		{{^wildcard}}
+		{{^../wildcard}}
 		}
-		{{/wildcard}}
-		{{/is2xx}}
-		{{/is1xx}}
+		{{/../wildcard}}
+		{{/../is2xx}}
+		{{/../is1xx}}
 		{{/dataType}}
 		{{/responses}}
 		return {{#if returnType}}localVarReturnValue, {{/if}}localVarHTTPResponse, newErr

@@ -64,6 +64,7 @@ export class TemplateManager {
 		if (!templatePath) {
 			throw new Error(`Template not found: ${templateName}`);
 		}
+		console.log(`Compiling template: ${templateName} -> ${templatePath}`);
 
 		// Load and compile
 		const source = await fs.promises.readFile(templatePath, "utf-8");

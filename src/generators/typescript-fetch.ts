@@ -150,7 +150,8 @@ export function createTypescriptFetchMetadata(): GeneratorMetadata {
 		modelFileExtension: ".ts",
 		apiFileExtension: ".ts",
 		defaultApiPackage: "apis",
-		modelTemplateFile: "modelGeneric.mustache",
+		defaultModelPackage: "models",
+		modelTemplateFile: "models.mustache",
 		apiTemplateFile: "apis.mustache",
 		supportingFiles: [
 			{

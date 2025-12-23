@@ -38,6 +38,19 @@ export interface SchemaTransformerOptions {
 	 * Reserved words that require model renaming (adds "Model" prefix)
 	 */
 	reservedWords?: Set<string>;
+
+	/**
+	 * Custom function to convert property names for the target language.
+	 * For Go, this returns PascalCase for exported fields.
+	 * If not provided, uses camelCase by default.
+	 */
+	toVarName?: (name: string) => string;
+
+	/**
+	 * Post-process a property for generator-specific transformations.
+	 * For Go, this adds x-go-base-type and x-go-datatag vendor extensions.
+	 */
+	postProcessProperty?: (property: CodegenProperty) => void;
 }
 
 const DEFAULT_TYPE_MAPPINGS: Record<string, string> = {
@@ -250,6 +263,11 @@ export class SchemaTransformer {
 					propSchema,
 					isRequired,
 				);
+
+				// Add parent model classname to property for template access
+				// This is needed because Handlebars doesn't auto-traverse parent scope
+				(property as unknown as Record<string, unknown>).classname =
+					model.classname;
 
 				model.vars.push(property);
 				model.allVars.push(property);
@@ -529,10 +547,15 @@ export class SchemaTransformer {
 		property.nameInPascalCase = pascalCase(propName);
 		property.nameInSnakeCase = snakeCase(propName);
 
-		// Vendor extensions
+		// Vendor extensions from schema
 		property.vendorExtensions = this.extractVendorExtensions(
 			schema as unknown as Record<string, unknown>,
 		);
+
+		// Generator-specific post-processing (e.g., Go vendor extensions)
+		if (this.options.postProcessProperty) {
+			this.options.postProcessProperty(property);
+		}
 
 		return property;
 	}
@@ -657,6 +680,11 @@ export class SchemaTransformer {
 	 * Convert a name to property naming convention
 	 */
 	private toPropertyName(name: string): string {
+		// Use custom toVarName function if provided (e.g., for Go PascalCase)
+		if (this.options.toVarName) {
+			return this.options.toVarName(name);
+		}
+
 		switch (this.options.propertyNaming) {
 			case "snake_case":
 				return snakeCase(name);

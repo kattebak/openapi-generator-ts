@@ -6,6 +6,7 @@ import { createDefaultConfig } from "../../core/config.js";
 import { createGenerator } from "../../core/generator.js";
 import {
 	getGenerator,
+	getGeneratorAdditionalProperties,
 	hasGenerator,
 	listGenerators,
 } from "../../generators/index.js";
@@ -75,6 +76,29 @@ export async function generateCommand(options: GenerateOptions): Promise<void> {
 		debug: options.debug,
 		validateSpec: true,
 	});
+
+	// Get generator specific additional properties and merge them
+	const generatorProps = getGeneratorAdditionalProperties(
+		options.generatorName,
+		config,
+	);
+
+	// Merge generator properties into additionalProperties
+	config.additionalProperties = {
+		...generatorProps,
+		...config.additionalProperties,
+	};
+
+	// Update top-level config properties if provided by generator defaults
+	if (generatorProps.packageName && !config.packageName) {
+		config.packageName = generatorProps.packageName as string;
+	}
+	if (generatorProps.apiPackage && !config.apiPackage) {
+		config.apiPackage = generatorProps.apiPackage as string;
+	}
+	if (generatorProps.modelPackage && !config.modelPackage) {
+		config.modelPackage = generatorProps.modelPackage as string;
+	}
 
 	if (options.verbose) {
 		console.log("OpenAPI Generator");

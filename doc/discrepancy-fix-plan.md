@@ -503,6 +503,12 @@ The project will be considered aligned with upstream when:
 | Wrong file structure         | Set `defaultApiPackage`/`defaultModelPackage` to `""`                  |
 | Wrong filenames              | Added `toModelFilename`/`toApiFilename` hooks                          |
 | int32 instead of int64       | Added `int64` format to `GO_TYPE_MAPPINGS`                             |
+| Operation names casing       | Added `toGoOperationId` hook for PascalCase                            |
+| HTTP method casing           | Added `postProcessGoOperation` to PascalCase `httpMethod`              |
+| Content types template       | Fixed `api.mustache` Handlebars syntax for consumes/produces           |
+| Missing `strings` import     | Added logic to `postProcessGoOperation` to import `strings`            |
+| `openapi.yaml` missing       | Added `openapi-yaml` to global template context                        |
+| `wildcard` response          | Added `wildcard` property to `CodegenResponse`                         |
 
 ### Remaining Model Issues (Cosmetic)
 
@@ -518,66 +524,31 @@ The project will be considered aligned with upstream when:
 
 ### Remaining API File Issues
 
-#### 1. Operation names not PascalCase
+All critical API file issues for Go have been resolved.
+
+#### 1. Operation names not PascalCase (Fixed)
 
 **Problem:** `createPets` instead of `CreatePets` (Go exported functions must be capitalized)
 
-**Location:** `src/parser/operation-transformer.ts` or `src/generators/go.ts`
+**Fix:** Implemented `toGoOperationId` in `src/generators/go.ts` using `pascalCase`.
 
-**Fix approach:**
-
-```typescript
-// In go.ts, add toOperationId hook
-function toGoOperationId(operationId: string): string {
-  return camelize(operationId); // PascalCase
-}
-```
-
-**Files to modify:**
-
-- `src/core/config.ts` - Add `toOperationId` to GeneratorMetadata
-- `src/parser/operation-transformer.ts` - Use hook when setting operationId
-- `src/generators/go.ts` - Implement `toGoOperationId`
-
-#### 2. HTTP method constant wrong case
+#### 2. HTTP method constant wrong case (Fixed)
 
 **Problem:** `http.MethodPOST` instead of `http.MethodPost`
 
-**Location:** Template or operation transformer
+**Fix:** Implemented `postProcessGoOperation` in `src/generators/go.ts` to PascalCase the `httpMethod`.
 
-**Investigation needed:**
-
-```bash
-grep -r "MethodPOST\|MethodPost" templates/go/
-grep -r "httpMethod" src/parser/
-```
-
-**Likely fix:** Operation transformer sets `httpMethod` to uppercase (`POST`), but Go uses `http.MethodPost` (PascalCase).
-
-#### 3. Content types template not rendering
+#### 3. Content types template not rendering (Fixed)
 
 **Problem:** Raw template syntax appearing: `<%#consumes%>""<%^-last%>, <%/-last%><%/consumes%>`
 
-**Location:** `templates/go/api.mustache`
+**Fix:** Manually updated `templates/go/api.mustache` to use correct Handlebars syntax.
 
-**Cause:** Template uses `<% %>` delimiters which aren't being processed
-
-**Fix approach:**
-
-- Check `src/cli/convert-template.ts` for delimiter handling
-- May need to add conversion for this specific pattern
-
-#### 4. Missing `strings` import
+#### 4. Missing `strings` import (Fixed)
 
 **Problem:** API file missing `"strings"` import
 
-**Investigation needed:**
-
-```bash
-grep -n "strings" tmp/original-go/api_pets.go
-```
-
-**Likely fix:** Need to detect when `strings` package is used and add to imports
+**Fix:** Added logic in `postProcessGoOperation` to add `strings` to imports if path parameters exist.
 
 ### Implementation Priority
 

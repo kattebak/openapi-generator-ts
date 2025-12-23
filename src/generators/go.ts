@@ -2,6 +2,7 @@
  * Go Generator
  * Generates Go client code
  */
+import { pascalCase, snakeCase } from "es-toolkit/string";
 import type { CodegenConfig, GeneratorMetadata } from "../core/config.js";
 
 /**
@@ -67,6 +68,8 @@ const GO_RESERVED_WORDS = new Set([
 const GO_TYPE_MAPPINGS: Record<string, string> = {
 	// Primitives
 	integer: "int32",
+	int32: "int32",
+	int64: "int64",
 	long: "int64",
 	number: "float32",
 	float: "float32",
@@ -96,6 +99,7 @@ const GO_TYPE_MAPPINGS: Record<string, string> = {
 	// Object/Any
 	object: "map[string]interface{}",
 	AnyType: "interface{}",
+	array: "[]",
 };
 
 /**
@@ -105,6 +109,132 @@ const GO_IMPORT_MAPPINGS: Record<string, string> = {
 	"time.Time": "time",
 	"*os.File": "os",
 };
+
+/**
+ * Helper to convert to underscore (snake_case) - matches Java underscore() function
+ */
+function underscore(name: string): string {
+	return snakeCase(name);
+}
+
+/**
+ * Go-specific API class name conversion
+ * Creates "PetsAPI" style names (uppercase API suffix)
+ */
+function toGoApiClassName(tag: string, suffix: string): string {
+	return pascalCase(tag) + suffix;
+}
+
+/**
+ * Go-specific model filename conversion
+ * Creates "model_pet.go" style filenames
+ */
+function toGoModelFilename(modelName: string): string {
+	return `model_${underscore(modelName)}.go`;
+}
+
+/**
+ * Go-specific API filename conversion
+ * Creates "api_pets.go" style filenames
+ */
+function toGoApiFilename(className: string): string {
+	// Remove the API suffix before converting to snake_case
+	const baseName = className.replace(/API$/i, "");
+	const filename = `api_${underscore(baseName)}.go`;
+	console.log(`API Filename: ${className} -> ${filename}`);
+	return filename;
+}
+
+/**
+ * Go-specific operation ID conversion
+ * Go exported methods must be PascalCase
+ */
+function toGoOperationId(name: string): string {
+	return pascalCase(name);
+}
+
+/**
+ * Go-specific variable name conversion
+ * Go exported fields must be PascalCase (capitalized) to be accessible from other packages
+ */
+function toGoVarName(name: string): string {
+	// Handle reserved words
+	if (GO_RESERVED_WORDS.has(name.toLowerCase())) {
+		return `${pascalCase(name)}_`;
+	}
+
+	// If it's all upper case, keep it (e.g., ID, URL)
+	if (/^[A-Z_]+$/.test(name)) {
+		return name;
+	}
+
+	// Convert to PascalCase for Go exported fields
+	return pascalCase(name);
+}
+
+/**
+ * Post-process an operation for Go-specific transformations.
+ * Sets httpMethod to PascalCase (e.g. "Post") for http.MethodPost.
+ */
+function postProcessGoOperation(
+	operation: import("../models/index.js").CodegenOperation,
+): void {
+	console.log(`Processing operation: ${operation.operationId}`);
+	operation.httpMethod = pascalCase(operation.httpMethod);
+
+	// Go-specific parameter processing
+	for (const param of operation.allParams) {
+		// Set x-export-param-name for method builder pattern
+		// e.g. func (r Request) Pet(pet Pet) Request
+		param.vendorExtensions["x-export-param-name"] = pascalCase(param.paramName);
+	}
+
+	// Add imports if needed
+	if (operation.pathParams.length > 0) {
+		operation.imports.add("strings");
+	}
+}
+
+/**
+ * Post-process a property for Go-specific transformations.
+ * Sets x-go-base-type and x-go-datatag vendor extensions.
+ */
+function postProcessGoProperty(
+	property: import("../models/index.js").CodegenProperty,
+): void {
+	// x-go-base-type is the original data type (before nullable transformation)
+	property.vendorExtensions["x-go-base-type"] = property.dataType;
+
+	// Build the JSON struct tag
+	let tag = `json:"${property.baseName}`;
+	if (!property.required) {
+		tag += ",omitempty";
+	}
+	tag += '"';
+
+	// Wrap in backticks for Go struct tag syntax
+	property.vendorExtensions["x-go-datatag"] = ` \`${tag}\``;
+}
+
+/**
+ * Post-process a model for Go-specific transformations.
+ * Sets x-go-generate-marshal-json and x-go-generate-unmarshal-json vendor extensions.
+ * Also adds required imports (bytes, fmt) for marshal/unmarshal methods.
+ */
+function postProcessGoModel(
+	model: import("../models/index.js").CodegenModel,
+): void {
+	// Enable MarshalJSON/UnmarshalJSON generation for all models
+	// This matches the Java generator's default behavior
+	model.vendorExtensions["x-go-generate-marshal-json"] = true;
+	model.vendorExtensions["x-go-generate-unmarshal-json"] = true;
+
+	// Add imports needed for MarshalJSON/UnmarshalJSON
+	// bytes is used for bytes.NewReader in UnmarshalJSON
+	// fmt is used for fmt.Errorf when validating required properties
+	model.imports.add("bytes");
+	model.imports.add("fmt");
+}
 
 /**
  * Create Go generator metadata
@@ -120,9 +250,29 @@ export function createGoMetadata(): GeneratorMetadata {
 		embeddedTemplateDir: "go",
 		modelFileExtension: ".go",
 		apiFileExtension: ".go",
+		// Go uses flat structure - no subdirectories
+		defaultApiPackage: "",
+		defaultModelPackage: "",
 		modelTemplateFile: "model.mustache",
 		apiTemplateFile: "api.mustache",
+		modelDocTemplateFile: "model_doc.mustache",
+		apiDocTemplateFile: "api_doc.mustache",
+		// Go naming conventions
+		apiNameSuffix: "API",
+		toApiClassName: toGoApiClassName,
+		toModelFilename: toGoModelFilename,
+		toApiFilename: toGoApiFilename,
+		toVarName: toGoVarName,
+		toOperationId: toGoOperationId,
+		postProcessProperty: postProcessGoProperty,
+		postProcessModel: postProcessGoModel,
+		postProcessOperation: postProcessGoOperation,
 		supportingFiles: [
+			{
+				templateFile: "openapi.mustache",
+				folder: "api",
+				destinationFilename: "openapi.yaml",
+			},
 			{
 				templateFile: "README.mustache",
 				folder: "",
