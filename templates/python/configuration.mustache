@@ -720,32 +720,32 @@ conf = {{{packageName}}}.Configuration(
                 'url': "{{{url}}}",
                 'description': "{{{description}}}{{#unless description}}No description provided{{/unless}}",
                 {{#variables}}
-                {{#-first}}
+                {{#if @first}}
                 'variables': {
-                {{/-first}}
+                {{/if}}
                     '{{{name}}}': {
                         'description': "{{{description}}}{{#unless description}}No description provided{{/unless}}",
                         'default_value': "{{{defaultValue}}}",
                         {{#enumValues}}
-                        {{#-first}}
+                        {{#if @first}}
                         'enum_values': [
-                        {{/-first}}
-                            "{{{.}}}"{{^-last}},{{/-last}}
-                        {{#-last}}
+                        {{/if}}
+                            "{{{.}}}"{{#unless @last}},{{/unless}}
+                        {{#if @last}}
                         ]
-                        {{/-last}}
+                        {{/if}}
                         {{/enumValues}}
                         {{^enumValues}}
                         {{#async}}
                         'enum_values': []
                         {{/async}}
                         {{/enumValues}}
-                        }{{^-last}},{{/-last}}
-                {{#-last}}
+                        }{{#unless @last}},{{/unless}}
+                {{#if @last}}
                     }
-                {{/-last}}
+                {{/if}}
                 {{/variables}}
-            }{{^-last}},{{/-last}}
+            }{{#unless @last}},{{/unless}}
             {{/servers}}
         ]
 

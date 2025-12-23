@@ -12,10 +12,10 @@ type {{classname}} struct {
 {{/isArray}}
 {{/parentModel.name}}
 {{#vars}}
-{{^-first}}
-{{/-first}}
+{{#unless @first}}
+{{/unless}}
 {{#if description}}
-	// {{{.}}}
+	// {{{description}}}
 {{/if}}
 {{#deprecated}}
 	// Deprecated
@@ -41,7 +41,7 @@ type _{{{classname}}} {{{classname}}}
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func New{{classname}}({{#requiredVars}}{{nameInCamelCase}} {{dataType}}{{^-last}}, {{/-last}}{{/requiredVars}}) *{{classname}} {
+func New{{classname}}({{#requiredVars}}{{nameInCamelCase}} {{dataType}}{{#unless @last}}, {{/unless}}{{/requiredVars}}) *{{classname}} {
 	this := {{classname}}{}
 {{#allVars}}
 {{#required}}
@@ -52,11 +52,11 @@ func New{{classname}}({{#requiredVars}}{{nameInCamelCase}} {{dataType}}{{^-last}
 {{^vendorExtensions.x-golang-is-container}}
 {{^isReadOnly}}
 {{#isNullable}}
-	var {{nameInCamelCase}} {{{datatypeWithEnum}}} = {{{.}}}
+	var {{nameInCamelCase}} {{{datatypeWithEnum}}} = {{{defaultValue}}}
 	this.{{name}} = *New{{{dataType}}}(&{{nameInCamelCase}})
 {{/isNullable}}
 {{^isNullable}}
-	var {{nameInCamelCase}} {{{dataType}}} = {{{.}}}
+	var {{nameInCamelCase}} {{{dataType}}} = {{{defaultValue}}}
 	this.{{name}} = &{{nameInCamelCase}}
 {{/isNullable}}
 {{/isReadOnly}}
@@ -78,11 +78,11 @@ func New{{classname}}WithDefaults() *{{classname}} {
 {{^isReadOnly}}
 {{#isNullable}}
 {{!we use datatypeWithEnum here, since it will represent the non-nullable name of the datatype, e.g. int64 for NullableInt64}}
-	var {{nameInCamelCase}} {{{datatypeWithEnum}}} = {{{.}}}
+	var {{nameInCamelCase}} {{{datatypeWithEnum}}} = {{{defaultValue}}}
 	this.{{name}} = *New{{{dataType}}}(&{{nameInCamelCase}})
 {{/isNullable}}
 {{^isNullable}}
-	var {{nameInCamelCase}} {{{dataType}}} = {{{.}}}
+	var {{nameInCamelCase}} {{{dataType}}} = {{{defaultValue}}}
 	this.{{name}} = {{^required}}&{{/required}}{{nameInCamelCase}}
 {{/isNullable}}
 {{/isReadOnly}}
@@ -287,7 +287,7 @@ func (o {{classname}}) MarshalJSON() ([]byte, error) {
 {{/vendorExtensions.x-go-generate-marshal-json}}
 func (o {{classname}}) ToMap() (map[string]interface{}, error) {
 	toSerialize := {{#isArray}}make([]interface{}, len(o.Items)){{/isArray}}{{^isArray}}map[string]interface{}{}{{/isArray}}
-	{{#if parent}}
+	{{#parent}}
 	{{^isMap}}
 	{{^isArray}}
 	serialized{{parent}}, err{{parent}} := json.Marshal(o.{{parent}})
@@ -305,12 +305,12 @@ func (o {{classname}}) ToMap() (map[string]interface{}, error) {
 		toSerialize[i] = item
 	}
 	{{/isArray}}
-	{{/if}}
+	{{/parent}}
 	{{#vars}}
-	{{!if argument is nullable, only serialize it if it is set}}
+	{{! if argument is nullable, only serialize it if it is set}}
 	{{#isNullable}}
 	{{#vendorExtensions.x-golang-is-container}}
-	{{!support for container fields is not ideal at this point because of lack of Nullable* types}}
+	{{! support for container fields is not ideal at this point because of lack of Nullable* types}}
 	if o.{{name}} != nil {
 		toSerialize["{{{baseName}}}"] = o.{{name}}
 	}
@@ -326,7 +326,7 @@ func (o {{classname}}) ToMap() (map[string]interface{}, error) {
 	{{/required}}
 	{{/vendorExtensions.x-golang-is-container}}
 	{{/isNullable}}
-	{{!if argument is not nullable, don't set it if it is nil}}
+	{{! if argument is not nullable, don't set it if it is nil}}
 	{{^isNullable}}
 	{{#required}}
 	{{#useDefaultValuesForRequiredVars}}
@@ -425,14 +425,14 @@ func (o *{{{classname}}}) UnmarshalJSON(data []byte) (err error) {
 	{{/useDefaultValuesForRequiredVars}}
 {{/hasRequired}}
 {{#isAdditionalPropertiesTrue}}
-{{#if parent}}
+{{#parent}}
 {{^isMap}}
 	type {{classname}}WithoutEmbeddedStruct struct {
 	{{#vars}}
-	{{^-first}}
-	{{/-first}}
+	{{#unless @first}}
+	{{/unless}}
 	{{#if description}}
-		// {{{.}}}
+		// {{{description}}}
 	{{/if}}
 	{{#deprecated}}
 		// Deprecated
@@ -515,8 +515,8 @@ func (o *{{{classname}}}) UnmarshalJSON(data []byte) (err error) {
 
 	return err
 {{/isMap}}
-{{/if}}
-{{#unless parent}}
+{{/parent}}
+{{^parent}}
 	var{{{classname}}} := _{{{classname}}}{}
 
 	err = json.Unmarshal(data, &var{{{classname}}})
@@ -537,7 +537,7 @@ func (o *{{{classname}}}) UnmarshalJSON(data []byte) (err error) {
 	}
 
 	return err
-{{/unless}}
+{{/parent}}
 {{/isAdditionalPropertiesTrue}}
 {{#isAdditionalPropertiesTrue}}
 }

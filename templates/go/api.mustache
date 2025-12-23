@@ -25,21 +25,21 @@ type {{classname}} interface {
 	{{/if}}
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().{{#pathParams}}
-	@param {{paramName}}{{#if description}} {{{.}}}{{/if}}{{/pathParams}}
-	@return {{#structPrefix}}{{{classname}}}{{/structPrefix}}{{^structPrefix}}Api{{/structPrefix}}{{operationId}}Request
+	@param {{paramName}}{{#if description}} {{{description}}}{{/if}}{{/pathParams}}
+	@return {{#structPrefix}}{{&classname}}{{/structPrefix}}{{^structPrefix}}Api{{/structPrefix}}{{operationId}}Request
 	{{#isDeprecated}}
 
 	Deprecated
 	{{/isDeprecated}}
 	*/
-	{{{nickname}}}(ctx context.Context{{#pathParams}}, {{paramName}} {{{dataType}}}{{/pathParams}}) {{#structPrefix}}{{{classname}}}{{/structPrefix}}{{^structPrefix}}Api{{/structPrefix}}{{operationId}}Request
+	{{{nickname}}}(ctx context.Context{{#pathParams}}, {{paramName}} {{{dataType}}}{{/pathParams}}) {{#structPrefix}}{{&classname}}{{/structPrefix}}{{^structPrefix}}Api{{/structPrefix}}{{operationId}}Request
 
 	// {{nickname}}Execute executes the request{{#if returnType}}
-	//  @return {{{.}}}{{/if}}
+	//  @return {{{returnType}}}{{/if}}
 	{{#isDeprecated}}
 	// Deprecated
 	{{/isDeprecated}}
-	{{nickname}}Execute(r {{#structPrefix}}{{{classname}}}{{/structPrefix}}{{^structPrefix}}Api{{/structPrefix}}{{operationId}}Request) ({{#if returnType}}{{^isArray}}{{^returnTypeIsPrimitive}}{{^isResponseFile}}*{{/isResponseFile}}{{/returnTypeIsPrimitive}}{{/isArray}}{{{.}}}, {{/if}}*http.Response, error)
+	{{nickname}}Execute(r {{#structPrefix}}{{&classname}}{{/structPrefix}}{{^structPrefix}}Api{{/structPrefix}}{{operationId}}Request) ({{#if returnType}}{{^isArray}}{{^returnTypeIsPrimitive}}{{^isResponseFile}}*{{/isResponseFile}}{{/returnTypeIsPrimitive}}{{/isArray}}{{{returnType}}}, {{/if}}*http.Response, error)
 	{{/operation}}
 }
 {{/generateInterfaces}}
@@ -48,7 +48,7 @@ type {{classname}} interface {
 type {{classname}}Service service
 {{#operation}}
 
-type {{#structPrefix}}{{{classname}}}{{/structPrefix}}{{^structPrefix}}Api{{/structPrefix}}{{operationId}}Request struct {
+type {{#structPrefix}}{{&classname}}{{/structPrefix}}{{^structPrefix}}Api{{/structPrefix}}{{operationId}}Request struct {
 	ctx context.Context{{#generateInterfaces}}
 	ApiService {{classname}}
 {{/generateInterfaces}}{{^generateInterfaces}}
@@ -62,19 +62,19 @@ type {{#structPrefix}}{{{classname}}}{{/structPrefix}}{{^structPrefix}}Api{{/str
 {{#allParams}}
 {{^isPathParam}}
 {{#if description}}
-// {{.}}
+// {{description}}
 {{/if}}
 {{#isDeprecated}}
 // Deprecated
 {{/isDeprecated}}
-func (r {{#structPrefix}}{{{classname}}}{{/structPrefix}}{{^structPrefix}}Api{{/structPrefix}}{{operationId}}Request) {{vendorExtensions.x-export-param-name}}({{paramName}} {{{dataType}}}) {{#structPrefix}}{{{classname}}}{{/structPrefix}}{{^structPrefix}}Api{{/structPrefix}}{{operationId}}Request {
+func (r {{#structPrefix}}{{&classname}}{{/structPrefix}}{{^structPrefix}}Api{{/structPrefix}}{{operationId}}Request) {{vendorExtensions.x-export-param-name}}({{paramName}} {{{dataType}}}) {{#structPrefix}}{{&classname}}{{/structPrefix}}{{^structPrefix}}Api{{/structPrefix}}{{operationId}}Request {
 	r.{{paramName}} = {{^isFile}}&{{/isFile}}{{paramName}}
 	return r
 }
 
 {{/isPathParam}}
 {{/allParams}}
-func (r {{#structPrefix}}{{{classname}}}{{/structPrefix}}{{^structPrefix}}Api{{/structPrefix}}{{operationId}}Request) Execute() ({{#if returnType}}{{^isArray}}{{^returnTypeIsPrimitive}}{{^isResponseFile}}*{{/isResponseFile}}{{/returnTypeIsPrimitive}}{{/isArray}}{{{.}}}, {{/if}}*http.Response, error) {
+func (r {{#structPrefix}}{{&classname}}{{/structPrefix}}{{^structPrefix}}Api{{/structPrefix}}{{operationId}}Request) Execute() ({{#if returnType}}{{^isArray}}{{^returnTypeIsPrimitive}}{{^isResponseFile}}*{{/isResponseFile}}{{/returnTypeIsPrimitive}}{{/isArray}}{{{returnType}}}, {{/if}}*http.Response, error) {
 	return r.ApiService.{{nickname}}Execute(r)
 }
 
@@ -86,15 +86,15 @@ func (r {{#structPrefix}}{{{classname}}}{{/structPrefix}}{{^structPrefix}}Api{{/
 {{/if}}
 
  @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().{{#pathParams}}
- @param {{paramName}}{{#if description}} {{{.}}}{{/if}}{{/pathParams}}
- @return {{#structPrefix}}{{{classname}}}{{/structPrefix}}{{^structPrefix}}Api{{/structPrefix}}{{operationId}}Request
+ @param {{paramName}}{{#if description}} {{{description}}}{{/if}}{{/pathParams}}
+ @return {{#structPrefix}}{{&classname}}{{/structPrefix}}{{^structPrefix}}Api{{/structPrefix}}{{operationId}}Request
 {{#isDeprecated}}
 
 Deprecated
 {{/isDeprecated}}
 */
-func (a *{{{classname}}}Service) {{{nickname}}}(ctx context.Context{{#pathParams}}, {{paramName}} {{{dataType}}}{{/pathParams}}) {{#structPrefix}}{{{classname}}}{{/structPrefix}}{{^structPrefix}}Api{{/structPrefix}}{{operationId}}Request {
-	return {{#structPrefix}}{{{classname}}}{{/structPrefix}}{{^structPrefix}}Api{{/structPrefix}}{{operationId}}Request{
+func (a *{{{classname}}}Service) {{{nickname}}}(ctx context.Context{{#pathParams}}, {{paramName}} {{{dataType}}}{{/pathParams}}) {{#structPrefix}}{{&classname}}{{/structPrefix}}{{^structPrefix}}Api{{/structPrefix}}{{operationId}}Request {
+	return {{#structPrefix}}{{&classname}}{{/structPrefix}}{{^structPrefix}}Api{{/structPrefix}}{{operationId}}Request{
 		ApiService: a,
 		ctx: ctx,
 		{{#pathParams}}
@@ -104,17 +104,17 @@ func (a *{{{classname}}}Service) {{{nickname}}}(ctx context.Context{{#pathParams
 }
 
 // Execute executes the request{{#if returnType}}
-//  @return {{{.}}}{{/if}}
+//  @return {{{returnType}}}{{/if}}
 {{#isDeprecated}}
 // Deprecated
 {{/isDeprecated}}
-func (a *{{{classname}}}Service) {{nickname}}Execute(r {{#structPrefix}}{{{classname}}}{{/structPrefix}}{{^structPrefix}}Api{{/structPrefix}}{{operationId}}Request) ({{#if returnType}}{{^isArray}}{{^returnTypeIsPrimitive}}{{^isResponseFile}}*{{/isResponseFile}}{{/returnTypeIsPrimitive}}{{/isArray}}{{{.}}}, {{/if}}*http.Response, error) {
+func (a *{{{classname}}}Service) {{nickname}}Execute(r {{#structPrefix}}{{&classname}}{{/structPrefix}}{{^structPrefix}}Api{{/structPrefix}}{{operationId}}Request) ({{#if returnType}}{{^isArray}}{{^returnTypeIsPrimitive}}{{^isResponseFile}}*{{/isResponseFile}}{{/returnTypeIsPrimitive}}{{/isArray}}{{{returnType}}}, {{/if}}*http.Response, error) {
 	var (
 		localVarHTTPMethod   = http.Method{{httpMethod}}
 		localVarPostBody     interface{}
 		formFiles            []formFile
 		{{#if returnType}}
-		localVarReturnValue  {{^isArray}}{{^returnTypeIsPrimitive}}{{^isResponseFile}}*{{/isResponseFile}}{{/returnTypeIsPrimitive}}{{/isArray}}{{{.}}}
+		localVarReturnValue  {{^isArray}}{{^returnTypeIsPrimitive}}{{^isResponseFile}}*{{/isResponseFile}}{{/returnTypeIsPrimitive}}{{/isArray}}{{{returnType}}}
 		{{/if}}
 	)
 
@@ -146,16 +146,16 @@ func (a *{{{classname}}}Service) {{nickname}}Execute(r {{#structPrefix}}{{{class
 		return {{#if returnType}}localVarReturnValue, {{/if}}nil, reportError("{{paramName}} must have less than {{maxItems}} elements")
 	}
 	{{/maxItems}}
-	{{#minLength}}
+	{{#if minLength}}
 	if strlen({{^isPathParam}}*{{/isPathParam}}r.{{paramName}}) < {{minLength}} {
 		return {{#if returnType}}localVarReturnValue, {{/if}}nil, reportError("{{paramName}} must have at least {{minLength}} elements")
 	}
-	{{/minLength}}
-	{{#maxLength}}
+	{{/if}}
+	{{#if maxLength}}
 	if strlen({{^isPathParam}}*{{/isPathParam}}r.{{paramName}}) > {{maxLength}} {
 		return {{#if returnType}}localVarReturnValue, {{/if}}nil, reportError("{{paramName}} must have less than {{maxLength}} elements")
 	}
-	{{/maxLength}}
+	{{/if}}
 	{{#if minimum}}
 	{{#isString}}
 	{{paramName}}Txt, err := atoi({{^isPathParam}}*{{/isPathParam}}r.{{paramName}})
@@ -216,23 +216,23 @@ func (a *{{{classname}}}Service) {{nickname}}Execute(r {{#structPrefix}}{{{class
 	{{^isCollectionFormatMulti}}
 		parameterAddToHeaderOrQuery(localVarQueryParams, "{{{baseName}}}", r.{{paramName}}, "{{style}}", "{{collectionFormat}}")
 	{{/isCollectionFormatMulti}}
-	{{#if defaultValue}}} else {
+	{{#if defaultValue}} } else {
     {{#isArray}}
-        var defaultValue {{{dataType}}} = {{{dataType}}}{{{.}}}
+        var defaultValue {{{dataType}}} = {{{dataType}}}{{{defaultValue}}}
         parameterAddToHeaderOrQuery(localVarQueryParams, "{{{baseName}}}", defaultValue, "{{style}}", "{{collectionFormat}}")
         r.{{paramName}} = &defaultValue
     {{/isArray}}
     {{^isArray}}
-        var defaultValue {{{dataType}}} = {{{.}}}
+        var defaultValue {{{dataType}}} = {{{defaultValue}}}
         parameterAddToHeaderOrQuery(localVarQueryParams, "{{{baseName}}}", defaultValue, "{{style}}", "{{collectionFormat}}")
         r.{{paramName}} = &defaultValue
     {{/isArray}}
-	{{/if}}}
+	{{/if}} }
 	{{/required}}
 	{{/queryParams}}
 	// to determine the Content-Type header
 
-	localVarHTTPContentTypes := []string{{{#consumes}}"{{{mediaType}}}"{{^-last}}, {{/-last}}{{/consumes}}}
+	localVarHTTPContentTypes := []string{<%#consumes%>"{{{mediaType}}}"<%^-last%>, <%/-last%><%/consumes%>}
 
 
 	// set Content-Type header
@@ -243,7 +243,7 @@ func (a *{{{classname}}}Service) {{nickname}}Execute(r {{#structPrefix}}{{{class
 
 	// to determine the Accept header
 
-	localVarHTTPHeaderAccepts := []string{{{#produces}}"{{{mediaType}}}"{{^-last}}, {{/-last}}{{/produces}}}
+	localVarHTTPHeaderAccepts := []string{<%#produces%>"{{{mediaType}}}"<%^-last%>, <%/-last%><%/produces%>}
 
 
 	// set Accept header
@@ -395,7 +395,7 @@ func (a *{{{classname}}}Service) {{nickname}}Execute(r {{#structPrefix}}{{{class
 			error: localVarHTTPResponse.Status,
 		}
 		{{#responses}}
-		{{#if dataType}}
+		{{#dataType}}
 		{{^is1xx}}
 		{{^is2xx}}
 		{{#range}}
@@ -422,15 +422,15 @@ func (a *{{{classname}}}Service) {{nickname}}Execute(r {{#structPrefix}}{{{class
 			}
 					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
 					newErr.model = v
-			{{^-last}}
+			{{#unless @last}}
 			return {{#if returnType}}localVarReturnValue, {{/if}}localVarHTTPResponse, newErr
-			{{/-last}}
+			{{/unless}}
 		{{^wildcard}}
 		}
 		{{/wildcard}}
 		{{/is2xx}}
 		{{/is1xx}}
-		{{/if}}
+		{{/dataType}}
 		{{/responses}}
 		return {{#if returnType}}localVarReturnValue, {{/if}}localVarHTTPResponse, newErr
 	}

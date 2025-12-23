@@ -11,11 +11,11 @@ import {
 {{/tsImports}}
 
 {{/hasImports}}
-{{#if discriminator}}
-{{#if discriminator.mappedModels}}
+{{#discriminator}}
+{{#discriminator.mappedModels}}
 import { type {{modelName}}, {{modelName}}FromJSONTyped, {{modelName}}ToJSON, {{modelName}}ToJSONTyped } from './{{modelName}}{{importFileExtension}}';
-{{/if}}
-{{/if}}
+{{/discriminator.mappedModels}}
+{{/discriminator}}
 {{>modelGenericInterfaces}}
 
 
@@ -40,13 +40,13 @@ export function {{classname}}FromJSONTyped(json: any, ignoreDiscriminator: boole
     if (json == null) {
         return json;
     }
-{{#if discriminator}}
+{{#discriminator}}
     if (!ignoreDiscriminator) {
-{{#if discriminator.mappedModels}}
+{{#discriminator.mappedModels}}
         if (json['{{discriminator.propertyBaseName}}'] === '{{mappingName}}') {
             return {{modelName}}FromJSONTyped(json, ignoreDiscriminator);
         }
-{{/if}}
+{{/discriminator.mappedModels}}
     {{#hasSelfReferencingDiscriminatorMapping}}
         if (json['{{discriminator.propertyBaseName}}'] === '{{selfReferencingDiscriminatorMapping.mappingName}}') {
             return {{selfReferencingDiscriminatorMapping.modelName}}FromJSONTyped(json, true);
@@ -54,9 +54,9 @@ export function {{classname}}FromJSONTyped(json: any, ignoreDiscriminator: boole
     {{/hasSelfReferencingDiscriminatorMapping}}
 
     }
-{{/if}}
+{{/discriminator}}
     return {
-        {{#if parent}}...{{{.}}}FromJSONTyped(json, true),{{/if}}
+        {{#parent}}...{{{.}}}FromJSONTyped(json, true),{{/parent}}
         {{#additionalPropertiesType}}
             ...json,
         {{/additionalPropertiesType}}
@@ -119,27 +119,27 @@ export function {{classname}}ToJSON(json: any): {{classname}} {
     return {{classname}}ToJSONTyped(json, false);
 }
 
-export function {{classname}}ToJSONTyped(value?: {{#hasReadOnly}}Omit<{{classname}}, {{#readOnlyVars}}'{{baseName}}'{{^-last}}|{{/-last}}{{/readOnlyVars}}>{{/hasReadOnly}}{{^hasReadOnly}}{{classname}}{{/hasReadOnly}} | null, ignoreDiscriminator: boolean = false): any {
+export function {{classname}}ToJSONTyped(value?: {{#hasReadOnly}}Omit<{{classname}}, {{#readOnlyVars}}'{{baseName}}'{{#unless @last}}|{{/unless}}{{/readOnlyVars}}>{{/hasReadOnly}}{{^hasReadOnly}}{{classname}}{{/hasReadOnly}} | null, ignoreDiscriminator: boolean = false): any {
     {{#hasVars}}
     if (value == null) {
         return value;
     }
-    {{#if discriminator}}
+    {{#discriminator}}
 
     if (!ignoreDiscriminator) {
         switch (value['{{discriminator.propertyName}}']) {
-        {{#if discriminator.mappedModels}}
+        {{#discriminator.mappedModels}}
             case '{{mappingName}}':
                 return {{modelName}}ToJSONTyped(value as {{modelName}}, ignoreDiscriminator);
-        {{/if}}
+        {{/discriminator.mappedModels}}
             default:
                 return value;
         }
     }
-    {{/if}}
+    {{/discriminator}}
 
     return {
-        {{#if parent}}...{{{.}}}ToJSONTyped(value, true),{{/if}}
+        {{#parent}}...{{{.}}}ToJSONTyped(value, true),{{/parent}}
         {{#additionalPropertiesType}}
             ...value,
         {{/additionalPropertiesType}}
@@ -214,12 +214,12 @@ export const {{classname}}PropertyValidationAttributesMap: {
 {{#vars}}
 {{#hasValidation}}
     {{name}}: {
-        {{#maxLength}}
+        {{#if maxLength}}
         maxLength: {{maxLength}},
-        {{/maxLength}}
-        {{#minLength}}
+        {{/if}}
+        {{#if minLength}}
         minLength: {{minLength}},
-        {{/minLength}}
+        {{/if}}
         {{#if pattern}}
         pattern: '{{pattern}}',
         {{/if}}

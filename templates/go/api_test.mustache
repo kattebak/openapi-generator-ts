@@ -1,7 +1,7 @@
 /*
-{{#appName}}
-{{{.}}}
-{{/appName}}
+{{#if appName}}
+{{{appName}}}
+{{/if}}
 
 Testing {{classname}}Service
 
@@ -32,10 +32,10 @@ func Test_{{packageName}}_{{classname}}Service(t *testing.T) {
 		t.Skip("skip test")  // remove to run test
 		{{/pathParams}}
 		{{#pathParams}}
-		{{#-first}}
+		{{#if @first}}
 		t.Skip("skip test")  // remove to run test
 
-		{{/-first}}
+		{{/if}}
 		{{#isPrimitiveType}}
 		var {{paramName}} {{{dataType}}}
 		{{/isPrimitiveType}}

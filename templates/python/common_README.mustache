@@ -1,10 +1,10 @@
 ```python
-{{#apiInfo}}{{#apis}}{{#-last}}{{#hasHttpSignatureMethods}}import datetime{{/hasHttpSignatureMethods}}{{/-last}}{{/apis}}{{/apiInfo}}
+{{#apiInfo}}{{#apis}}{{#if @last}}{{#hasHttpSignatureMethods}}import datetime{{/hasHttpSignatureMethods}}{{/if}}{{/apis}}{{/apiInfo}}
 import {{{packageName}}}
 from {{{packageName}}}.rest import ApiException
 from pprint import pprint
-{{#apiInfo}}{{#apis}}{{#-first}}{{#operations}}{{#operation}}{{#-first}}
-{{>python_doc_auth_partial}}
+{{#apiInfo}}{{#apis}}{{#if @first}}{{#operations}}{{#operation}}{{#if @first}}
+{{> python_doc_auth_partial}}
 
 
 # Enter a context with an instance of the API client
@@ -12,21 +12,21 @@ from pprint import pprint
     # Create an instance of the API class
     api_instance = {{{packageName}}}.{{{classname}}}(api_client)
     {{#allParams}}
-    {{paramName}} = {{{example}}} # {{{dataType}}} | {{{description}}}{{^required}} (optional){{/required}}{{#if defaultValue}} (default to {{{.}}}){{/if}}
+    {{paramName}} = {{{example}}} # {{{dataType}}} | {{{description}}}{{^required}} (optional){{/required}}{{#if defaultValue}} (default to {{{defaultValue}}}){{/if}}
     {{/allParams}}
 
     try:
         {{#if summary}}
-        # {{{.}}}
+        # {{{summary}}}
         {{/if}}
-        {{#if returnType}}api_response = {{/if}}{{#async}}await {{/async}}api_instance.{{{operationId}}}({{#allParams}}{{#required}}{{paramName}}{{/required}}{{^required}}{{paramName}}={{paramName}}{{/required}}{{^-last}}, {{/-last}}{{/allParams}})
+        {{#if returnType}}api_response = {{/if}}{{#async}}await {{/async}}api_instance.{{{operationId}}}({{#allParams}}{{#required}}{{paramName}}{{/required}}{{^required}}{{paramName}}={{paramName}}{{/required}}{{#unless @last}}, {{/unless}}{{/allParams}})
         {{#if returnType}}
         print("The response of {{classname}}->{{operationId}}:\n")
         pprint(api_response)
         {{/if}}
     except ApiException as e:
         print("Exception when calling {{classname}}->{{operationId}}: %s\n" % e)
-{{/-first}}{{/operation}}{{/operations}}{{/-first}}{{/apis}}{{/apiInfo}}
+{{/if}}{{/operation}}{{/operations}}{{/if}}{{/apis}}{{/apiInfo}}
 ```
 
 ## Documentation for API Endpoints
@@ -81,5 +81,5 @@ Class | Method | HTTP request | Description
 
 ## Author
 
-{{#apiInfo}}{{#apis}}{{#-last}}{{infoEmail}}
-{{/-last}}{{/apis}}{{/apiInfo}}
+{{#apiInfo}}{{#apis}}{{#if @last}}{{infoEmail}}
+{{/if}}{{/apis}}{{/apiInfo}}

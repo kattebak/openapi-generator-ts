@@ -85,13 +85,13 @@ class {{classname}}:
 
         {{#if servers}}
         _hosts = [{{#servers}}
-            '{{{url}}}'{{^-last}},{{/-last}}{{/servers}}
+            '{{{url}}}'{{#unless @last}},{{/unless}}{{/servers}}
         ]
         _host = _hosts[_host_index]
         {{/if}}
         {{#unless servers}}
         _host = None
-        {{/unless}}
+        {{/if}}
 
         _collection_formats: Dict[str, str] = {
             {{#allParams}}
@@ -198,7 +198,7 @@ class {{classname}}:
         if 'Accept' not in _header_params:
             _header_params['Accept'] = self.api_client.select_header_accept(
                 [{{#produces}}
-                    '{{{mediaType}}}'{{^-last}}, {{/-last}}{{/produces}}
+                    '{{{mediaType}}}'{{#unless @last}}, {{/unless}}{{/produces}}
                 ]
             )
         {{/hasProduces}}
@@ -211,7 +211,7 @@ class {{classname}}:
             _default_content_type = (
                 self.api_client.select_header_content_type(
                     [{{#consumes}}
-                        '{{{mediaType}}}'{{^-last}}, {{/-last}}{{/consumes}}
+                        '{{{mediaType}}}'{{#unless @last}}, {{/unless}}{{/consumes}}
                     ]
                 )
             )
@@ -221,7 +221,7 @@ class {{classname}}:
 
         # authentication setting
         _auth_settings: List[str] = [{{#authMethods}}
-            '{{name}}'{{^-last}}, {{/-last}}{{/authMethods}}
+            '{{name}}'{{#unless @last}}, {{/unless}}{{/authMethods}}
         ]
 
         return self.api_client.param_serialize(

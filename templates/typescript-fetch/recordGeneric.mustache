@@ -236,7 +236,7 @@ class {{classname}}RecordUtils extends ApiRecordUtils<{{classname}}, {{classname
         return apiObject;
     }
 {{#returnPassthrough}}
-{{#vars.1}}
+{{#vars.[1]}}
 
     public fromApiPassthrough(apiObject: {{classname}}): {{{dataTypeAlternate}}} {
     {{#isModel}}
@@ -283,7 +283,7 @@ class {{classname}}RecordUtils extends ApiRecordUtils<{{classname}}, {{classname
     {{/isArray}}
     {{/isEntity}}
     }
-{{/vars.1}}
+{{/vars.[1]}}
 {{/returnPassthrough}}
 }
 

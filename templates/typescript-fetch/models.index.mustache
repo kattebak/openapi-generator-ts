@@ -3,10 +3,10 @@
 {{#models}}
 {{#model}}
 {{^withoutRuntimeChecks}}
-export * from './{{{classFilename}}}{{importFileExtension}}';
+export * from './{{{ classFilename }}}{{importFileExtension}}';
 {{#useSagaAndRecords}}
 {{^isEnum}}
-export * from './{{{classFilename}}}Record{{importFileExtension}}';
+export * from './{{{ classFilename }}}Record{{importFileExtension}}';
 {{/isEnum}}
 {{/useSagaAndRecords}}
 {{/withoutRuntimeChecks}}
@@ -17,10 +17,10 @@ export * from './{{{classFilename}}}Record{{importFileExtension}}';
 {{/isEnum}}
 {{^isEnum}}
 {{#oneOf}}
-{{#-first}}
+{{#if @first}}
 {{>modelOneOfInterfaces}}
 
-{{/-first}}
+{{/if}}
 {{/oneOf}}
 {{^oneOf}}
 {{>modelGenericInterfaces}}

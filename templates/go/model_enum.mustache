@@ -1,12 +1,12 @@
 // {{{classname}}} {{{description}}}{{#unless description}}the model '{{{classname}}}'{{/unless}}
-type {{{classname}}} {{{format}}}{{#unless format}}{{dataType}}{{/unless}}
+type {{{classname}}} {{{format}}}{{^format}}{{dataType}}{{/format}}
 
 // List of {{{name}}}
 const (
 	{{#allowableValues}}
 	{{#enumVars}}
-	{{^-first}}
-	{{/-first}}
+	{{#unless @first}}
+	{{/unless}}
 	{{#enumClassPrefix}}{{{classname.toUpperCase}}}_{{/enumClassPrefix}}{{name}} {{{classname}}} = {{{value}}}
 	{{/enumVars}}
 	{{/allowableValues}}
@@ -22,7 +22,7 @@ var Allowed{{{classname}}}EnumValues = []{{{classname}}}{
 }
 
 func (v *{{{classname}}}) UnmarshalJSON(src []byte) error {
-	var value {{{format}}}{{#unless format}}{{dataType}}{{/unless}}
+	var value {{{format}}}{{^format}}{{dataType}}{{/format}}
 	err := json.Unmarshal(src, &value)
 	if err != nil {
 		return err
@@ -40,7 +40,7 @@ func (v *{{{classname}}}) UnmarshalJSON(src []byte) error {
 
 // New{{{classname}}}FromValue returns a pointer to a valid {{{classname}}}
 // for the value passed as argument, or an error if the value passed is not allowed by the enum
-func New{{{classname}}}FromValue(v {{{format}}}{{#unless format}}{{dataType}}{{/unless}}) (*{{{classname}}}, error) {
+func New{{{classname}}}FromValue(v {{{format}}}{{^format}}{{dataType}}{{/format}}) (*{{{classname}}}, error) {
 	ev := {{{classname}}}(v)
 	if ev.IsValid() {
 		return &ev, nil

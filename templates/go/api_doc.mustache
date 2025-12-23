@@ -1,6 +1,6 @@
 # {{invokerPackage}}\{{classname}}{{#if description}}
 
-{{.}}{{/if}}
+{{description}}{{/if}}
 
 All URIs are relative to *{{basePath}}*
 
@@ -14,7 +14,7 @@ Method | HTTP request | Description
 
 ## {{{operationId}}}
 
-> {{#if returnType}}{{{.}}} {{/if}}{{{operationId}}}(ctx{{#pathParams}}, {{paramName}}{{/pathParams}}){{#allParams}}{{^isPathParam}}.{{vendorExtensions.x-export-param-name}}({{paramName}}){{/isPathParam}}{{/allParams}}.Execute()
+> {{#if returnType}}{{{returnType}}} {{/if}}{{{operationId}}}(ctx{{#pathParams}}, {{paramName}}{{/pathParams}}){{#allParams}}{{^isPathParam}}.{{vendorExtensions.x-export-param-name}}({{paramName}}){{/isPathParam}}{{/allParams}}.Execute()
 
 {{{summary}}}{{#if notes}}
 
@@ -37,7 +37,7 @@ import (
 
 func main() {
 	{{#allParams}}
-	{{paramName}} := {{{vendorExtensions.x-go-example}}} // {{{dataType}}} | {{{description}}}{{^required}} (optional){{/required}}{{#if defaultValue}} (default to {{{.}}}){{/if}}
+	{{paramName}} := {{{vendorExtensions.x-go-example}}} // {{{dataType}}} | {{{description}}}{{^required}} (optional){{/required}}{{#if defaultValue}} (default to {{{defaultValue}}}){{/if}}
 	{{/allParams}}
 
 	configuration := {{goImportAlias}}.NewConfiguration()
@@ -48,7 +48,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
 	}
 	{{#if returnType}}
-	// response from `{{operationId}}`: {{{.}}}
+	// response from `{{operationId}}`: {{{returnType}}}
 	fmt.Fprintf(os.Stdout, "Response from `{{classname}}.{{operationId}}`: %v\n", resp)
 	{{/if}}
 }
@@ -56,20 +56,20 @@ func main() {
 
 ### Path Parameters
 
-{{^allParams}}This endpoint does not need any parameter.{{/allParams}}{{#pathParams}}{{#-last}}
+{{^allParams}}This endpoint does not need any parameter.{{/allParams}}{{#pathParams}}{{#if @last}}
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
-**ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.{{/-last}}{{/pathParams}}{{#pathParams}}
-**{{paramName}}** | {{^isPrimitiveType}}{{^isFile}}[{{/isFile}}{{/isPrimitiveType}}**{{dataType}}**{{^isPrimitiveType}}{{^isFile}}]({{baseType}}.md){{/isFile}}{{/isPrimitiveType}} | {{description}} | {{#if defaultValue}}[default to {{.}}]{{/if}}{{/pathParams}}
+**ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.{{/if}}{{/pathParams}}{{#pathParams}}
+**{{paramName}}** | {{^isPrimitiveType}}{{^isFile}}[{{/isFile}}{{/isPrimitiveType}}**{{dataType}}**{{^isPrimitiveType}}{{^isFile}}]({{baseType}}.md){{/isFile}}{{/isPrimitiveType}} | {{description}} | {{#if defaultValue}}[default to {{defaultValue}}]{{/if}}{{/pathParams}}
 
 ### Other Parameters
 
 Other parameters are passed through a pointer to a api{{{nickname}}}Request struct via the builder pattern
-{{#allParams}}{{#-last}}
+{{#allParams}}{{#if @last}}
 
 Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------{{/-last}}{{/allParams}}{{#allParams}}
-{{^isPathParam}} **{{paramName}}** | {{#isContainer}}{{#isArray}}{{#items}}{{^isPrimitiveType}}{{^isFile}}[{{/isFile}}{{/isPrimitiveType}}**[]{{dataType}}**{{^isPrimitiveType}}{{^isFile}}]({{#unless baseType}}{{dataType}}{{/unless}}{{baseType}}.md){{/isFile}}{{/isPrimitiveType}}{{/items}}{{/isArray}}{{#isMap}}{{#items}}{{^isPrimitiveType}}{{^isFile}}[{{/isFile}}{{/isPrimitiveType}}**map[string]{{dataType}}**{{^isPrimitiveType}}{{^isFile}}]({{#unless baseType}}{{dataType}}{{/unless}}{{baseType}}.md){{/isFile}}{{/isPrimitiveType}}{{/items}}{{/isMap}}{{/isContainer}}{{^isContainer}}{{^isPrimitiveType}}{{^isFile}}[{{/isFile}}{{/isPrimitiveType}}**{{dataType}}**{{^isPrimitiveType}}{{^isFile}}]({{#unless baseType}}{{dataType}}{{/unless}}{{baseType}}.md){{/isFile}}{{/isPrimitiveType}}{{/isContainer}} | {{description}} | {{#if defaultValue}}[default to {{.}}]{{/if}}{{/isPathParam}}{{/allParams}}
+------------- | ------------- | ------------- | -------------{{/if}}{{/allParams}}{{#allParams}}
+{{^isPathParam}} **{{paramName}}** | {{#isContainer}}{{#isArray}}{{#items}}{{^isPrimitiveType}}{{^isFile}}[{{/isFile}}{{/isPrimitiveType}}**[]{{dataType}}**{{^isPrimitiveType}}{{^isFile}}]({{^baseType}}{{dataType}}{{/baseType}}{{baseType}}.md){{/isFile}}{{/isPrimitiveType}}{{/items}}{{/isArray}}{{#isMap}}{{#items}}{{^isPrimitiveType}}{{^isFile}}[{{/isFile}}{{/isPrimitiveType}}**map[string]{{dataType}}**{{^isPrimitiveType}}{{^isFile}}]({{^baseType}}{{dataType}}{{/baseType}}{{baseType}}.md){{/isFile}}{{/isPrimitiveType}}{{/items}}{{/isMap}}{{/isContainer}}{{^isContainer}}{{^isPrimitiveType}}{{^isFile}}[{{/isFile}}{{/isPrimitiveType}}**{{dataType}}**{{^isPrimitiveType}}{{^isFile}}]({{^baseType}}{{dataType}}{{/baseType}}{{baseType}}.md){{/isFile}}{{/isPrimitiveType}}{{/isContainer}} | {{description}} | {{#if defaultValue}}[default to {{defaultValue}}]{{/if}}{{/isPathParam}}{{/allParams}}
 
 ### Return type
 
@@ -77,12 +77,12 @@ Name | Type | Description  | Notes
 
 ### Authorization
 
-{{^authMethods}}No authorization required{{/authMethods}}{{#authMethods}}[{{{name}}}](../README.md#{{{name}}}){{^-last}}, {{/-last}}{{/authMethods}}
+{{^authMethods}}No authorization required{{/authMethods}}{{#authMethods}}[{{{name}}}](../README.md#{{{name}}}){{#unless @last}}, {{/unless}}{{/authMethods}}
 
 ### HTTP request headers
 
-- **Content-Type**: {{#consumes}}{{{mediaType}}}{{^-last}}, {{/-last}}{{/consumes}}{{^consumes}}Not defined{{/consumes}}
-- **Accept**: {{#produces}}{{{mediaType}}}{{^-last}}, {{/-last}}{{/produces}}{{^produces}}Not defined{{/produces}}
+- **Content-Type**: {{#consumes}}{{{mediaType}}}{{#unless @last}}, {{/unless}}{{/consumes}}{{^consumes}}Not defined{{/consumes}}
+- **Accept**: {{#produces}}{{{mediaType}}}{{#unless @last}}, {{/unless}}{{/produces}}{{^produces}}Not defined{{/produces}}
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)
 [[Back to Model list]](../README.md#documentation-for-models)

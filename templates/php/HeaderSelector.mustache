@@ -82,7 +82,7 @@ class HeaderSelector
             return implode(',', $accept);
         }
 
-        # If we got here, then we need add quality values (weight), as described in IETF RFC 9110, Items 12.4.2/12.5.1,
+        # If we got here, then we need add quality values (weight), as described in IETF RFC 9110, Items 12.[4].2/12.[5].1,
         # to give the highest priority to json-like headers - recalculating the existing ones, if needed
         return $this->getAcceptHeaderWithAdjustedWeight($accept, $headersWithJson);
     }

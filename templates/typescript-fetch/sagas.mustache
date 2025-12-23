@@ -72,7 +72,7 @@ export interface Payload{{#titlecase}}{{#camelcase}}{{nickname}}{{/camelcase}}{{
 }
 {{/if}}
 
-export const {{nickname}}Request = createSagaAction<{{#if allParams}}Payload{{#titlecase}}{{#camelcase}}{{nickname}}{{/camelcase}}{{/titlecase}}Request{{/if}}{{#unless allParams}}void{{/unless}}>("{{nickname}}Request");
+export const {{nickname}}Request = createSagaAction<{{#if allParams}}Payload{{#titlecase}}{{#camelcase}}{{nickname}}{{/camelcase}}{{/titlecase}}Request{{/if}}{{#unless allParams}}void{{/if}}>("{{nickname}}Request");
 {{#if returnType}}
 export const {{nickname}}Success = createSagaAction<{{#hasReturnPassthroughVoid}}void{{/hasReturnPassthroughVoid}}{{^hasReturnPassthroughVoid}}{{{returnTypeAlternate}}}{{/hasReturnPassthroughVoid}}>("{{nickname}}Success");
 {{#returnTypeSupportsEntities}}

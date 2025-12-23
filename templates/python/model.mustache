@@ -10,7 +10,7 @@
 
 {{/isEnum}}
 {{^isEnum}}
-{{#oneOf}}{{#-first}}{{>model_oneof}}{{/-first}}{{/oneOf}}{{^oneOf}}{{#anyOf}}{{#-first}}{{>model_anyof}}{{/-first}}{{/anyOf}}{{^anyOf}}{{>model_generic}}{{/anyOf}}{{/oneOf}}
+{{#oneOf}}{{#if @first}}{{>model_oneof}}{{/if}}{{/oneOf}}{{^oneOf}}{{#anyOf}}{{#if @first}}{{>model_anyof}}{{/if}}{{/anyOf}}{{^anyOf}}{{>model_generic}}{{/anyOf}}{{/oneOf}}
 {{/isEnum}}
 {{/model}}
 {{/models}}

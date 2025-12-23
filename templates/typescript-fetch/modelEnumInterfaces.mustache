@@ -12,7 +12,7 @@ export enum {{classname}} {
     * {{enumDescription}}
     */
     {{/enumDescription}}
-    {{{name}}} = {{{value}}}{{^-last}},{{/-last}}
+    {{{name}}} = {{{value}}}{{#unless @last}},{{/unless}}
 {{/enumVars}}
 {{/allowableValues}}
 }
@@ -29,7 +29,7 @@ export const {{classname}} = {
     * {{enumDescription}}
     */
     {{/enumDescription}}
-    {{{name}}}: {{{value}}}{{^-last}},{{/-last}}
+    {{{name}}}: {{{value}}}{{#unless @last}},{{/unless}}
 {{/enumVars}}
 {{/allowableValues}}
 } as const;

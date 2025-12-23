@@ -7,9 +7,9 @@ export * from './allSagas{{importFileExtension}}'
 {{#apiInfo}}
 {{#apis}}
 {{#operations}}
-export * from './{{classFilename}}{{importFileExtension}}';
+export * from './{{ classFilename }}{{importFileExtension}}';
 {{#useSagaAndRecords}}
-export * from './{{{classFilename}}}Sagas{{importFileExtension}}';
+export * from './{{{ classFilename }}}Sagas{{importFileExtension}}';
 {{/useSagaAndRecords}}
 {{/operations}}
 {{/apis}}

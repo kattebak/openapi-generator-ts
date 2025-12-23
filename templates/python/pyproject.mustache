@@ -8,21 +8,21 @@ name = "{{{packageName}}}"
 version = "{{{packageVersion}}}"
 description = "{{{appName}}}"
 {{#poetry1}}
-authors = ["{{infoName}}{{^infoName}}OpenAPI Generator Community{{/infoName}} <{{infoEmail}}{{^infoEmail}}team@openapitools.org{{/infoEmail}}>"]
+authors = ["{{infoName}}{{^infoName}}OpenAPI Generator Community{{/infoName}} <{{infoEmail}}{{#unless infoEmail}}team@openapitools.org{{/unless}}>"]
 {{/poetry1}}
 {{^poetry1}}
 authors = [
-  {name = "{{infoName}}{{^infoName}}OpenAPI Generator Community{{/infoName}}",email = "{{infoEmail}}{{^infoEmail}}team@openapitools.org{{/infoEmail}}"},
+  {name = "{{infoName}}{{^infoName}}OpenAPI Generator Community{{/infoName}}",email = "{{infoEmail}}{{#unless infoEmail}}team@openapitools.org{{/unless}}"},
 ]
 {{/poetry1}}
-{{#licenseInfo}}
+{{#if licenseInfo}}
 {{#poetry1}}
 license = "{{{licenseInfo}}}"
 {{/poetry1}}
 {{^poetry1}}
 license = { text = "{{{licenseInfo}}}" }
 {{/poetry1}}
-{{/licenseInfo}}
+{{/if}}
 readme = "README.md"
 {{#poetry1}}
 repository = "https://{{{gitHost}}}/{{{gitUserId}}}/{{{gitRepoId}}}"
@@ -34,25 +34,25 @@ include = ["{{packageName}}/py.typed"]
 [tool.poetry.dependencies]
 python = "^3.9"
 {{^async}}
-urllib3 = ">= 2.1.0, < 3.0.0"
+urllib3 = ">= 2.[1].0, < 3.[0].0"
 {{/async}}
-python-dateutil = ">= 2.8.2"
+python-dateutil = ">= 2.[8].2"
 {{#asyncio}}
-aiohttp = ">= 3.8.4"
-aiohttp-retry = ">= 2.8.3"
+aiohttp = ">= 3.[8].4"
+aiohttp-retry = ">= 2.[8].3"
 {{/asyncio}}
 {{#httpx}}
-httpx = ">= 0.28.1"
+httpx = ">= 0.[28].1"
 {{/httpx}}
 {{#tornado}}
 tornado = ">=4.2, <5"
 {{/tornado}}
 {{#hasHttpSignatureMethods}}
-pem = ">= 19.3.0"
-pycryptodome = ">= 3.9.0"
+pem = ">= 19.[3].0"
+pycryptodome = ">= 3.[9].0"
 {{/hasHttpSignatureMethods}}
 pydantic = ">= 2"
-typing-extensions = ">= 4.7.1"
+typing-extensions = ">= 4.[7].1"
 {{#lazyImports}}
 lazy-imports = ">= 1, < 2"
 {{/lazyImports}}
@@ -62,25 +62,25 @@ requires-python = ">=3.9"
 
 dependencies = [
 {{^async}}
-  "urllib3 (>=2.1.0,<3.0.0)",
+  "urllib3 (>=2.[1].0,<3.[0].0)",
 {{/async}}
-  "python-dateutil (>=2.8.2)",
+  "python-dateutil (>=2.[8].2)",
 {{#httpx}}
-  "httpx (>=0.28.1)",
+  "httpx (>=0.[28].1)",
 {{/httpx}}
 {{#asyncio}}
-  "aiohttp (>=3.8.4)",
-  "aiohttp-retry (>=2.8.3)",
+  "aiohttp (>=3.[8].4)",
+  "aiohttp-retry (>=2.[8].3)",
 {{/asyncio}}
 {{#tornado}}
   "tornado (>=4.2,<5)",
 {{/tornado}}
 {{#hasHttpSignatureMethods}}
-  "pem (>=19.3.0)",
-  "pycryptodome (>=3.9.0)",
+  "pem (>=19.[3].0)",
+  "pycryptodome (>=3.[9].0)",
 {{/hasHttpSignatureMethods}}
   "pydantic (>=2)",
-  "typing-extensions (>=4.7.1)",
+  "typing-extensions (>=4.[7].1)",
 {{#lazyImports}}
   "lazy-imports (>=1,<2)"
 {{/lazyImports}}
@@ -101,11 +101,11 @@ requires-poetry = ">=2.0"
 {{^poetry1}}
 [tool.poetry.group.dev.dependencies]
 {{/poetry1}}
-pytest = ">= 7.2.1"
-pytest-cov = ">= 2.8.1"
-tox = ">= 3.9.0"
-flake8 = ">= 4.0.0"
-types-python-dateutil = ">= 2.8.19.14"
+pytest = ">= 7.[2].1"
+pytest-cov = ">= 2.[8].1"
+tox = ">= 3.[9].0"
+flake8 = ">= 4.[0].0"
+types-python-dateutil = ">= 2.[8].19.14"
 mypy = ">= 1.5"
 
 

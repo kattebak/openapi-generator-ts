@@ -30,40 +30,40 @@ export function {{classname}}FromJSONTyped(json: any, ignoreDiscriminator: boole
     if (json == null) {
         return json;
     }
-{{#if discriminator}}
+{{#discriminator}}
     switch (json['{{discriminator.propertyBaseName}}']) {
-{{#if discriminator.mappedModels}}
+{{#discriminator.mappedModels}}
         case '{{mappingName}}':
             return Object.assign({}, {{modelName}}FromJSONTyped(json, true), { {{discriminator.propertyName}}: '{{mappingName}}' } as const);
-{{/if}}
+{{/discriminator.mappedModels}}
         default:
             return json;
     }
-{{/if}}
-{{#unless discriminator}}
+{{/discriminator}}
+{{^discriminator}}
     {{#oneOfModels}}
-    {{#-first}}
+    {{#if @first}}
     if (typeof json !== 'object') {
         return json;
     }
-    {{/-first}}
+    {{/if}}
     if (instanceOf{{{.}}}(json)) {
         return {{{.}}}FromJSONTyped(json, true);
     }
     {{/oneOfModels}}
     {{#oneOfArrays}}
-    {{#-first}}
+    {{#if @first}}
     if (Array.isArray(json)) {
         if (json.every(item => typeof item === 'object')) {
-    {{/-first}}
+    {{/if}}
             if (json.every(item => instanceOf{{{.}}}(item))) {
                 return json.map(value => {{{.}}}FromJSONTyped(value, true));
             }
-    {{#-last}}
+    {{#if @last}}
         }
         return json;
     }
-    {{/-last}}
+    {{/if}}
     {{/oneOfArrays}}
     {{#oneOfPrimitives}}
     {{#isArray}}
@@ -84,21 +84,21 @@ export function {{classname}}FromJSONTyped(json: any, ignoreDiscriminator: boole
     {{/isDateTimeType}}
     {{#isNumeric}}
     if (Array.isArray(json)) {
-        if (json.every(item => typeof item === 'number'{{#isEnum}} && ({{#allowableValues}}{{#values}}item === {{.}}{{^-last}} || {{/-last}}{{/values}}{{/allowableValues}}){{/isEnum}})) {
+        if (json.every(item => typeof item === 'number'{{#isEnum}} && ({{#allowableValues}}{{#values}}item === {{.}}{{#unless @last}} || {{/unless}}{{/values}}{{/allowableValues}}){{/isEnum}})) {
             return json;
         }
     }
     {{/isNumeric}}
     {{#isBoolean}}
     if (Array.isArray(json)) {
-        if (json.every(item => typeof item === 'boolean'{{#isEnum}} && ({{#allowableValues}}{{#values}}item === {{.}}{{^-last}} || {{/-last}}{{/values}}{{/allowableValues}}){{/isEnum}})) {
+        if (json.every(item => typeof item === 'boolean'{{#isEnum}} && ({{#allowableValues}}{{#values}}item === {{.}}{{#unless @last}} || {{/unless}}{{/values}}{{/allowableValues}}){{/isEnum}})) {
             return json;
         }
     }
     {{/isBoolean}}
     {{#isString}}
     if (Array.isArray(json)) {
-        if (json.every(item => typeof item === 'string'{{#isEnum}} && ({{#allowableValues}}{{#values}}item === '{{.}}'{{^-last}} || {{/-last}}{{/values}}{{/allowableValues}}){{/isEnum}})) {
+        if (json.every(item => typeof item === 'string'{{#isEnum}} && ({{#allowableValues}}{{#values}}item === '{{.}}'{{#unless @last}} || {{/unless}}{{/values}}{{/allowableValues}}){{/isEnum}})) {
             return json;
         }
     }
@@ -119,24 +119,24 @@ export function {{classname}}FromJSONTyped(json: any, ignoreDiscriminator: boole
     {{/isDateTimeType}}
     {{/isDateType}}
     {{#isNumeric}}
-    if (typeof json === 'number'{{#isEnum}} && ({{#allowableValues}}{{#values}}json === {{.}}{{^-last}} || {{/-last}}{{/values}}{{/allowableValues}}){{/isEnum}}) {
+    if (typeof json === 'number'{{#isEnum}} && ({{#allowableValues}}{{#values}}json === {{.}}{{#unless @last}} || {{/unless}}{{/values}}{{/allowableValues}}){{/isEnum}}) {
         return json;
     }
     {{/isNumeric}}
     {{#isBoolean}}
-    if (typeof json === 'boolean'{{#isEnum}} && ({{#allowableValues}}{{#values}}json === {{.}}{{^-last}} || {{/-last}}{{/values}}{{/allowableValues}}){{/isEnum}}) {
+    if (typeof json === 'boolean'{{#isEnum}} && ({{#allowableValues}}{{#values}}json === {{.}}{{#unless @last}} || {{/unless}}{{/values}}{{/allowableValues}}){{/isEnum}}) {
         return json;
     }
     {{/isBoolean}}
     {{#isString}}
-    if (typeof json === 'string'{{#isEnum}} && ({{#allowableValues}}{{#values}}json === '{{.}}'{{^-last}} || {{/-last}}{{/values}}{{/allowableValues}}){{/isEnum}}) {
+    if (typeof json === 'string'{{#isEnum}} && ({{#allowableValues}}{{#values}}json === '{{.}}'{{#unless @last}} || {{/unless}}{{/values}}{{/allowableValues}}){{/isEnum}}) {
         return json;
     }
     {{/isString}}
     {{/isArray}}
     {{/oneOfPrimitives}}
     return {} as any;
-{{/unless}}
+{{/discriminator}}
 }
 
 export function {{classname}}ToJSON(json: any): any {
@@ -147,40 +147,40 @@ export function {{classname}}ToJSONTyped(value?: {{classname}} | null, ignoreDis
     if (value == null) {
         return value;
     }
-{{#if discriminator}}
+{{#discriminator}}
     switch (value['{{discriminator.propertyName}}']) {
-{{#if discriminator.mappedModels}}
+{{#discriminator.mappedModels}}
         case '{{mappingName}}':
             return Object.assign({}, {{modelName}}ToJSON(value), { {{discriminator.propertyName}}: '{{mappingName}}' } as const);
-{{/if}}
+{{/discriminator.mappedModels}}
         default:
             return value;
     }
-{{/if}}
-{{#unless discriminator}}
+{{/discriminator}}
+{{^discriminator}}
     {{#oneOfModels}}
-    {{#-first}}
+    {{#if @first}}
     if (typeof value !== 'object') {
         return value;
     }
-    {{/-first}}
+    {{/if}}
     if (instanceOf{{{.}}}(value)) {
         return {{{.}}}ToJSON(value as {{{.}}});
     }
     {{/oneOfModels}}
     {{#oneOfArrays}}
-    {{#-first}}
+    {{#if @first}}
     if (Array.isArray(value)) {
         if (value.every(item => typeof item === 'object')) {
-    {{/-first}}
+    {{/if}}
             if (value.every(item => instanceOf{{{.}}}(item))) {
                 return value.map(value => {{{.}}}ToJSON(value as {{{.}}}));
             }
-    {{#-last}}
+    {{#if @last}}
         }
         return value;
     }
-    {{/-last}}
+    {{/if}}
     {{/oneOfArrays}}
     {{#oneOfPrimitives}}
     {{#isArray}}
@@ -201,21 +201,21 @@ export function {{classname}}ToJSONTyped(value?: {{classname}} | null, ignoreDis
     {{/isDateTimeType}}
     {{#isNumeric}}
     if (Array.isArray(value)) {
-        if (value.every(item => typeof item === 'number'{{#isEnum}} && ({{#allowableValues}}{{#values}}item === {{.}}{{^-last}} || {{/-last}}{{/values}}{{/allowableValues}}){{/isEnum}})) {
+        if (value.every(item => typeof item === 'number'{{#isEnum}} && ({{#allowableValues}}{{#values}}item === {{.}}{{#unless @last}} || {{/unless}}{{/values}}{{/allowableValues}}){{/isEnum}})) {
             return value;
         }
     }
     {{/isNumeric}}
     {{#isBoolean}}
     if (Array.isArray(value)) {
-        if (value.every(item => typeof item === 'boolean'{{#isEnum}} && ({{#allowableValues}}{{#values}}item === {{.}}{{^-last}} || {{/-last}}{{/values}}{{/allowableValues}}){{/isEnum}})) {
+        if (value.every(item => typeof item === 'boolean'{{#isEnum}} && ({{#allowableValues}}{{#values}}item === {{.}}{{#unless @last}} || {{/unless}}{{/values}}{{/allowableValues}}){{/isEnum}})) {
             return value;
         }
     }
     {{/isBoolean}}
     {{#isString}}
     if (Array.isArray(value)) {
-        if (value.every(item => typeof item === 'string'{{#isEnum}} && ({{#allowableValues}}{{#values}}item === '{{.}}'{{^-last}} || {{/-last}}{{/values}}{{/allowableValues}}){{/isEnum}})) {
+        if (value.every(item => typeof item === 'string'{{#isEnum}} && ({{#allowableValues}}{{#values}}item === '{{.}}'{{#unless @last}} || {{/unless}}{{/values}}{{/allowableValues}}){{/isEnum}})) {
             return value;
         }
     }
@@ -234,22 +234,22 @@ export function {{classname}}ToJSONTyped(value?: {{classname}} | null, ignoreDis
     }
     {{/isDateTimeType}}
     {{#isNumeric}}
-    if (typeof value === 'number'{{#isEnum}} && ({{#allowableValues}}{{#values}}value === {{.}}{{^-last}} || {{/-last}}{{/values}}{{/allowableValues}}){{/isEnum}}) {
+    if (typeof value === 'number'{{#isEnum}} && ({{#allowableValues}}{{#values}}value === {{.}}{{#unless @last}} || {{/unless}}{{/values}}{{/allowableValues}}){{/isEnum}}) {
         return value;
     }
     {{/isNumeric}}
     {{#isBoolean}}
-    if (typeof value === 'boolean'{{#isEnum}} && ({{#allowableValues}}{{#values}}value === {{.}}{{^-last}} || {{/-last}}{{/values}}{{/allowableValues}}){{/isEnum}}) {
+    if (typeof value === 'boolean'{{#isEnum}} && ({{#allowableValues}}{{#values}}value === {{.}}{{#unless @last}} || {{/unless}}{{/values}}{{/allowableValues}}){{/isEnum}}) {
         return value;
     }
     {{/isBoolean}}
     {{#isString}}
-    if (typeof value === 'string'{{#isEnum}} && ({{#allowableValues}}{{#values}}value === '{{.}}'{{^-last}} || {{/-last}}{{/values}}{{/allowableValues}}){{/isEnum}}) {
+    if (typeof value === 'string'{{#isEnum}} && ({{#allowableValues}}{{#values}}value === '{{.}}'{{#unless @last}} || {{/unless}}{{/values}}{{/allowableValues}}){{/isEnum}}) {
         return value;
     }
     {{/isString}}
     {{/isArray}}
     {{/oneOfPrimitives}}
     return {};
-{{/unless}}
+{{/discriminator}}
 }

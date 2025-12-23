@@ -1,6 +1,6 @@
 # {{classname}}{{#if description}}
 
-{{.}}{{/if}}
+{{description}}{{/if}}
 
 All URIs are relative to *{{basePath}}*
 
@@ -14,11 +14,11 @@ All URIs are relative to *{{basePath}}*
 
 ## {{operationId}}
 
-> {{#if returnType}}{{.}} {{/if}}{{operationId}}({{#allParams}}{{{paramName}}}{{^-last}}, {{/-last}}{{/allParams}})
+> {{#if returnType}}{{returnType}} {{/if}}{{operationId}}({{#allParams}}{{{paramName}}}{{#unless @last}}, {{/unless}}{{/allParams}})
 
 {{summary}}{{#if notes}}
 
-{{.}}{{/if}}
+{{notes}}{{/if}}
 
 ### Example
 
@@ -28,10 +28,10 @@ All URIs are relative to *{{basePath}}*
 
 ### Parameters
 
-{{^allParams}}This endpoint does not need any parameter.{{/allParams}}{{#allParams}}{{#-last}}
+{{^allParams}}This endpoint does not need any parameter.{{/allParams}}{{#allParams}}{{#if @last}}
 | Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|{{/-last}}{{/allParams}}
-{{#allParams}}| **{{paramName}}** | {{#isEnum}}{{#allowableValues}}{{#values}}`{{{.}}}`{{^-last}}, {{/-last}}{{/values}}{{/allowableValues}}{{/isEnum}}{{^isEnum}}{{#isModel}}[{{baseType}}]({{baseType}}.md){{/isModel}}{{^isModel}}`{{{dataType}}}`{{/isModel}}{{/isEnum}} | {{description}} |{{^required}} [Optional]{{/required}}{{^isContainer}}{{#if defaultValue}} [Defaults to `{{.}}`]{{/if}}{{/isContainer}}{{#allowableValues}} [Enum: {{#values}}{{{.}}}{{^-last}}, {{/-last}}{{/values}}]{{/allowableValues}} |
+|------------- | ------------- | ------------- | -------------|{{/if}}{{/allParams}}
+{{#allParams}}| **{{paramName}}** | {{#isEnum}}{{#allowableValues}}{{#values}}`{{{.}}}`{{#unless @last}}, {{/unless}}{{/values}}{{/allowableValues}}{{/isEnum}}{{^isEnum}}{{#isModel}}[{{baseType}}]({{baseType}}.md){{/isModel}}{{^isModel}}`{{{dataType}}}`{{/isModel}}{{/isEnum}} | {{description}} |{{^required}} [Optional]{{/required}}{{^isContainer}}{{#if defaultValue}} [Defaults to `{{defaultValue}}`]{{/if}}{{/isContainer}}{{#allowableValues}} [Enum: {{#values}}{{{.}}}{{#unless @last}}, {{/unless}}{{/values}}]{{/allowableValues}} |
 {{/allParams}}
 
 ### Return type
@@ -40,12 +40,12 @@ All URIs are relative to *{{basePath}}*
 
 ### Authorization
 
-{{^authMethods}}No authorization required{{/authMethods}}{{#authMethods}}[{{{name}}}{{#isOAuth}} {{flow}}{{/isOAuth}}](../README.md#{{{name}}}{{#isOAuth}}-{{flow}}{{/isOAuth}}){{^-last}}, {{/-last}}{{/authMethods}}
+{{^authMethods}}No authorization required{{/authMethods}}{{#authMethods}}[{{{name}}}{{#isOAuth}} {{flow}}{{/isOAuth}}](../README.md#{{{name}}}{{#isOAuth}}-{{flow}}{{/isOAuth}}){{#unless @last}}, {{/unless}}{{/authMethods}}
 
 ### HTTP request headers
 
-- **Content-Type**: {{#consumes}}`{{{mediaType}}}`{{^-last}}, {{/-last}}{{/consumes}}{{^consumes}}Not defined{{/consumes}}
-- **Accept**: {{#produces}}`{{{mediaType}}}`{{^-last}}, {{/-last}}{{/produces}}{{^produces}}Not defined{{/produces}}
+- **Content-Type**: {{#consumes}}`{{{mediaType}}}`{{#unless @last}}, {{/unless}}{{/consumes}}{{^consumes}}Not defined{{/consumes}}
+- **Accept**: {{#produces}}`{{{mediaType}}}`{{#unless @last}}, {{/unless}}{{/produces}}{{^produces}}Not defined{{/produces}}
 
 {{#if responses}}
 
@@ -53,7 +53,7 @@ All URIs are relative to *{{basePath}}*
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 {{#responses}}
-| **{{code}}** | {{message}} | {{#headers}} * {{baseName}} - {{description}} <br> {{/headers}}{{#unless headers}} - {{/unless}} |
+| **{{code}}** | {{message}} | {{#headers}} * {{baseName}} - {{description}} <br> {{/headers}}{{#unless headers}} - {{/if}} |
 {{/responses}}
 {{/if}}
 

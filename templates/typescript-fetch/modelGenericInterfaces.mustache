@@ -3,14 +3,14 @@
  * @export
  * @interface {{classname}}
  */
-export interface {{classname}} {{#if parent}}extends {{{.}}} {{/if}}{
+export interface {{classname}} {{#parent}}extends {{{.}}} {{/parent}}{
 {{#additionalPropertiesType}}
     [key: string]: {{{additionalPropertiesType}}}{{#hasVars}} | any{{/hasVars}};
 {{/additionalPropertiesType}}
 {{#vars}}
     /**
      * {{#indented_star_4}}{{{unescapedDescription}}}{{/indented_star_4}}
-     * @type \{{{datatype}}\}
+     * @type {{braceWrap datatype}}
      * @memberof {{classname}}
     {{#deprecated}}
      * @deprecated
@@ -30,7 +30,7 @@ export interface {{classname}} {{#if parent}}extends {{{.}}} {{/if}}{
 export enum {{classname}}{{enumName}} {
 {{#allowableValues}}
     {{#enumVars}}
-    {{{name}}} = {{{value}}}{{^-last}},{{/-last}}
+    {{{name}}} = {{{value}}}{{#unless @last}},{{/unless}}
     {{/enumVars}}
 {{/allowableValues}}
 }
@@ -41,7 +41,7 @@ export enum {{classname}}{{enumName}} {
 export const {{classname}}{{enumName}} = {
 {{#allowableValues}}
     {{#enumVars}}
-    {{{name}}}: {{{value}}}{{^-last}},{{/-last}}
+    {{{name}}}: {{{value}}}{{#unless @last}},{{/unless}}
     {{/enumVars}}
 {{/allowableValues}}
 } as const;

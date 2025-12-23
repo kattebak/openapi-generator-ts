@@ -171,11 +171,11 @@ use function sprintf;
      * Operation {{{operationId}}}
 {{#if summary}}
      *
-     * {{.}}
+     * {{summary}}
 {{/if}}
      *
 {{#if description}}
-     * {{.}}
+     * {{description}}
      *
 {{/if}}
 {{#exts.x-group-parameters}}
@@ -183,25 +183,25 @@ use function sprintf;
      *
 {{/exts.x-group-parameters}}
 {{#servers}}
-{{#-first}}
+{{#if @first}}
      * This operation contains host(s) defined in the OpenAP spec. Use 'hostIndex' to select the host.
-{{/-first}}
+{{/if}}
      * URL: {{{url}}}
-{{#-last}}
+{{#if @last}}
      *
-{{/-last}}
+{{/if}}
 {{/servers}}
 {{#allParams}}
-     * @param  {{{dataType}}} ${{paramName}}{{#if description}} {{description}}{{/if}}{{#unless description}} {{paramName}}{{/unless}} {{#required}}(required){{/required}}{{^required}}(optional{{#if defaultValue}}, default to {{{.}}}{{/if}}){{/required}}
+     * @param  {{{dataType}}} ${{paramName}}{{#if description}} {{description}}{{/if}}{{#unless description}} {{paramName}}{{/unless}} {{#required}}(required){{/required}}{{^required}}(optional{{#if defaultValue}}, default to {{{defaultValue}}}{{/if}}){{/required}}
 {{/allParams}}
      *
      * @throws \{{invokerPackage}}\ApiException on non-2xx response
      * @throws \InvalidArgumentException
-     * @return {{#if returnType}}{{#responses}}{{#if dataType}}{{^-first}}|{{/-first}}{{/if}}{{{dataType}}}{{/responses}}{{/if}}{{#unless returnType}}void{{/unless}}
+     * @return {{#if returnType}}{{#responses}}{{#dataType}}{{#unless @first}}|{{/unless}}{{/dataType}}{{{dataType}}}{{/responses}}{{/if}}{{#unless returnType}}void{{/unless}}
      */
-    public function {{operationId}}({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{^required}} = {{#if defaultValue}}{{{.}}}{{/if}}{{#unless defaultValue}}null{{/unless}}{{/required}}{{^-last}}, {{/-last}}{{/allParams}}{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}})
+    public function {{operationId}}({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{^required}} = {{{defaultValue}}}{{#unless defaultValue}}null{{/unless}}{{/required}}{{#unless @last}}, {{/unless}}{{/allParams}}{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}})
     {
-        {{#if returnType}}list($response) = {{/if}}$this->{{operationId}}WithHttpInfo({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{^-last}}, {{/-last}}{{/allParams}}{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}});{{#if returnType}}
+        {{#if returnType}}list($response) = {{/if}}$this->{{operationId}}WithHttpInfo({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{#unless @last}}, {{/unless}}{{/allParams}}{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}});{{#if returnType}}
         return $response;{{/if}}
     }
 
@@ -209,11 +209,11 @@ use function sprintf;
      * Operation {{{operationId}}}WithHttpInfo
 {{#if summary}}
      *
-     * {{.}}
+     * {{summary}}
 {{/if}}
      *
 {{#if description}}
-     * {{.}}
+     * {{description}}
      *
 {{/if}}
 {{#exts.x-group-parameters}}
@@ -221,25 +221,25 @@ use function sprintf;
      *
 {{/exts.x-group-parameters}}
 {{#servers}}
-{{#-first}}
+{{#if @first}}
      * This operation contains host(s) defined in the OpenAP spec. Use 'hostIndex' to select the host.
-{{/-first}}
+{{/if}}
      * URL: {{{url}}}
-{{#-last}}
+{{#if @last}}
      *
-{{/-last}}
+{{/if}}
 {{/servers}}
 {{#allParams}}
-     * @param  {{{dataType}}} ${{paramName}}{{#if description}} {{description}}{{/if}} {{#required}}(required){{/required}}{{^required}}(optional{{#if defaultValue}}, default to {{{.}}}{{/if}}){{/required}}
+     * @param  {{{dataType}}} ${{paramName}}{{#if description}} {{description}}{{/if}} {{#required}}(required){{/required}}{{^required}}(optional{{#if defaultValue}}, default to {{{defaultValue}}}{{/if}}){{/required}}
 {{/allParams}}
      *
      * @throws \{{invokerPackage}}\ApiException on non-2xx response
      * @throws \InvalidArgumentException
-     * @return array of {{#if returnType}}{{#responses}}{{#if dataType}}{{^-first}}|{{/-first}}{{/if}}{{{dataType}}}{{/responses}}{{/if}}{{#unless returnType}}null{{/unless}}, HTTP status code, HTTP response headers (array of strings)
+     * @return array of {{#if returnType}}{{#responses}}{{#dataType}}{{#unless @first}}|{{/unless}}{{/dataType}}{{{dataType}}}{{/responses}}{{/if}}{{#unless returnType}}null{{/unless}}, HTTP status code, HTTP response headers (array of strings)
      */
-    public function {{operationId}}WithHttpInfo({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{^required}} = {{#if defaultValue}}{{{.}}}{{/if}}{{#unless defaultValue}}null{{/unless}}{{/required}}{{^-last}}, {{/-last}}{{/allParams}}{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}})
+    public function {{operationId}}WithHttpInfo({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{^required}} = {{{defaultValue}}}{{#unless defaultValue}}null{{/unless}}{{/required}}{{#unless @last}}, {{/unless}}{{/allParams}}{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}})
     {
-        $request = $this->{{operationId}}Request({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{^-last}}, {{/-last}}{{/allParams}}{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}});
+        $request = $this->{{operationId}}Request({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{#unless @last}}, {{/unless}}{{/allParams}}{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}});
 
         try {
             try {
@@ -269,30 +269,30 @@ use function sprintf;
 
             {{#if returnType}}
             {{#responses}}
-            {{#-first}}
+            {{#if @first}}
 
             switch($statusCode) {
-            {{/-first}}
-            {{#if dataType}}
+            {{/if}}
+            {{#dataType}}
                 {{^isRange}}{{^isWildcard}}case {{code}}:{{/isWildcard}}{{#isWildcard}}default:{{/isWildcard}}
                     return $this->handleResponseWithDataType(
                         '{{{dataType}}}',
                         $request,
                         $response,
                     );{{/isRange}}
-            {{/if}}
-            {{#-last}}
+            {{/dataType}}
+            {{#if @last}}
             }
-            {{/-last}}
+            {{/if}}
             {{/responses}}
 
-            {{#responses}}{{#if dataType}}{{#isRange}}{{^isWildcard}}if ($this->responseWithinRangeCode('{{code}}', $statusCode)) {
+            {{#responses}}{{#dataType}}{{#isRange}}{{^isWildcard}}if ($this->responseWithinRangeCode('{{code}}', $statusCode)) {
                 return $this->handleResponseWithDataType(
                     '{{{dataType}}}',
                     $request,
                     $response,
                 );
-            }{{/isWildcard}}{{/isRange}}{{/if}}{{/responses}}
+            }{{/isWildcard}}{{/isRange}}{{/dataType}}{{/responses}}
 
             if ($statusCode < 200 || $statusCode > 299) {
                 throw new ApiException(
@@ -319,7 +319,7 @@ use function sprintf;
         } catch (ApiException $e) {
             switch ($e->getCode()) {
         {{#responses}}
-            {{#if dataType}}
+            {{#dataType}}
                 {{^isRange}}{{^isWildcard}}case {{code}}:{{/isWildcard}}{{#isWildcard}}default:{{/isWildcard}}
                     $data = ObjectSerializer::deserialize(
                         $e->getResponseBody(),
@@ -328,10 +328,10 @@ use function sprintf;
                     );
                     $e->setResponseObject($data);
                     throw $e;{{/isRange}}
-            {{/if}}
+            {{/dataType}}
         {{/responses}}
             }
-        {{#responses}}{{#if dataType}}{{#isRange}}{{^isWildcard}}
+        {{#responses}}{{#dataType}}{{#isRange}}{{^isWildcard}}
             if ($this->responseWithinRangeCode('{{code}}', $e->getCode())) {
                 $data = ObjectSerializer::deserialize(
                     $e->getResponseBody(),
@@ -340,7 +340,7 @@ use function sprintf;
                 );
                 $e->setResponseObject($data);
                 throw $e;
-            }{{/isWildcard}}{{/isRange}}{{/if}}{{/responses}}
+            }{{/isWildcard}}{{/isRange}}{{/dataType}}{{/responses}}
 
             throw $e;
         }
@@ -350,11 +350,11 @@ use function sprintf;
      * Operation {{{operationId}}}Async
      *
 {{#if summary}}
-     * {{.}}
+     * {{summary}}
      *
 {{/if}}
 {{#if description}}
-     * {{.}}
+     * {{description}}
      *
 {{/if}}
 {{#exts.x-group-parameters}}
@@ -362,24 +362,24 @@ use function sprintf;
      *
 {{/exts.x-group-parameters}}
 {{#servers}}
-{{#-first}}
+{{#if @first}}
      * This operation contains host(s) defined in the OpenAP spec. Use 'hostIndex' to select the host.
-{{/-first}}
+{{/if}}
      * URL: {{{url}}}
-{{#-last}}
+{{#if @last}}
      *
-{{/-last}}
+{{/if}}
 {{/servers}}
 {{#allParams}}
-     * @param  {{{dataType}}} ${{paramName}}{{#if description}} {{description}}{{/if}} {{#required}}(required){{/required}}{{^required}}(optional{{#if defaultValue}}, default to {{{.}}}{{/if}}){{/required}}
+     * @param  {{{dataType}}} ${{paramName}}{{#if description}} {{description}}{{/if}} {{#required}}(required){{/required}}{{^required}}(optional{{#if defaultValue}}, default to {{{defaultValue}}}{{/if}}){{/required}}
 {{/allParams}}
      *
      * @throws \InvalidArgumentException
      * @return Promise
      */
-    public function {{operationId}}Async({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{^required}} = {{#if defaultValue}}{{{.}}}{{/if}}{{#unless defaultValue}}null{{/unless}}{{/required}}{{^-last}}, {{/-last}}{{/allParams}}{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}})
+    public function {{operationId}}Async({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{^required}} = {{{defaultValue}}}{{#unless defaultValue}}null{{/unless}}{{/required}}{{#unless @last}}, {{/unless}}{{/allParams}}{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}})
     {
-        return $this->{{operationId}}AsyncWithHttpInfo({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{^-last}}, {{/-last}}{{/allParams}}{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}})
+        return $this->{{operationId}}AsyncWithHttpInfo({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{#unless @last}}, {{/unless}}{{/allParams}}{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}})
             ->then(
                 function ($response) {
                     return $response[0];
@@ -391,11 +391,11 @@ use function sprintf;
      * Operation {{{operationId}}}AsyncWithHttpInfo
      *
 {{#if summary}}
-     * {{.}}
+     * {{summary}}
      *
 {{/if}}
 {{#if description}}
-     * {{.}}
+     * {{description}}
      *
 {{/if}}
 {{#exts.x-group-parameters}}
@@ -403,25 +403,25 @@ use function sprintf;
      *
 {{/exts.x-group-parameters}}
 {{#servers}}
-{{#-first}}
+{{#if @first}}
      * This operation contains host(s) defined in the OpenAP spec. Use 'hostIndex' to select the host.
-{{/-first}}
+{{/if}}
      * URL: {{{url}}}
-{{#-last}}
+{{#if @last}}
      *
-{{/-last}}
+{{/if}}
 {{/servers}}
 {{#allParams}}
-     * @param  {{{dataType}}} ${{paramName}}{{#if description}} {{description}}{{/if}} {{#required}}(required){{/required}}{{^required}}(optional{{#if defaultValue}}, default to {{{.}}}{{/if}}){{/required}}
+     * @param  {{{dataType}}} ${{paramName}}{{#if description}} {{description}}{{/if}} {{#required}}(required){{/required}}{{^required}}(optional{{#if defaultValue}}, default to {{{defaultValue}}}{{/if}}){{/required}}
 {{/allParams}}
      *
      * @throws \InvalidArgumentException
      * @return Promise
      */
-    public function {{operationId}}AsyncWithHttpInfo({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{^required}} = {{#if defaultValue}}{{{.}}}{{/if}}{{#unless defaultValue}}null{{/unless}}{{/required}}{{^-last}}, {{/-last}}{{/allParams}}{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}})
+    public function {{operationId}}AsyncWithHttpInfo({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{^required}} = {{{defaultValue}}}{{#unless defaultValue}}null{{/unless}}{{/required}}{{#unless @last}}, {{/unless}}{{/allParams}}{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}})
     {
         $returnType = '{{{returnType}}}';
-        $request = $this->{{operationId}}Request({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{^-last}}, {{/-last}}{{/allParams}}{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}});
+        $request = $this->{{operationId}}Request({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{#unless @last}}, {{/unless}}{{/allParams}}{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}});
 
         return $this->httpAsyncClient->sendAsyncRequest($request)
             ->then(
@@ -468,27 +468,27 @@ use function sprintf;
      *
 {{/exts.x-group-parameters}}
 {{#servers}}
-{{#-first}}
+{{#if @first}}
      * This operation contains host(s) defined in the OpenAP spec. Use 'hostIndex' to select the host.
-{{/-first}}
+{{/if}}
      * URL: {{{url}}}
-{{#-last}}
+{{#if @last}}
      *
-{{/-last}}
+{{/if}}
 {{/servers}}
 {{#allParams}}
-     * @param  {{{dataType}}} ${{paramName}}{{#if description}} {{description}}{{/if}} {{#required}}(required){{/required}}{{^required}}(optional{{#if defaultValue}}, default to {{{.}}}{{/if}}){{/required}}
+     * @param  {{{dataType}}} ${{paramName}}{{#if description}} {{description}}{{/if}} {{#required}}(required){{/required}}{{^required}}(optional{{#if defaultValue}}, default to {{{defaultValue}}}{{/if}}){{/required}}
 {{/allParams}}
      *
      * @throws \InvalidArgumentException
      * @return RequestInterface
      */
-    public function {{operationId}}Request({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{^required}} = {{#if defaultValue}}{{{.}}}{{/if}}{{#unless defaultValue}}null{{/unless}}{{/required}}{{^-last}}, {{/-last}}{{/allParams}}{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}})
+    public function {{operationId}}Request({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{^required}} = {{{defaultValue}}}{{#unless defaultValue}}null{{/unless}}{{/required}}{{#unless @last}}, {{/unless}}{{/allParams}}{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}})
     {
         {{#exts.x-group-parameters}}
         // unbox the parameters from the associative array
         {{#allParams}}
-        ${{paramName}} = array_key_exists('{{paramName}}', $associative_array) ? $associative_array['{{paramName}}'] : {{#if defaultValue}}{{{.}}}{{/if}}{{#unless defaultValue}}null{{/unless}};
+        ${{paramName}} = array_key_exists('{{paramName}}', $associative_array) ? $associative_array['{{paramName}}'] : {{{defaultValue}}}{{#unless defaultValue}}null{{/unless}};
         {{/allParams}}
 
         {{/exts.x-group-parameters}}
@@ -502,16 +502,16 @@ use function sprintf;
         }
         {{/required}}
         {{#hasValidation}}
-        {{#maxLength}}
+        {{#if maxLength}}
         if ({{^required}}${{paramName}} !== null && {{/required}}strlen(${{paramName}}) > {{maxLength}}) {
             throw new \InvalidArgumentException('invalid length for "${{paramName}}" when calling {{classname}}.{{operationId}}, must be smaller than or equal to {{maxLength}}.');
         }
-        {{/maxLength}}
-        {{#minLength}}
+        {{/if}}
+        {{#if minLength}}
         if ({{^required}}${{paramName}} !== null && {{/required}}strlen(${{paramName}}) < {{minLength}}) {
             throw new \InvalidArgumentException('invalid length for "${{paramName}}" when calling {{classname}}.{{operationId}}, must be bigger than or equal to {{minLength}}.');
         }
-        {{/minLength}}
+        {{/if}}
         {{#if maximum}}
         if ({{^required}}${{paramName}} !== null && {{/required}}${{paramName}} >{{#exclusiveMaximum}}={{/exclusiveMaximum}} {{maximum}}) {
             throw new \InvalidArgumentException('invalid value for "${{paramName}}" when calling {{classname}}.{{operationId}}, must be smaller than {{^exclusiveMaximum}}or equal to {{/exclusiveMaximum}}{{maximum}}.');
@@ -606,23 +606,23 @@ use function sprintf;
         {{/pathParams}}
 
         {{#formParams}}
-        {{#-first}}
+        {{#if @first}}
         // form params
         $formDataProcessor = new FormDataProcessor();
 
         $formData = $formDataProcessor->prepare([
-        {{/-first}}
+        {{/if}}
             '{{paramName}}' => ${{paramName}},
-        {{#-last}}
+        {{#if @last}}
         ]);
 
         $formParams = $formDataProcessor->flatten($formData);
         $multipart = $formDataProcessor->has_file;
-        {{/-last}}
+        {{/if}}
         {{/formParams}}
 
         $headers = $this->headerSelector->selectHeaders(
-            [{{#produces}}'{{{mediaType}}}'{{^-last}}, {{/-last}}{{/produces}}],
+            [{{#produces}}'{{{mediaType}}}'{{#unless @last}}, {{/unless}}{{/produces}}],
             '{{#consumes}}{{{mediaType}}}{{/consumes}}',
             $multipart
         );
@@ -706,9 +706,9 @@ use function sprintf;
 
         {{#unless servers}}
         $operationHost = $this->config->getHost();
-        {{/unless}}
+        {{/if}}
         {{#if servers}}
-        $operationHosts = [{{#servers}}"{{{url}}}"{{^-last}}, {{/-last}}{{/servers}}];
+        $operationHosts = [{{#servers}}"{{{url}}}"{{#unless @last}}, {{/unless}}{{/servers}}];
         if ($this->hostIndex < 0 || $this->hostIndex >= sizeof($operationHosts)) {
             throw new \InvalidArgumentException("Invalid index {$this->hostIndex} when selecting the host. Must be less than ".sizeof($operationHosts));
         }

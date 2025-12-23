@@ -3,4 +3,4 @@
  * {{#indented_star_1}}{{{unescapedDescription}}}{{/indented_star_1}}
  * @export
  */
-export type {{classname}} = {{#if discriminator}}{{#mappedModels}}{ {{discriminator.propertyName}}: '{{mappingName}}' } & {{modelName}}{{^-last}} | {{/-last}}{{/mappedModels}}{{/if}}{{#unless discriminator}}{{#oneOf}}{{{.}}}{{^-last}} | {{/-last}}{{/oneOf}}{{/unless}};
+export type {{classname}} = {{#discriminator}}{{#mappedModels}}{ {{discriminator.propertyName}}: '{{mappingName}}' } & {{modelName}}{{#unless @last}} | {{/unless}}{{/mappedModels}}{{/discriminator}}{{^discriminator}}{{#oneOf}}{{{.}}}{{#unless @last}} | {{/unless}}{{/oneOf}}{{/discriminator}};

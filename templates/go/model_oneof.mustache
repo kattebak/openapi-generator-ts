@@ -1,15 +1,15 @@
 // {{classname}} - {{{description}}}{{#unless description}}struct for {{{classname}}}{{/unless}}
 type {{classname}} struct {
 	{{#oneOf}}
-	{{#type-to-name}}{{{.}}}{{/type-to-name}} *{{{.}}}
+	{{#lambda.type-to-name}}{{{.}}}{{/lambda.type-to-name}} *{{{.}}}
 	{{/oneOf}}
 }
 
 {{#oneOf}}
 // {{{.}}}As{{classname}} is a convenience function that returns {{{.}}} wrapped in {{classname}}
-func {{#type-to-name}}{{{.}}}{{/type-to-name}}As{{classname}}(v *{{{.}}}) {{classname}} {
+func {{#lambda.type-to-name}}{{{.}}}{{/lambda.type-to-name}}As{{classname}}(v *{{{.}}}) {{classname}} {
 	return {{classname}}{
-		{{#type-to-name}}{{{.}}}{{/type-to-name}}: v,
+		{{#lambda.type-to-name}}{{{.}}}{{/lambda.type-to-name}}: v,
 	}
 }
 
@@ -26,9 +26,9 @@ func (dst *{{classname}}) UnmarshalJSON(data []byte) error {
 
 	{{/isNullable}}
 	{{#useOneOfDiscriminatorLookup}}
-	{{#if discriminator}}
+	{{#discriminator}}
 	{{#mappedModels}}
-	{{#-first}}
+	{{#if @first}}
 	// use discriminator value to speed up the lookup
 	var jsonDict map[string]interface{}
 	err = newStrictDecoder(data).Decode(&jsonDict)
@@ -36,7 +36,7 @@ func (dst *{{classname}}) UnmarshalJSON(data []byte) error {
 		return fmt.Errorf("failed to unmarshal JSON into map for the discriminator lookup")
 	}
 
-	{{/-first}}
+	{{/if}}
 	// check if the discriminator value is '{{{mappingName}}}'
 	if jsonDict["{{{propertyBaseName}}}"] == "{{{mappingName}}}" {
 		// try to unmarshal JSON data into {{{modelName}}}
@@ -51,28 +51,28 @@ func (dst *{{classname}}) UnmarshalJSON(data []byte) error {
 
 	{{/mappedModels}}
 	return nil
-	{{/if}}
-	{{#unless discriminator}}
+	{{/discriminator}}
+	{{^discriminator}}
 	match := 0
 	{{#oneOf}}
-	// try to unmarshal data into {{#type-to-name}}{{{.}}}{{/type-to-name}}
-	err = json.Unmarshal(data, &dst.{{#type-to-name}}{{{.}}}{{/type-to-name}})
+	// try to unmarshal data into {{#lambda.type-to-name}}{{{.}}}{{/lambda.type-to-name}}
+	err = json.Unmarshal(data, &dst.{{#lambda.type-to-name}}{{{.}}}{{/lambda.type-to-name}})
 	if err == nil {
-		json{{#type-to-name}}{{{.}}}{{/type-to-name}}, _ := json.Marshal(dst.{{#type-to-name}}{{{.}}}{{/type-to-name}})
-		if string(json{{#type-to-name}}{{{.}}}{{/type-to-name}}) == "{}" { // empty struct
-			dst.{{#type-to-name}}{{{.}}}{{/type-to-name}} = nil
+		json{{#lambda.type-to-name}}{{{.}}}{{/lambda.type-to-name}}, _ := json.Marshal(dst.{{#lambda.type-to-name}}{{{.}}}{{/lambda.type-to-name}})
+		if string(json{{#lambda.type-to-name}}{{{.}}}{{/lambda.type-to-name}}) == "{}" { // empty struct
+			dst.{{#lambda.type-to-name}}{{{.}}}{{/lambda.type-to-name}} = nil
 		} else {
 			match++
 		}
 	} else {
-		dst.{{#type-to-name}}{{{.}}}{{/type-to-name}} = nil
+		dst.{{#lambda.type-to-name}}{{{.}}}{{/lambda.type-to-name}} = nil
 	}
 
 	{{/oneOf}}
 	if match > 1 { // more than 1 match
 		// reset to nil
 		{{#oneOf}}
-		dst.{{#type-to-name}}{{{.}}}{{/type-to-name}} = nil
+		dst.{{#lambda.type-to-name}}{{{.}}}{{/lambda.type-to-name}} = nil
 		{{/oneOf}}
 
 		return fmt.Errorf("data matches more than one schema in oneOf({{classname}})")
@@ -81,33 +81,33 @@ func (dst *{{classname}}) UnmarshalJSON(data []byte) error {
 	} else { // no match
 		return fmt.Errorf("data failed to match schemas in oneOf({{classname}})")
 	}
-	{{/unless}}
+	{{/discriminator}}
 	{{/useOneOfDiscriminatorLookup}}
 	{{^useOneOfDiscriminatorLookup}}
 	match := 0
 	{{#oneOf}}
-	// try to unmarshal data into {{#type-to-name}}{{{.}}}{{/type-to-name}}
-	err = newStrictDecoder(data).Decode(&dst.{{#type-to-name}}{{{.}}}{{/type-to-name}})
+	// try to unmarshal data into {{#lambda.type-to-name}}{{{.}}}{{/lambda.type-to-name}}
+	err = newStrictDecoder(data).Decode(&dst.{{#lambda.type-to-name}}{{{.}}}{{/lambda.type-to-name}})
 	if err == nil {
-		json{{#type-to-name}}{{{.}}}{{/type-to-name}}, _ := json.Marshal(dst.{{#type-to-name}}{{{.}}}{{/type-to-name}})
-		if string(json{{#type-to-name}}{{{.}}}{{/type-to-name}}) == "{}" { // empty struct
-			dst.{{#type-to-name}}{{{.}}}{{/type-to-name}} = nil
+		json{{#lambda.type-to-name}}{{{.}}}{{/lambda.type-to-name}}, _ := json.Marshal(dst.{{#lambda.type-to-name}}{{{.}}}{{/lambda.type-to-name}})
+		if string(json{{#lambda.type-to-name}}{{{.}}}{{/lambda.type-to-name}}) == "{}" { // empty struct
+			dst.{{#lambda.type-to-name}}{{{.}}}{{/lambda.type-to-name}} = nil
 		} else {
-			if err = validator.Validate(dst.{{#type-to-name}}{{{.}}}{{/type-to-name}}); err != nil {
-				dst.{{#type-to-name}}{{{.}}}{{/type-to-name}} = nil
+			if err = validator.Validate(dst.{{#lambda.type-to-name}}{{{.}}}{{/lambda.type-to-name}}); err != nil {
+				dst.{{#lambda.type-to-name}}{{{.}}}{{/lambda.type-to-name}} = nil
 			} else {
 				match++
 			}
 		}
 	} else {
-		dst.{{#type-to-name}}{{{.}}}{{/type-to-name}} = nil
+		dst.{{#lambda.type-to-name}}{{{.}}}{{/lambda.type-to-name}} = nil
 	}
 
 	{{/oneOf}}
 	if match > 1 { // more than 1 match
 		// reset to nil
 		{{#oneOf}}
-		dst.{{#type-to-name}}{{{.}}}{{/type-to-name}} = nil
+		dst.{{#lambda.type-to-name}}{{{.}}}{{/lambda.type-to-name}} = nil
 		{{/oneOf}}
 
 		return fmt.Errorf("data matches more than one schema in oneOf({{classname}})")
@@ -122,8 +122,8 @@ func (dst *{{classname}}) UnmarshalJSON(data []byte) error {
 // Marshal data from the first non-nil pointers in the struct to JSON
 func (src {{classname}}) MarshalJSON() ([]byte, error) {
 {{#oneOf}}
-	if src.{{#type-to-name}}{{{.}}}{{/type-to-name}} != nil {
-		return json.Marshal(&src.{{#type-to-name}}{{{.}}}{{/type-to-name}})
+	if src.{{#lambda.type-to-name}}{{{.}}}{{/lambda.type-to-name}} != nil {
+		return json.Marshal(&src.{{#lambda.type-to-name}}{{{.}}}{{/lambda.type-to-name}})
 	}
 
 {{/oneOf}}
@@ -136,8 +136,8 @@ func (obj *{{classname}}) GetActualInstance() (interface{}) {
 		return nil
 	}
 {{#oneOf}}
-	if obj.{{#type-to-name}}{{{.}}}{{/type-to-name}} != nil {
-		return obj.{{#type-to-name}}{{{.}}}{{/type-to-name}}
+	if obj.{{#lambda.type-to-name}}{{{.}}}{{/lambda.type-to-name}} != nil {
+		return obj.{{#lambda.type-to-name}}{{{.}}}{{/lambda.type-to-name}}
 	}
 
 {{/oneOf}}
@@ -148,8 +148,8 @@ func (obj *{{classname}}) GetActualInstance() (interface{}) {
 // Get the actual instance value
 func (obj {{classname}}) GetActualInstanceValue() (interface{}) {
 {{#oneOf}}
-	if obj.{{#type-to-name}}{{{.}}}{{/type-to-name}} != nil {
-		return *obj.{{#type-to-name}}{{{.}}}{{/type-to-name}}
+	if obj.{{#lambda.type-to-name}}{{{.}}}{{/lambda.type-to-name}} != nil {
+		return *obj.{{#lambda.type-to-name}}{{{.}}}{{/lambda.type-to-name}}
 	}
 
 {{/oneOf}}

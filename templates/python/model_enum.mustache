@@ -31,6 +31,6 @@ class {{classname}}({{vendorExtensions.x-py-enum-type}}, Enum):
     @classmethod
     def _missing_value_(cls, value):
         if value is no_arg:
-            return cls.{{{.}}}
+            return cls.{{{defaultValue}}}
     {{/if}}
 {{/allowableValues}}

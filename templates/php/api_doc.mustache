@@ -12,26 +12,26 @@ All URIs are relative to {{basePath}}, except if the operation defines another b
 ## `{{{operationId}}}()`
 
 ```php
-{{{operationId}}}({{#allParams}}${{paramName}}{{^-last}}, {{/-last}}{{/allParams}}){{#if returnType}}: {{{.}}}{{/if}}
+{{{operationId}}}({{#allParams}}${{paramName}}{{#unless @last}}, {{/unless}}{{/allParams}}){{#if returnType}}: {{{returnType}}}{{/if}}
 ```
 {{#servers}}
-{{#-first}}
+{{#if @first}}
 ### URI(s):
-{{/-first}}
-- {{{url}}} {{#if description}}{{.}}{{/if}}{{#variables}}
-{{#-first}}
+{{/if}}
+- {{{url}}} {{description}}{{#variables}}
+{{#if @first}}
     - Variables:
-{{/-first}}
+{{/if}}
       - {{{name}}}: {{{description}}}{{#unless description}} No description provided{{/unless}}{{#enumValues}}
-{{#-first}}
+{{#if @first}}
         - Allowed values:
-{{/-first}}
+{{/if}}
           - {{{.}}}{{/enumValues}}{{#if defaultValue}}
-        - Default value: {{{.}}}
+        - Default value: {{{defaultValue}}}
 {{/if}}{{/variables}}{{/servers}}
 {{{summary}}}{{#if notes}}
 
-{{{.}}}{{/if}}
+{{{notes}}}{{/if}}
 
 ### Example
 
@@ -39,7 +39,7 @@ All URIs are relative to {{basePath}}, except if the operation defines another b
 <?php
 require_once(__DIR__ . '/vendor/autoload.php');
 
-{{>php_doc_auth_partial}}
+{{> php_doc_auth_partial}}
 
 $apiInstance = new {{invokerPackage}}\Api\{{classname}}(
     // If you want use custom http client, pass your client which implements `GuzzleHttp\ClientInterface`.
@@ -48,26 +48,26 @@ $apiInstance = new {{invokerPackage}}\Api\{{classname}}(
     $config{{/hasAuthMethods}}
 );
 {{^exts.x-group-parameters}}
-{{#allParams}}${{paramName}} = {{{example}}}; // {{{dataType}}}{{#if description}} | {{{.}}}{{/if}}
-{{/allParams}}{{#servers}}{{#-first}}
+{{#allParams}}${{paramName}} = {{{example}}}; // {{{dataType}}}{{#if description}} | {{{description}}}{{/if}}
+{{/allParams}}{{#servers}}{{#if @first}}
 $hostIndex = 0;
 $variables = [{{#variables}}
     '{{{name}}}' => '{{{default}}}{{^default}}YOUR_VALUE{{/default}}',{{/variables}}
 ];
-{{/-first}}{{/servers}}{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}
+{{/if}}{{/servers}}{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}
 $associative_array = [
-{{#allParams}}    '{{paramName}}' => {{{example}}}, // {{{dataType}}}{{#if description}} | {{{.}}}{{/if}}
+{{#allParams}}    '{{paramName}}' => {{{example}}}, // {{{dataType}}}{{#if description}} | {{{description}}}{{/if}}
 {{/allParams}}
-{{#servers}}{{#-first}}
+{{#servers}}{{#if @first}}
     'hostIndex' => 0,
     $variables = [{{#variables}}
         '{{{name}}}' => '{{{default}}}{{^default}}YOUR_VALUE{{/default}}',{{/variables}}
     ],
-{{/-first}}{{/servers}}];
+{{/if}}{{/servers}}];
 {{/exts.x-group-parameters}}
 
 try {
-    {{#if returnType}}$result = {{/if}}$apiInstance->{{{operationId}}}({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{^-last}}, {{/-last}}{{/allParams}}{{#servers}}{{#-first}}{{#allParams}}{{#-first}}, {{/-first}}{{/allParams}}$hostIndex, $variables{{/-first}}{{/servers}}{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associate_array{{/exts.x-group-parameters}});{{#if returnType}}
+    {{#if returnType}}$result = {{/if}}$apiInstance->{{{operationId}}}({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{#unless @last}}, {{/unless}}{{/allParams}}{{#servers}}{{#if @first}}{{#allParams}}{{#if @first}}, {{/if}}{{/allParams}}$hostIndex, $variables{{/if}}{{/servers}}{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associate_array{{/exts.x-group-parameters}});{{#if returnType}}
     print_r($result);{{/if}}
 } catch (Exception $e) {
     echo 'Exception when calling {{classname}}->{{operationId}}: ', $e->getMessage(), PHP_EOL;
@@ -80,11 +80,11 @@ try {
 Note: the input parameter is an associative array with the keys listed as the parameter names below.
 
 {{/exts.x-group-parameters}}
-{{^allParams}}This endpoint does not need any parameter.{{/allParams}}{{#allParams}}{{#-last}}| Name | Type | Description  | Notes |
-| ------------- | ------------- | ------------- | ------------- |{{/-last}}{{/allParams}}
-{{#allParams}}| **{{paramName}}** | {{#isFile}}**{{{dataType}}}**{{/isFile}}{{#isPrimitiveType}}**{{{dataType}}}**{{/isPrimitiveType}}{{^isPrimitiveType}}{{^isFile}}[**{{{dataType}}}**](../Model/{{baseType}}.md){{/isFile}}{{/isPrimitiveType}}| {{description}} |{{^required}} [optional]{{/required}}{{#if defaultValue}} [default to {{.}}]{{/if}} |
-{{/allParams}}{{#servers}}{{#-first}}| hostIndex | null|int | Host index. Defaults to null. If null, then the library will use $this->hostIndex instead | [optional] |
-| variables | array | Associative array of variables to pass to the host. Defaults to empty array. | [optional] |{{/-first}}
+{{^allParams}}This endpoint does not need any parameter.{{/allParams}}{{#allParams}}{{#if @last}}| Name | Type | Description  | Notes |
+| ------------- | ------------- | ------------- | ------------- |{{/if}}{{/allParams}}
+{{#allParams}}| **{{paramName}}** | {{#isFile}}**{{{dataType}}}**{{/isFile}}{{#isPrimitiveType}}**{{{dataType}}}**{{/isPrimitiveType}}{{^isPrimitiveType}}{{^isFile}}[**{{{dataType}}}**](../Model/{{baseType}}.md){{/isFile}}{{/isPrimitiveType}}| {{description}} |{{^required}} [optional]{{/required}}{{#if defaultValue}} [default to {{defaultValue}}]{{/if}} |
+{{/allParams}}{{#servers}}{{#if @first}}| hostIndex | null|int | Host index. Defaults to null. If null, then the library will use $this->hostIndex instead | [optional] |
+| variables | array | Associative array of variables to pass to the host. Defaults to empty array. | [optional] |{{/if}}
 {{/servers}}
 
 ### Return type
@@ -93,12 +93,12 @@ Note: the input parameter is an associative array with the keys listed as the pa
 
 ### Authorization
 
-{{^authMethods}}No authorization required{{/authMethods}}{{#authMethods}}[{{{name}}}](../../README.md#{{{name}}}){{^-last}}, {{/-last}}{{/authMethods}}
+{{^authMethods}}No authorization required{{/authMethods}}{{#authMethods}}[{{{name}}}](../../README.md#{{{name}}}){{#unless @last}}, {{/unless}}{{/authMethods}}
 
 ### HTTP request headers
 
-- **Content-Type**: {{#consumes}}`{{{mediaType}}}`{{^-last}}, {{/-last}}{{/consumes}}{{^consumes}}Not defined{{/consumes}}
-- **Accept**: {{#produces}}`{{{mediaType}}}`{{^-last}}, {{/-last}}{{/produces}}{{^produces}}Not defined{{/produces}}
+- **Content-Type**: {{#consumes}}`{{{mediaType}}}`{{#unless @last}}, {{/unless}}{{/consumes}}{{^consumes}}Not defined{{/consumes}}
+- **Accept**: {{#produces}}`{{{mediaType}}}`{{#unless @last}}, {{/unless}}{{/produces}}{{^produces}}Not defined{{/produces}}
 
 [[Back to top]](#) [[Back to API list]](../../README.md#endpoints)
 [[Back to Model list]](../../README.md#models)

@@ -13,17 +13,17 @@ from typing import Optional, Set
 from typing_extensions import Self
 
 {{#hasChildren}}
-{{#if discriminator}}
-{{!If this model is a super class, importlib is used. So import the necessary modules for the type here.}}
+{{#discriminator}}
+{{! If this model is a super class, importlib is used. So import the necessary modules for the type here. }}
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
 {{#mappedModels}}
     from {{packageName}}.models.{{model.classFilename}} import {{modelName}}
 {{/mappedModels}}
 
-{{/if}}
+{{/discriminator}}
 {{/hasChildren}}
-class {{classname}}({{#if parent}}{{{.}}}{{/if}}{{#unless parent}}BaseModel{{/unless}}):
+class {{classname}}({{#parent}}{{{.}}}{{/parent}}{{^parent}}BaseModel{{/parent}}):
     """
     {{#if description}}{{{description}}}{{/if}}{{#unless description}}{{{classname}}}{{/unless}}
     """ # noqa: E501
@@ -33,7 +33,7 @@ class {{classname}}({{#if parent}}{{{.}}}{{/if}}{{#unless parent}}BaseModel{{/un
 {{#isAdditionalPropertiesTrue}}
     additional_properties: Dict[str, Any] = {}
 {{/isAdditionalPropertiesTrue}}
-    __properties: ClassVar[List[str]] = [{{#allVars}}"{{baseName}}"{{^-last}}, {{/-last}}{{/allVars}}]
+    __properties: ClassVar[List[str]] = [{{#allVars}}"{{baseName}}"{{#unless @last}}, {{/unless}}{{/allVars}}]
 {{#vars}}
     {{#vendorExtensions.x-regex}}
 
@@ -76,18 +76,18 @@ class {{classname}}({{#if parent}}{{{.}}}{{/if}}{{#unless parent}}BaseModel{{/un
         {{#isContainer}}
         {{#isArray}}
         for i in value:
-            if i not in set([{{#allowableValues}}{{#enumVars}}{{{value}}}{{^-last}}, {{/-last}}{{/enumVars}}{{/allowableValues}}]):
-                raise ValueError("each list item must be one of ({{#allowableValues}}{{#enumVars}}{{{value}}}{{^-last}}, {{/-last}}{{/enumVars}}{{/allowableValues}})")
+            if i not in set([{{#allowableValues}}{{#enumVars}}{{{value}}}{{#unless @last}}, {{/unless}}{{/enumVars}}{{/allowableValues}}]):
+                raise ValueError("each list item must be one of ({{#allowableValues}}{{#enumVars}}{{{value}}}{{#unless @last}}, {{/unless}}{{/enumVars}}{{/allowableValues}})")
         {{/isArray}}
         {{#isMap}}
         for i in value.values():
-            if i not in set([{{#allowableValues}}{{#enumVars}}{{{value}}}{{^-last}}, {{/-last}}{{/enumVars}}{{/allowableValues}}]):
-                raise ValueError("dict values must be one of enum values ({{#allowableValues}}{{#enumVars}}{{{value}}}{{^-last}}, {{/-last}}{{/enumVars}}{{/allowableValues}})")
+            if i not in set([{{#allowableValues}}{{#enumVars}}{{{value}}}{{#unless @last}}, {{/unless}}{{/enumVars}}{{/allowableValues}}]):
+                raise ValueError("dict values must be one of enum values ({{#allowableValues}}{{#enumVars}}{{{value}}}{{#unless @last}}, {{/unless}}{{/enumVars}}{{/allowableValues}})")
         {{/isMap}}
         {{/isContainer}}
         {{^isContainer}}
-        if value not in set([{{#allowableValues}}{{#enumVars}}{{{value}}}{{^-last}}, {{/-last}}{{/enumVars}}{{/allowableValues}}]):
-            raise ValueError("must be one of enum values ({{#allowableValues}}{{#enumVars}}{{{value}}}{{^-last}}, {{/-last}}{{/enumVars}}{{/allowableValues}})")
+        if value not in set([{{#allowableValues}}{{#enumVars}}{{{value}}}{{#unless @last}}, {{/unless}}{{/enumVars}}{{/allowableValues}}]):
+            raise ValueError("must be one of enum values ({{#allowableValues}}{{#enumVars}}{{{value}}}{{#unless @last}}, {{/unless}}{{/enumVars}}{{/allowableValues}})")
         {{/isContainer}}
         return value
     {{/isEnum}}
@@ -101,13 +101,13 @@ class {{classname}}({{#if parent}}{{{.}}}{{/if}}{{#unless parent}}BaseModel{{/un
 
 
 {{#hasChildren}}
-{{#if discriminator}}
+{{#discriminator}}
     # JSON field name that stores the object type
     __discriminator_property_name: ClassVar[str] = '{{discriminator.propertyBaseName}}'
 
     # discriminator mappings
     __discriminator_value_class_map: ClassVar[Dict[str, str]] = {
-        {{#mappedModels}}'{{{mappingName}}}': '{{{modelName}}}'{{^-last}},{{/-last}}{{/mappedModels}}
+        {{#mappedModels}}'{{{mappingName}}}': '{{{modelName}}}'{{#unless @last}},{{/unless}}{{/mappedModels}}
     }
 
     @classmethod
@@ -119,7 +119,7 @@ class {{classname}}({{#if parent}}{{{.}}}{{/if}}{{#unless parent}}BaseModel{{/un
         else:
             return None
 
-{{/if}}
+{{/discriminator}}
 {{/hasChildren}}
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -131,7 +131,7 @@ class {{classname}}({{#if parent}}{{{.}}}{{/if}}{{#unless parent}}BaseModel{{/un
         return json.dumps(self.to_dict())
 
     @classmethod
-    def from_json(cls, json_str: str) -> Optional[{{^hasChildren}}Self{{/hasChildren}}{{#hasChildren}}{{#if discriminator}}Union[{{#mappedModels}}{{{modelName}}}{{^-last}}, {{/-last}}{{/mappedModels}}]{{/if}}{{#unless discriminator}}Self{{/unless}}{{/hasChildren}}]:
+    def from_json(cls, json_str: str) -> Optional[{{^hasChildren}}Self{{/hasChildren}}{{#hasChildren}}{{#discriminator}}Union[{{#mappedModels}}{{{modelName}}}{{#unless @last}}, {{/unless}}{{/mappedModels}}]{{/discriminator}}{{^discriminator}}Self{{/discriminator}}{{/hasChildren}}]:
         """Create an instance of {{{classname}}} from a JSON string"""
         return cls.from_dict(json.loads(json_str))
 
@@ -254,9 +254,9 @@ class {{classname}}({{#if parent}}{{{.}}}{{/if}}{{#unless parent}}BaseModel{{/un
 
     {{#hasChildren}}
     @classmethod
-    def from_dict(cls, obj: Dict[str, Any]) -> Optional[{{#if discriminator}}Union[{{#mappedModels}}{{{modelName}}}{{^-last}}, {{/-last}}{{/mappedModels}}]{{/if}}{{#unless discriminator}}Self{{/unless}}]:
+    def from_dict(cls, obj: Dict[str, Any]) -> Optional[{{#discriminator}}Union[{{#mappedModels}}{{{modelName}}}{{#unless @last}}, {{/unless}}{{/mappedModels}}]{{/discriminator}}{{^discriminator}}Self{{/discriminator}}]:
         """Create an instance of {{{classname}}} from a dict"""
-        {{#if discriminator}}
+        {{#discriminator}}
         # look up the object type based on discriminator mapping
         object_type = cls.get_discriminator_value(obj)
         {{#mappedModels}}
@@ -267,7 +267,7 @@ class {{classname}}({{#if parent}}{{{.}}}{{/if}}{{#unless parent}}BaseModel{{/un
         raise ValueError("{{{classname}}} failed to lookup discriminator value from " +
                             json.dumps(obj) + ". Discriminator property name: " + cls.__discriminator_property_name +
                             ", mapping: " + json.dumps(cls.__discriminator_value_class_map))
-        {{/if}}
+        {{/discriminator}}
     {{/hasChildren}}
     {{^hasChildren}}
     @classmethod
@@ -294,26 +294,26 @@ class {{classname}}({{#if parent}}{{{.}}}{{/if}}{{#unless parent}}BaseModel{{/un
             {{#isArray}}
             {{#items.isArray}}
             {{#items.items.isPrimitiveType}}
-            "{{{baseName}}}": obj.get("{{{baseName}}}"){{^-last}},{{/-last}}
+            "{{{baseName}}}": obj.get("{{{baseName}}}"){{#unless @last}},{{/unless}}
             {{/items.items.isPrimitiveType}}
             {{^items.items.isPrimitiveType}}
             "{{{baseName}}}": [
                     [{{{items.items.dataType}}}.from_dict(_inner_item) for _inner_item in _item]
                     for _item in obj["{{{baseName}}}"]
-                ] if obj.get("{{{baseName}}}") is not None else None{{^-last}},{{/-last}}
+                ] if obj.get("{{{baseName}}}") is not None else None{{#unless @last}},{{/unless}}
             {{/items.items.isPrimitiveType}}
             {{/items.isArray}}
             {{^items.isArray}}
             {{^items.isPrimitiveType}}
             {{#items.isEnumOrRef}}
-            "{{{baseName}}}": obj.get("{{{baseName}}}"){{^-last}},{{/-last}}
+            "{{{baseName}}}": obj.get("{{{baseName}}}"){{#unless @last}},{{/unless}}
             {{/items.isEnumOrRef}}
             {{^items.isEnumOrRef}}
-            "{{{baseName}}}": [{{{items.dataType}}}.from_dict(_item) for _item in obj["{{{baseName}}}"]] if obj.get("{{{baseName}}}") is not None else None{{^-last}},{{/-last}}
+            "{{{baseName}}}": [{{{items.dataType}}}.from_dict(_item) for _item in obj["{{{baseName}}}"]] if obj.get("{{{baseName}}}") is not None else None{{#unless @last}},{{/unless}}
             {{/items.isEnumOrRef}}
             {{/items.isPrimitiveType}}
             {{#items.isPrimitiveType}}
-            "{{{baseName}}}": obj.get("{{{baseName}}}"){{^-last}},{{/-last}}
+            "{{{baseName}}}": obj.get("{{{baseName}}}"){{#unless @last}},{{/unless}}
             {{/items.isPrimitiveType}}
             {{/items.isArray}}
             {{/isArray}}
@@ -333,7 +333,7 @@ class {{classname}}({{#if parent}}{{{.}}}{{/if}}{{#unless parent}}BaseModel{{/un
                 for _k, _v in obj.get("{{{baseName}}}").items()
             )
             if obj.get("{{{baseName}}}") is not None
-            else None{{^-last}},{{/-last}}
+            else None{{#unless @last}},{{/unless}}
             {{/items.isMap}}
             {{#items.isArray}}
             "{{{baseName}}}": dict(
@@ -343,7 +343,7 @@ class {{classname}}({{#if parent}}{{{.}}}{{/if}}{{#unless parent}}BaseModel{{/un
                         else None
                 )
                 for _k, _v in obj.get("{{{baseName}}}", {}).items()
-            ){{^-last}},{{/-last}}
+            ){{#unless @last}},{{/unless}}
             {{/items.isArray}}
             {{/items.isContainer}}
             {{^items.isContainer}}
@@ -352,33 +352,33 @@ class {{classname}}({{#if parent}}{{{.}}}{{/if}}{{#unless parent}}BaseModel{{/un
                 for _k, _v in obj["{{{baseName}}}"].items()
             )
             if obj.get("{{{baseName}}}") is not None
-            else None{{^-last}},{{/-last}}
+            else None{{#unless @last}},{{/unless}}
             {{/items.isContainer}}
             {{/items.isEnumOrRef}}
             {{#items.isEnumOrRef}}
-            "{{{baseName}}}": dict((_k, _v) for _k, _v in obj.get("{{{baseName}}}").items()) if obj.get("{{{baseName}}}") is not None else None{{^-last}},{{/-last}}
+            "{{{baseName}}}": dict((_k, _v) for _k, _v in obj.get("{{{baseName}}}").items()) if obj.get("{{{baseName}}}") is not None else None{{#unless @last}},{{/unless}}
             {{/items.isEnumOrRef}}
             {{/items.isPrimitiveType}}
             {{#items.isPrimitiveType}}
-            "{{{baseName}}}": obj.get("{{{baseName}}}"){{^-last}},{{/-last}}
+            "{{{baseName}}}": obj.get("{{{baseName}}}"){{#unless @last}},{{/unless}}
             {{/items.isPrimitiveType}}
             {{/isMap}}
             {{/isContainer}}
             {{^isContainer}}
             {{^isPrimitiveType}}
             {{^isEnumOrRef}}
-            "{{{baseName}}}": {{{dataType}}}.from_dict(obj["{{{baseName}}}"]) if obj.get("{{{baseName}}}") is not None else None{{^-last}},{{/-last}}
+            "{{{baseName}}}": {{{dataType}}}.from_dict(obj["{{{baseName}}}"]) if obj.get("{{{baseName}}}") is not None else None{{#unless @last}},{{/unless}}
             {{/isEnumOrRef}}
             {{#isEnumOrRef}}
-            "{{{baseName}}}": obj.get("{{{baseName}}}"){{#if defaultValue}} if obj.get("{{baseName}}") is not None else {{{defaultValue}}}{{/if}}{{^-last}},{{/-last}}
+            "{{{baseName}}}": obj.get("{{{baseName}}}"){{#if defaultValue}} if obj.get("{{baseName}}") is not None else {{{defaultValue}}}{{/if}}{{#unless @last}},{{/unless}}
             {{/isEnumOrRef}}
             {{/isPrimitiveType}}
             {{#isPrimitiveType}}
             {{#if defaultValue}}
-            "{{{baseName}}}": obj.get("{{{baseName}}}") if obj.get("{{{baseName}}}") is not None else {{{defaultValue}}}{{^-last}},{{/-last}}
+            "{{{baseName}}}": obj.get("{{{baseName}}}") if obj.get("{{{baseName}}}") is not None else {{{defaultValue}}}{{#unless @last}},{{/unless}}
             {{/if}}
             {{#unless defaultValue}}
-            "{{{baseName}}}": obj.get("{{{baseName}}}"){{^-last}},{{/-last}}
+            "{{{baseName}}}": obj.get("{{{baseName}}}"){{#unless @last}},{{/unless}}
             {{/unless}}
             {{/isPrimitiveType}}
             {{/isContainer}}
