@@ -4,12 +4,12 @@ Quick reference for fixing generator output discrepancies.
 
 ## Generator Status
 
-| Generator | Models | APIs | Status |
-|-----------|--------|------|--------|
-| typescript-fetch | ✅ | ✅ | Done (cosmetic diffs only) |
-| go | ✅ | ❌ | API files need work |
-| python | ❌ | ❌ | TODO |
-| php | ❌ | ❌ | TODO |
+| Generator        | Models | APIs | Status                     |
+| ---------------- | ------ | ---- | -------------------------- |
+| typescript-fetch | ✅     | ✅   | Done (cosmetic diffs only) |
+| go               | ✅     | ❌   | API files need work        |
+| python           | ❌     | ❌   | TODO                       |
+| php              | ❌     | ❌   | TODO                       |
 
 ## Common Issues & Fixes
 
@@ -62,6 +62,7 @@ function postProcessLangProperty(property: CodegenProperty): void {
 **Symptom:** Files in wrong directories, wrong filenames
 
 **Fix:** Set these in metadata:
+
 - `defaultApiPackage` / `defaultModelPackage` - subdirectory
 - `toModelFilename` / `toApiFilename` - filename hooks
 
@@ -170,4 +171,3 @@ When fixing an issue, add a test for:
 - [ ] The specific transformation (e.g., `toVarName("pet_id")` → `"PetId"`)
 - [ ] The hook is called during generation
 - [ ] Edge cases (empty string, reserved words, special characters)
-
