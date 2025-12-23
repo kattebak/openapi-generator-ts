@@ -1,0 +1,15 @@
+Generator: python
+Status: DIFFERENCES FOUND
+
+Statistics:
+  Files with differences: 3
+  Total diff lines:      210
+  Lines added (+): 34
+  Lines removed (-): 59
+
+Files that differ:
+  --exclude=.openapi-generator --exclude=.openapi-generator-ignore tmp/original-output/python/README.md samples/build/python/README.md
+  --exclude=.openapi-generator --exclude=.openapi-generator-ignore tmp/original-output/python/pyproject.toml samples/build/python/pyproject.toml
+  --exclude=.openapi-generator --exclude=.openapi-generator-ignore tmp/original-output/python/setup.py samples/build/python/setup.py
+
+Full diff available in: tmp/comparison-reports/python.diff

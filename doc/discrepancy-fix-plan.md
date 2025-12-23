@@ -13,11 +13,13 @@ This plan outlines the systematic approach to identify and fix discrepancies bet
 ### 1.1 Pre-Sync Preparation
 
 - [ ] **Backup current templates** (optional, but recommended)
+
   ```bash
   cp -r templates templates.backup
   ```
 
 - [ ] **Check current Git status**
+
   ```bash
   git status
   git add -A
@@ -32,9 +34,11 @@ This plan outlines the systematic approach to identify and fix discrepancies bet
 ### 1.2 Template Sync Execution
 
 - [ ] **Run clean template sync for all generators**
+
   ```bash
   npm run sync-templates:clean
   ```
+
   This will:
   - Clone/update the original OpenAPI Generator repository
   - Copy latest templates from Java project
@@ -72,33 +76,35 @@ This plan outlines the systematic approach to identify and fix discrepancies bet
 For each generator, generate output using the original OpenAPI Generator:
 
 - [ ] **Install official OpenAPI Generator CLI**
+
   ```bash
   npm install -g @openapitools/openapi-generator-cli
   ```
 
 - [ ] **Generate reference outputs**
+
   ```bash
   # Create output directory
   mkdir -p tmp/original-output
-  
+
   # TypeScript Fetch
   npx @openapitools/openapi-generator-cli generate \
     -i samples/petstore.yaml \
     -g typescript-fetch \
     -o tmp/original-output/typescript-fetch
-  
+
   # Python
   npx @openapitools/openapi-generator-cli generate \
     -i samples/petstore.yaml \
     -g python \
     -o tmp/original-output/python
-  
+
   # Go
   npx @openapitools/openapi-generator-cli generate \
     -i samples/petstore.yaml \
     -g go \
     -o tmp/original-output/go
-  
+
   # PHP
   npx @openapitools/openapi-generator-cli generate \
     -i samples/petstore.yaml \
@@ -109,11 +115,13 @@ For each generator, generate output using the original OpenAPI Generator:
 ### 2.2 Generate TypeScript Port Output
 
 - [ ] **Clean previous builds**
+
   ```bash
   cd samples && make clean
   ```
 
 - [ ] **Build TypeScript port**
+
   ```bash
   npm run build
   ```
@@ -127,25 +135,26 @@ For each generator, generate output using the original OpenAPI Generator:
 ### 2.3 Compare Outputs
 
 - [ ] **Create comparison script** (automated diff analysis)
-  Create `scripts/compare-outputs.sh`:
+      Create `scripts/compare-outputs.sh`:
+
   ```bash
   #!/usr/bin/env bash
   # Compare original vs TS port outputs for each generator
-  
+
   GENERATORS="typescript-fetch python go php"
   ORIGINAL_DIR="tmp/original-output"
   PORT_DIR="samples/build"
   REPORT_DIR="tmp/comparison-reports"
-  
+
   mkdir -p "$REPORT_DIR"
-  
+
   for gen in $GENERATORS; do
     echo "Comparing $gen..."
     diff -r -u \
       "$ORIGINAL_DIR/$gen" \
       "$PORT_DIR/$gen" \
       > "$REPORT_DIR/$gen.diff" 2>&1 || true
-    
+
     # Count differences
     if [ -s "$REPORT_DIR/$gen.diff" ]; then
       lines=$(wc -l < "$REPORT_DIR/$gen.diff")
@@ -157,6 +166,7 @@ For each generator, generate output using the original OpenAPI Generator:
   ```
 
 - [ ] **Run comparison**
+
   ```bash
   chmod +x scripts/compare-outputs.sh
   ./scripts/compare-outputs.sh
@@ -175,12 +185,14 @@ For each generator, generate output using the original OpenAPI Generator:
 Review each diff report and categorize issues into:
 
 #### A. **Acceptable Differences**
+
 - Comments/headers with different timestamps or versions
 - Whitespace-only differences
 - Different ordering of elements that doesn't affect functionality
 - Language-specific idioms that are equivalent but syntactically different
 
 #### B. **Template Issues**
+
 - Missing template files
 - Incorrect template variable interpolation
 - Handlebars vs Mustache conversion errors
@@ -188,6 +200,7 @@ Review each diff report and categorize issues into:
 - Incorrect loop structures
 
 #### C. **Generator Configuration Issues**
+
 - Missing or incorrect type mappings
 - Missing import mappings
 - Incorrect reserved words
@@ -195,6 +208,7 @@ Review each diff report and categorize issues into:
 - Missing supporting files
 
 #### D. **Parser/Transformer Issues**
+
 - Incorrect OpenAPI spec parsing
 - Wrong schema resolution
 - Incorrect operation grouping
@@ -202,6 +216,7 @@ Review each diff report and categorize issues into:
 - $ref resolution errors
 
 #### E. **Template Data (Context) Issues**
+
 - Missing variables in template context
 - Incorrect variable values
 - Wrong data structure passed to templates
@@ -210,23 +225,28 @@ Review each diff report and categorize issues into:
 ### 3.2 Create Issue Tracking Document
 
 - [ ] **Document findings in organized format**
-  Create `doc/discrepancies-tracker.md` with structure:
+      Create `doc/discrepancies-tracker.md` with structure:
+
   ```markdown
   # Discrepancies Tracker
-  
+
   ## Generator: typescript-fetch
-  
+
   ### Template Issues
+
   - [ ] File: api.mustache, Line 45 - Missing import statement
   - [ ] File: model.mustache - Incorrect conditional for optional properties
-  
+
   ### Generator Config Issues
+
   - [ ] Missing type mapping for `integer` format `int64`
-  
+
   ### Parser Issues
+
   - [ ] Operation IDs not being correctly camelCased
-  
+
   ## Generator: python
+
   ...
   ```
 
@@ -235,6 +255,7 @@ Review each diff report and categorize issues into:
 ### 4.1 Priority Order
 
 Fix issues in this order:
+
 1. **Parser/Transformer** - Foundation for correct data
 2. **Generator Configuration** - Core mappings and settings
 3. **Template Data/Context** - Ensure correct data is passed
@@ -255,6 +276,7 @@ For each identified issue:
    - Add inline comments for complex logic
 
 3. **Verify fix**
+
    ```bash
    npm run test:unit          # Unit tests pass
    npm run build              # Compiles successfully
@@ -272,14 +294,14 @@ For each identified issue:
 
 Based on AGENTS.md common issues table:
 
-| Issue Type | Primary Fix Location | Secondary Locations |
-|------------|---------------------|---------------------|
-| Empty names | `src/core/generator.ts` | `src/parser/operation-transformer.ts` |
-| Wrong types | `src/parser/operation-transformer.ts` | `src/generators/{language}.ts` |
-| Missing imports | `templates/{generator}/` | `src/generators/{language}.ts` |
-| Undefined template vars | `templates/{generator}/` | `src/core/generator.ts` |
-| Schema resolution | `src/parser/schema-transformer.ts` | `src/parser/openapi-parser.ts` |
-| Reserved words | `src/generators/{language}.ts` | - |
+| Issue Type              | Primary Fix Location                  | Secondary Locations                   |
+| ----------------------- | ------------------------------------- | ------------------------------------- |
+| Empty names             | `src/core/generator.ts`               | `src/parser/operation-transformer.ts` |
+| Wrong types             | `src/parser/operation-transformer.ts` | `src/generators/{language}.ts`        |
+| Missing imports         | `templates/{generator}/`              | `src/generators/{language}.ts`        |
+| Undefined template vars | `templates/{generator}/`              | `src/core/generator.ts`               |
+| Schema resolution       | `src/parser/schema-transformer.ts`    | `src/parser/openapi-parser.ts`        |
+| Reserved words          | `src/generators/{language}.ts`        | -                                     |
 
 ## Phase 5: Iterative Refinement
 
@@ -288,6 +310,7 @@ Based on AGENTS.md common issues table:
 Repeat until all differences are resolved or documented as acceptable:
 
 1. **Re-sync templates** (if upstream changes)
+
    ```bash
    npm run sync-templates
    ```
@@ -295,6 +318,7 @@ Repeat until all differences are resolved or documented as acceptable:
 2. **Implement fixes** (from tracker)
 
 3. **Regenerate & compare**
+
    ```bash
    npm run build
    cd samples && make clean all
@@ -310,6 +334,7 @@ Repeat until all differences are resolved or documented as acceptable:
 After each major fix batch:
 
 - [ ] **Run full test suite**
+
   ```bash
   npm test
   ```
@@ -400,6 +425,7 @@ Common manual fixes needed after auto-conversion:
 ### C. Generator Configuration Checklist
 
 When comparing generators, verify:
+
 - [ ] Reserved words list
 - [ ] Type mappings (primitives → language types)
 - [ ] Import mappings (OpenAPI types → language imports)
@@ -411,6 +437,7 @@ When comparing generators, verify:
 ### D. Debugging Tips
 
 **Template variable debugging:**
+
 ```handlebars
 <!-- Add to template temporarily -->
 <!-- DEBUG: classname={{classname}} -->
@@ -421,12 +448,14 @@ When comparing generators, verify:
 ```
 
 **Generator debugging:**
+
 ```typescript
 // In src/core/generator.ts or generator file
-console.error('DEBUG operation:', JSON.stringify(operation, null, 2));
+console.error("DEBUG operation:", JSON.stringify(operation, null, 2));
 ```
 
 **Diff analysis:**
+
 ```bash
 # Show only additions
 diff -u original port | grep '^+'
