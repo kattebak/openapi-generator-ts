@@ -143,3 +143,4 @@ vite.config.ts.timestamp-*
 # Sample generated output
 samples/build/
 samples/build
+tmp
