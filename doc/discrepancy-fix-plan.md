@@ -484,3 +484,120 @@ The project will be considered aligned with upstream when:
 - Document any upstream bugs discovered
 - Consider contributing fixes back to upstream project
 - Track upstream versions used for comparison
+
+---
+
+## Go Generator: Remaining Fixes
+
+**Status:** Model files are ~99% identical. API files need work.
+
+### Completed ✅
+
+| Issue                        | Fix Applied                                                            |
+| ---------------------------- | ---------------------------------------------------------------------- |
+| Package name empty           | Derive from API title (`"Swagger Petstore"` → `petstore`)              |
+| Lowercase field names        | Added `toVarName` hook returning PascalCase via `camelize()`           |
+| Missing JSON struct tags     | `postProcessProperty` sets `x-go-datatag` vendor extension             |
+| No MarshalJSON/UnmarshalJSON | `postProcessModel` sets `x-go-generate-marshal-json` vendor extensions |
+| Missing bytes/fmt imports    | `postProcessModel` adds to `model.imports` Set                         |
+| Wrong file structure         | Set `defaultApiPackage`/`defaultModelPackage` to `""`                  |
+| Wrong filenames              | Added `toModelFilename`/`toApiFilename` hooks                          |
+| int32 instead of int64       | Added `int64` format to `GO_TYPE_MAPPINGS`                             |
+
+### Remaining Model Issues (Cosmetic)
+
+1. **Missing blank line after `DO NOT EDIT.`**
+   - Location: `templates/go/partial_header.mustache`
+   - Fix: Add trailing newline in template converter for Go templates
+   - Priority: Low (cosmetic only)
+
+2. **Missing trailing newline at EOF**
+   - Location: Various templates
+   - Fix: Ensure template engine adds final newline
+   - Priority: Low (cosmetic only)
+
+### Remaining API File Issues
+
+#### 1. Operation names not PascalCase
+
+**Problem:** `createPets` instead of `CreatePets` (Go exported functions must be capitalized)
+
+**Location:** `src/parser/operation-transformer.ts` or `src/generators/go.ts`
+
+**Fix approach:**
+
+```typescript
+// In go.ts, add toOperationId hook
+function toGoOperationId(operationId: string): string {
+  return camelize(operationId); // PascalCase
+}
+```
+
+**Files to modify:**
+
+- `src/core/config.ts` - Add `toOperationId` to GeneratorMetadata
+- `src/parser/operation-transformer.ts` - Use hook when setting operationId
+- `src/generators/go.ts` - Implement `toGoOperationId`
+
+#### 2. HTTP method constant wrong case
+
+**Problem:** `http.MethodPOST` instead of `http.MethodPost`
+
+**Location:** Template or operation transformer
+
+**Investigation needed:**
+
+```bash
+grep -r "MethodPOST\|MethodPost" templates/go/
+grep -r "httpMethod" src/parser/
+```
+
+**Likely fix:** Operation transformer sets `httpMethod` to uppercase (`POST`), but Go uses `http.MethodPost` (PascalCase).
+
+#### 3. Content types template not rendering
+
+**Problem:** Raw template syntax appearing: `<%#consumes%>""<%^-last%>, <%/-last%><%/consumes%>`
+
+**Location:** `templates/go/api.mustache`
+
+**Cause:** Template uses `<% %>` delimiters which aren't being processed
+
+**Fix approach:**
+
+- Check `src/cli/convert-template.ts` for delimiter handling
+- May need to add conversion for this specific pattern
+
+#### 4. Missing `strings` import
+
+**Problem:** API file missing `"strings"` import
+
+**Investigation needed:**
+
+```bash
+grep -n "strings" tmp/original-go/api_pets.go
+```
+
+**Likely fix:** Need to detect when `strings` package is used and add to imports
+
+### Implementation Priority
+
+1. **High:** Operation names PascalCase (breaks Go compilation)
+2. **High:** Content types template syntax (breaks Go compilation)
+3. **Medium:** HTTP method case (may cause runtime issues)
+4. **Medium:** Missing strings import (breaks if strings functions used)
+5. **Low:** Cosmetic whitespace differences
+
+### Testing Commands
+
+```bash
+# Regenerate Go output
+rm -rf samples/build/go
+npx tsx src/cli/index.ts generate -i samples/petstore.yaml -g go -o samples/build/go
+
+# Compare with original
+diff tmp/original-go/model_pet.go samples/build/go/model_pet.go
+diff tmp/original-go/api_pets.go samples/build/go/api_pets.go
+
+# Try to compile generated Go code
+cd samples/build/go && go build ./...
+```

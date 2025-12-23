@@ -2,7 +2,7 @@
 
 **Status:** In Progress  
 **Date:** December 23, 2025  
-**Upstream Version:** OpenAPI Generator v7.18.0  
+**Upstream Version:** OpenAPI Generator v7.18.0
 
 ## Summary
 
@@ -17,13 +17,15 @@ All 4 generators show differences when compared to the original Java OpenAPI Gen
 ### Issues Found
 
 #### 1. Missing API Files
+
 - **Issue:** Original generates `PetsApi.ts`, port generates nothing for APIs
 - **Category:** Generator Configuration
 - **Location:** `src/generators/typescript-fetch.ts`, `src/core/generator.ts`
 - **Fix:** Ensure API files are being generated from operations
 - **Priority:** HIGH
 
-#### 2. Missing Model Files  
+#### 2. Missing Model Files
+
 - **Issue:** Original generates `ModelError.ts` and `Pet.ts`, port doesn't generate individual model files
 - **Category:** Generator Configuration
 - **Location:** `src/generators/typescript-fetch.ts`, `src/core/generator.ts`
@@ -31,6 +33,7 @@ All 4 generators show differences when compared to the original Java OpenAPI Gen
 - **Priority:** HIGH
 
 #### 3. Missing Documentation Files
+
 - **Issue:** Original generates `docs/` directory with API and model documentation
 - **Category:** Template/Generator Config
 - **Location:** Supporting files configuration
@@ -38,6 +41,7 @@ All 4 generators show differences when compared to the original Java OpenAPI Gen
 - **Priority:** LOW
 
 #### 4. Export Order Different in models/index.ts
+
 - **Issue:** Exports are in different order (Pet before ModelError vs ModelError before Pet)
 - **Category:** Acceptable (unless deterministic order required)
 - **Location:** Sort order in template data
@@ -45,6 +49,7 @@ All 4 generators show differences when compared to the original Java OpenAPI Gen
 - **Priority:** LOW
 
 #### 5. Missing runtime.ts Header Comments
+
 - **Issue:** Header in runtime.ts missing API description and version info
 - **Category:** Template Data
 - **Location:** `src/core/generator.ts` - OpenAPI info not passed to templates
@@ -52,6 +57,7 @@ All 4 generators show differences when compared to the original Java OpenAPI Gen
 - **Priority:** MEDIUM
 
 #### 6. Extra Files Generated
+
 - **Issue:** Port generates `README.md`, `package.json`, `tsconfig.json` that original doesn't
 - **Category:** Generator Configuration
 - **Location:** Supporting files list in `src/generators/typescript-fetch.ts`
@@ -67,6 +73,7 @@ All 4 generators show differences when compared to the original Java OpenAPI Gen
 ### Issues Found
 
 #### 1. Missing API/Model Source Files
+
 - **Issue:** Original generates `openapi_client/api/pets_api.py` and model files, port generates in different structure
 - **Category:** Generator Configuration
 - **Location:** `src/generators/python.ts`, output directory structure
@@ -74,22 +81,24 @@ All 4 generators show differences when compared to the original Java OpenAPI Gen
 - **Priority:** HIGH
 
 #### 2. README.md Content Incomplete
+
 - **Issue:** Multiple placeholder values:
   - Package name shows as empty string
-  - Version shows as empty string  
+  - Version shows as empty string
   - Examples show "false" instead of actual code
-  - API table shows "**" instead of class names
+  - API table shows "\*\*" instead of class names
   - Repository URL incomplete
 - **Category:** Template Data
 - **Location:** `src/core/generator.ts` - metadata not being passed correctly
-- **Fix:** 
+- **Fix:**
   - Pass `packageName`, `packageVersion` to template context
   - Fix conditionals in README template
   - Ensure API operation data available in template
 - **Priority:** HIGH
 
 #### 3. pyproject.toml Missing Metadata
-- **Issue:** 
+
+- **Issue:**
   - Package name: `petstore_client` vs `openapi_client`
   - Version: empty vs `1.0.0`
   - License: empty vs `MIT`
@@ -100,6 +109,7 @@ All 4 generators show differences when compared to the original Java OpenAPI Gen
 - **Priority:** HIGH
 
 #### 4. Missing Supporting Files
+
 - **Issue:** Original generates `.github/`, `.travis.yml`, `.gitlab-ci.yml`, `git_push.sh`, `docs/`
 - **Category:** Generator Configuration
 - **Location:** Supporting files list
@@ -115,6 +125,7 @@ All 4 generators show differences when compared to the original Java OpenAPI Gen
 ### Issues Found
 
 #### 1. Package Name Inconsistent
+
 - **Issue:** Port uses `petstore`, original uses `openapi`
 - **Category:** Generator Configuration
 - **Location:** `src/generators/go.ts` - package name derivation
@@ -122,13 +133,14 @@ All 4 generators show differences when compared to the original Java OpenAPI Gen
 - **Priority:** MEDIUM
 
 #### 2. README.md Missing Content
+
 - **Issue:**
   - API description missing
   - Package version empty
   - Generator version empty
   - Build package shows "go" vs "org.openapitools.codegen.languages.GoClientCodegen"
   - Import path incomplete (`//` vs `github.com/USER/REPO`)
-  - API table incomplete ("**" instead of class names)
+  - API table incomplete ("\*\*" instead of class names)
   - Author shows "false"
 - **Category:** Template Data
 - **Location:** Template context missing metadata
@@ -136,6 +148,7 @@ All 4 generators show differences when compared to the original Java OpenAPI Gen
 - **Priority:** HIGH
 
 #### 3. Missing API File
+
 - **Issue:** Original generates `api_pets.go`, port generates nothing or different structure
 - **Category:** Generator Configuration / Template
 - **Location:** API file generation logic
@@ -143,6 +156,7 @@ All 4 generators show differences when compared to the original Java OpenAPI Gen
 - **Priority:** HIGH
 
 #### 4. API Service Name Case Difference
+
 - **Issue:** `PetsAPI` vs `PetsApi` in client.go
 - **Category:** Name Processing
 - **Location:** API class name generation
@@ -150,6 +164,7 @@ All 4 generators show differences when compared to the original Java OpenAPI Gen
 - **Priority:** MEDIUM
 
 #### 5. client.go Header Comments Missing
+
 - **Issue:** API description and version missing from header
 - **Category:** Template Data
 - **Location:** Template context
@@ -175,23 +190,26 @@ cat tmp/comparison-reports/php.diff
 ## Common Issues Across All Generators
 
 ### 1. ❌ OpenAPI Metadata Not Passed to Templates
+
 - **Affects:** All generators
 - **Symptoms:** Missing descriptions, versions, empty placeholders
 - **Location:** `src/core/generator.ts` - template context building
 - **Fix:** Extract and pass OpenAPI `info` section to all templates:
-  - `apiDescription` 
+  - `apiDescription`
   - `apiVersion`
   - `appName`
   - `appDescription`
   - Contact, license, etc.
 
 ### 2. ❌ Generator Metadata Not Available
+
 - **Affects:** All generators (README files)
 - **Symptoms:** Empty generator version, build package incorrect
 - **Location:** `src/core/generator.ts`
 - **Fix:** Pass generator name, version, and metadata
 
 ### 3. ❌ API/Model Files Not Being Generated
+
 - **Affects:** typescript-fetch, go, possibly python
 - **Symptoms:** Missing core API and model source files
 - **Location:** `src/core/generator.ts` - file generation loops
@@ -201,6 +219,7 @@ cat tmp/comparison-reports/php.diff
   - Ensure templates are being called with correct data
 
 ### 4. ❌ Package Configuration Incomplete
+
 - **Affects:** All generators
 - **Symptoms:** Empty package names, versions, repository URLs
 - **Location:** `src/generators/{language}.ts` - `getAdditionalProperties()`
@@ -210,6 +229,7 @@ cat tmp/comparison-reports/php.diff
   - Generator defaults
 
 ### 5. ⚠️ Supporting Files Missing
+
 - **Affects:** All generators
 - **Symptoms:** Missing docs/, CI configs, git helpers
 - **Location:** Generator `createMetadata()` - supporting files list
@@ -220,21 +240,25 @@ cat tmp/comparison-reports/php.diff
 ## Fix Priority
 
 ### 🔴 Critical (Breaking - No Output)
+
 1. **API files not generated** (typescript-fetch, go)
 2. **Model files not generated** (typescript-fetch)
 3. **Package metadata missing** (all generators)
 
 ### 🟡 High (Output Broken/Incomplete)
+
 1. **OpenAPI info not passed to templates** (all generators)
 2. **README templates with empty data** (python, go)
 3. **Package configuration incomplete** (python, go, php)
 
 ### 🟢 Medium (Output Works But Differs)
+
 1. **Supporting files missing** (docs, CI configs)
 2. **Case differences in names** (PetsAPI vs PetsApi)
 3. **Package name defaults** (openapi vs spec-derived)
 
 ### ⚪ Low (Cosmetic/Acceptable)
+
 1. **Export ordering** (models/index.ts)
 2. **Extra files generated** (may be improvements)
 3. **Header comment details**
@@ -249,7 +273,7 @@ Add debug logging to `src/core/generator.ts`:
 
 ```typescript
 // In generateFromTemplates or similar
-console.error('DEBUG Template Context:', {
+console.error("DEBUG Template Context:", {
   apiName: context.apiName,
   apiDescription: context.apiDescription,
   models: context.models?.length,
@@ -263,7 +287,10 @@ console.error('DEBUG Template Context:', {
 Add debug logging in `src/parser/operation-transformer.ts`:
 
 ```typescript
-console.error('DEBUG Operations:', operations.map(op => op.operationId));
+console.error(
+  "DEBUG Operations:",
+  operations.map((op) => op.operationId),
+);
 ```
 
 ### Step 3: Verify Templates Are Being Found
@@ -271,7 +298,12 @@ console.error('DEBUG Operations:', operations.map(op => op.operationId));
 Add logging when templates are processed:
 
 ```typescript
-console.error('DEBUG Processing template:', templateFile, 'with context keys:', Object.keys(context));
+console.error(
+  "DEBUG Processing template:",
+  templateFile,
+  "with context keys:",
+  Object.keys(context),
+);
 ```
 
 ### Step 4: Check Generator Configuration
@@ -287,17 +319,19 @@ grep -A 20 "createMetadata" src/generators/typescript-fetch.ts
 ## Test Cases to Add
 
 1. **Metadata Extraction Test**
+
    ```typescript
    // Ensure OpenAPI info is extracted
-   test('extracts API metadata from OpenAPI spec', () => {
-     const spec = { info: { title: 'Test API', version: '1.0' } };
+   test("extracts API metadata from OpenAPI spec", () => {
+     const spec = { info: { title: "Test API", version: "1.0" } };
      const context = buildContext(spec);
-     expect(context.apiDescription).toBe('Test API');
-     expect(context.apiVersion).toBe('1.0');
+     expect(context.apiDescription).toBe("Test API");
+     expect(context.apiVersion).toBe("1.0");
    });
    ```
 
 2. **Operation Processing Test**
+
    ```typescript
    // Ensure operations generate API files
    test('generates API files for operations', () => {

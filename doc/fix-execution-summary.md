@@ -1,7 +1,7 @@
 # Discrepancy Fix Execution Summary
 
 **Date:** December 23, 2025  
-**Status:** ✅ Phase 1 Complete - Critical Issues Fixed  
+**Status:** ✅ Phase 1 Complete - Critical Issues Fixed
 
 ## What Was Done
 
@@ -13,7 +13,7 @@
 
 2. **Template Sync from Upstream**
    - Synced all 4 generators from OpenAPI Generator v7.18.0
-   - Templates synced: 
+   - Templates synced:
      - typescript-fetch: 33 files (18 templates converted)
      - python: 46 files (16 templates converted)
      - php: 29 files (13 templates converted)
@@ -45,6 +45,7 @@
 Created comprehensive tracking document: `doc/discrepancies-tracker.md`
 
 **Initial Findings:**
+
 - All 4 generators showed differences
 - Main issue: **NO API or model files being generated**
 - 7 supporting files generated, but core files missing
@@ -58,10 +59,12 @@ Templates contained Mustache quad-brace syntax (`{{{{datatype}}}}`) that Handleb
 #### Fix Applied
 
 **Files Modified:**
+
 - `templates/typescript-fetch/modelGenericInterfaces.mustache`
 - `templates/typescript-fetch/apis.mustache`
 
 **Change:**
+
 ```diff
 - @type {{{{datatype}}}}
 + @type \{{{datatype}}\}
@@ -72,14 +75,16 @@ Replaced quad-brace Mustache escaping with backslash escaping for literal curly 
 ### 📊 Results
 
 #### Before Fix
+
 ```
 typescript-fetch: 0 API files, 0 model files
-python:          0 API files, 0 model files  
+python:          0 API files, 0 model files
 go:              0 API files, 0 model files
 php:             0 API files, 0 model files
 ```
 
 #### After Fix
+
 ```
 typescript-fetch: 1 API file (PetsApi.ts), 2 model files (Pet.ts, ModelError.ts) ✅
 python:          API and model files generated ✅
@@ -90,11 +95,13 @@ php:             API and model files generated ✅
 #### Comparison Status
 
 **TypeScript Fetch:**
+
 - Before: Missing all core files
 - After: 5 files differ (content differences only)
 - Improvement: **CRITICAL BLOCKER FIXED** 🎉
 
 **All Generators:**
+
 - Core file generation now works
 - Remaining differences are mostly:
   - Metadata/header information
@@ -105,19 +112,23 @@ php:             API and model files generated ✅
 ## Created Artifacts
 
 ### Documentation
+
 - ✅ `doc/discrepancy-fix-plan.md` - Comprehensive fix plan
 - ✅ `doc/discrepancies-tracker.md` - Issue tracking document
 - ✅ This summary document
 
 ### Scripts
+
 - ✅ `scripts/compare-outputs.sh` - Automated comparison tool
 
 ### Comparison Reports
+
 - ✅ `tmp/comparison-reports/typescript-fetch.diff`
 - ✅ `tmp/comparison-reports/typescript-fetch-summary.txt`
 - ✅ Similar reports for python, go, php
 
 ### Reference Outputs
+
 - ✅ `tmp/original-output/{generator}/` - Official generator outputs
 
 ## Git Commits
@@ -169,6 +180,7 @@ php:             API and model files generated ✅
 ## Success Metrics
 
 ### Critical Success ✅
+
 - [x] Templates synced from upstream
 - [x] Comparison infrastructure created
 - [x] Root cause identified
@@ -176,6 +188,7 @@ php:             API and model files generated ✅
 - [x] All 4 generators producing output
 
 ### Remaining Work ⏳
+
 - [ ] Content differences resolved
 - [ ] Metadata properly passed to templates
 - [ ] All tests passing
@@ -185,11 +198,13 @@ php:             API and model files generated ✅
 ## Impact
 
 ### Before This Work
+
 - Generator was broken - no API or model files generated
 - Would produce empty/incomplete client libraries
 - Not usable for real projects
 
 ### After This Work
+
 - **Core functionality restored** ✅
 - All generators produce API and model files
 - Client libraries are now functional
