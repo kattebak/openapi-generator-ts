@@ -3,483 +3,235 @@
  * Mustache to Handlebars Template Converter
  *
  * Converts OpenAPI Generator Mustache templates to Handlebars-compatible format.
- * Uses a tokenizer pattern for robust handling of edge cases.
+ *
+ * Handlebars is largely compatible with Mustache, but there are a few key differences:
+ *
+ * 1. Delimiter changes ({{=<% %>=}}) are NOT supported in Handlebars
+ *    - These are converted to helper calls or removed
+ *
+ * 2. The {{#lambda.xxx}}...{{/lambda.xxx}} pattern becomes {{#xxx}}...{{/xxx}}
+ *    - Lambda helpers are registered in the engine adapter
+ *
+ * 3. Array index access like foo.0.bar needs bracket notation: foo.[0].bar
+ *    - Handlebars requires this for numeric keys
+ *
+ * Most other Mustache syntax works identically in Handlebars:
+ * - {{var}} - escaped output
+ * - {{{var}}} - unescaped output
+ * - {{#section}}...{{/section}} - block sections
+ * - {{^inverted}}...{{/inverted}} - inverted sections
+ * - {{>partial}} - partials
+ * - {{!comment}} - comments
  */
 
-import { readdirSync, readFileSync, statSync, writeFileSync } from "fs";
-import { extname, join } from "path";
-
-// Token types
-type TokenType =
-	| "text"
-	| "variable" // {{var}}
-	| "unescaped" // {{{var}}} or {{&var}}
-	| "section_open" // {{#var}}
-	| "section_close" // {{/var}}
-	| "inverted" // {{^var}}
-	| "partial" // {{>partial}}
-	| "comment" // {{!comment}}
-	| "delimiter_change" // {{=<% %>=}}
-	| "alt_variable" // <%var%> or <%&var%>
-	| "alt_unescaped"; // <%&var%>
-
-interface Token {
-	type: TokenType;
-	value: string;
-	raw: string;
-	unescaped?: boolean;
-}
-
-interface ConversionContext {
-	depth: number;
-	blockStack: string[];
-	currentDelimiters: [string, string];
-}
+import { readFileSync } from "node:fs";
 
 /**
- * Known string-type variables that should use {{#if}} instead of {{#}}
- * These are variables that contain string values, not objects/arrays
+ * Convert a Mustache template to Handlebars-compatible format
+ * Uses simple regex-based transformations for reliability
  */
-const STRING_CONDITIONALS = new Set([
-	"returnType",
-	"returnBaseType",
-	"dataType",
-	"baseType",
-	"description",
-	"summary",
-	"notes",
-	"title",
-	"example",
-	"defaultValue",
-	"pattern",
-	"minimum",
-	"maximum",
-	"format",
-	"parent",
-	"discriminator",
-]);
+export function convertTemplate(content: string): string {
+	let result = content;
 
-/**
- * Variables that are objects/arrays and should keep {{#}} syntax
- */
-const BLOCK_VARIABLES = new Set([
-	"operations",
-	"operation",
-	"allParams",
-	"pathParams",
-	"queryParams",
-	"headerParams",
-	"bodyParams",
-	"formParams",
-	"vars",
-	"allVars",
-	"requiredVars",
-	"optionalVars",
-	"readOnlyVars",
-	"readWriteVars",
-	"responses",
-	"successResponses",
-	"errorResponses",
-	"imports",
-	"models",
-	"authMethods",
-	"servers",
-	"tags",
-	"enumVars",
-	"allowableValues",
-	"consumes",
-	"produces",
-]);
+	// 1. Handle delimiter-change pattern for JSDoc types
+	// Pattern: {{=<% %>=}}{<%&varname%>}<%={{ }}=%>
+	// This outputs literal { } around a variable value
+	// Convert to: {{braceWrap varname}}
+	result = result.replace(
+		/\{\{=<% %>=\}\}\{<%&(\w+)%>\}<%=\{\{ \}\}=%>/g,
+		"{{braceWrap $1}}",
+	);
 
-/**
- * Tokenize a Mustache template
- */
-function tokenize(template: string): Token[] {
-	const tokens: Token[] = [];
-	let pos = 0;
-	let openDelim = "{{";
-	let closeDelim = "}}";
+	// 2. Handle delimiter-change pattern for @param tags (similar but with different context)
+	// Pattern: {{=<% %>=}}{<%&dataType%>}<%={{ }}=%>
+	// Already covered by the above regex
 
-	while (pos < template.length) {
-		// Check for delimiter change
-		const delimMatch = template
-			.slice(pos)
-			.match(/^\{\{=\s*(\S+)\s+(\S+)\s*=\}\}/);
-		if (delimMatch) {
-			tokens.push({
-				type: "delimiter_change",
-				value: `${delimMatch[1]} ${delimMatch[2]}`,
-				raw: delimMatch[0],
-			});
-			openDelim = delimMatch[1];
-			closeDelim = delimMatch[2];
-			pos += delimMatch[0].length;
-			continue;
+	// 3. Remove any remaining standalone delimiter changes
+	// These switch delimiters but the tokenizer should handle them
+	// {{=<% %>=}} or <%={{ }}=%>
+	result = result.replace(/\{\{=<% %>=\}\}/g, "");
+	result = result.replace(/<%=\{\{ \}\}=%>/g, "");
+
+	// 4. Handle any remaining alternate delimiter variables that weren't part of the pattern
+	// <%varname%> -> {{varname}}
+	result = result.replace(/<%(\w+)%>/g, "{{$1}}");
+	// <%&varname%> -> {{{varname}}}
+	result = result.replace(/<%&(\w+)%>/g, "{{{$1}}}");
+
+	// 5. Convert lambda block helpers: {{#lambda.xxx}} -> {{#xxx}}
+	result = result.replace(/\{\{#lambda\.(\w+)\}\}/g, "{{#$1}}");
+	result = result.replace(/\{\{\/lambda\.(\w+)\}\}/g, "{{/$1}}");
+
+	// 6. Convert lambda inline helpers: {{lambda.xxx arg}} -> {{xxx arg}}
+	// This handles cases like {{lambda.lowercase name}}
+	result = result.replace(/\{\{lambda\.(\w+)\s+/g, "{{$1 ");
+
+	// 7. Convert array index access: foo.0.bar -> foo.[0].bar
+	// Look for patterns like .0. or .0}} or .0}}}
+	result = result.replace(/\.(\d+)\./g, ".[$1].");
+	result = result.replace(/\.(\d+)\}\}/g, ".[$1]}}");
+	result = result.replace(/\.(\d+)\}\}\}/g, ".[$1]}}}");
+
+	// 8. Convert array-as-boolean check: {{#varname.[0]}}...{{/varname.[0]}}
+	// In Mustache, this enters a block if the first element exists but context is still parent.
+	// In Handlebars, the context changes to the first element, breaking inner {{#varname}} refs.
+	// Convert to {{#if varname}}...{{/if}} which preserves context and checks array truthiness.
+	// Also handle the inverted version {{^varname.[0]}}...{{/varname.[0]}}
+	result = result.replace(/\{\{#(\w+)\.\[0\]\}\}/g, "{{#if $1}}");
+	result = result.replace(/\{\{\/(\w+)\.\[0\]\}\}/g, "{{/if}}");
+	result = result.replace(/\{\{\^(\w+)\.\[0\]\}\}/g, "{{#unless $1}}");
+
+	// 9. Convert string-as-boolean sections to {{#if}} blocks
+	// In Mustache, {{#stringVar}}...{{/stringVar}} checks truthiness but keeps parent context.
+	// In Handlebars, it changes context to the string value, breaking sibling variable access.
+	// Convert known string variables to {{#if}} to preserve context.
+	//
+	// Note: Both {{#var}} and {{^var}} use {{/var}} as closing in Mustache.
+	// In Handlebars, we need {{/if}} for {{#if}} and {{/unless}} for {{#unless}}.
+	// So we process inverted sections first as complete pairs, then process normal sections.
+	const stringVars = [
+		"returnType",
+		"returnBaseType",
+		"summary",
+		"notes",
+		"description",
+		"unescapedDescription",
+		"externalDocsDescription",
+		"externalDocsUrl",
+		"basePath",
+		"host",
+		"title",
+		"appDescription",
+		"appDescriptionWithNewLines",
+		"appName",
+		"infoUrl",
+		"infoEmail",
+		"version",
+		"termsOfService",
+		"licenseName",
+		"licenseUrl",
+		"licenseInfo",
+		"appContact",
+		"returnContainer",
+		"defaultValue",
+		"dataFormat",
+		"example",
+		"exampleValue",
+		// Note: bodyParam is an object, NOT a string - do not add here
+		// Note: vendorExtensions is also an object
+		"pattern",
+		"minimum",
+		"maximum",
+		"minLength",
+		"maxLength",
+	];
+	for (const varName of stringVars) {
+		// First, handle the special case where {{{.}}} or {{.}} is used inside the block
+		// This pattern is common in Mustache: {{#varName}}{{{.}}}{{/varName}}
+		// The . refers to the current context (the varName value)
+		// Convert to: {{{varName}}} directly
+		result = result.replace(
+			new RegExp(
+				`\\{\\{#${varName}\\}\\}\\{\\{\\{\\.\\}\\}\\}\\{\\{/${varName}\\}\\}`,
+				"g",
+			),
+			`{{{${varName}}}}`,
+		);
+		result = result.replace(
+			new RegExp(
+				`\\{\\{#${varName}\\}\\}\\{\\{\\.\\}\\}\\{\\{/${varName}\\}\\}`,
+				"g",
+			),
+			`{{${varName}}}`,
+		);
+
+		// Handle patterns with surrounding text: {{#varName}}prefix {{{.}}} suffix{{/varName}}
+		// Convert to: {{#if varName}}prefix {{{varName}}} suffix{{/if}}
+		result = result.replace(
+			new RegExp(
+				`\\{\\{#${varName}\\}\\}([^{]*)\\{\\{\\{\\.\\}\\}\\}([^{]*)\\{\\{/${varName}\\}\\}`,
+				"g",
+			),
+			`{{#if ${varName}}}$1{{{${varName}}}}$2{{/if}}`,
+		);
+		result = result.replace(
+			new RegExp(
+				`\\{\\{#${varName}\\}\\}([^{]*)\\{\\{\\.\\}\\}([^{]*)\\{\\{/${varName}\\}\\}`,
+				"g",
+			),
+			`{{#if ${varName}}}$1{{${varName}}}$2{{/if}}`,
+		);
+
+		// Then convert inverted sections as complete pairs
+		// {{^varName}}...{{/varName}} -> {{#unless varName}}...{{/unless}}
+		// Use non-greedy match to handle nested sections correctly
+		result = result.replace(
+			new RegExp(
+				`\\{\\{\\^${varName}\\}\\}([\\s\\S]*?)\\{\\{/${varName}\\}\\}`,
+				"g",
+			),
+			`{{#unless ${varName}}}$1{{/unless}}`,
+		);
+		// Then convert remaining normal sections with dot reference replacement
+		// {{#varName}}...{{{.}}}...{{/varName}} -> {{#if varName}}...{{{varName}}}...{{/if}}
+		// We need to replace {{{.}}} and {{.}} with the varName inside the block
+		// Run iteratively because nested blocks need multiple passes
+		let prevResult = "";
+		while (prevResult !== result) {
+			prevResult = result;
+			result = result.replace(
+				new RegExp(
+					`\\{\\{#${varName}\\}\\}([\\s\\S]*?)\\{\\{/${varName}\\}\\}`,
+					"g",
+				),
+				(_, content) => {
+					// Replace dot references with the variable name inside the block
+					const replaced = content
+						.replace(/\{\{\{\.\}\}\}/g, `{{{${varName}}}}`)
+						.replace(/\{\{\.\}\}/g, `{{${varName}}}`);
+					return `{{#if ${varName}}}${replaced}{{/if}}`;
+				},
+			);
 		}
-
-		// Check for switch back to standard delimiters
-		const switchBackMatch = template.slice(pos).match(/^<%=\{\{ \}\}=%>/);
-		if (switchBackMatch) {
-			tokens.push({
-				type: "delimiter_change",
-				value: "{{ }}",
-				raw: switchBackMatch[0],
-			});
-			openDelim = "{{";
-			closeDelim = "}}";
-			pos += switchBackMatch[0].length;
-			continue;
-		}
-
-		// Check for alternate delimiter variable (unescaped)
-		if (openDelim === "<%") {
-			const altUnescapedMatch = template.slice(pos).match(/^<%&(\w+)%>/);
-			if (altUnescapedMatch) {
-				tokens.push({
-					type: "alt_unescaped",
-					value: altUnescapedMatch[1],
-					raw: altUnescapedMatch[0],
-					unescaped: true,
-				});
-				pos += altUnescapedMatch[0].length;
-				continue;
-			}
-
-			const altVarMatch = template.slice(pos).match(/^<%(\w+)%>/);
-			if (altVarMatch) {
-				tokens.push({
-					type: "alt_variable",
-					value: altVarMatch[1],
-					raw: altVarMatch[0],
-				});
-				pos += altVarMatch[0].length;
-				continue;
-			}
-		}
-
-		// Check for standard Mustache tags
-		const tagStart = template.indexOf(openDelim, pos);
-
-		if (tagStart === -1 || tagStart > pos) {
-			// Text before next tag (or rest of template)
-			const textEnd = tagStart === -1 ? template.length : tagStart;
-			if (textEnd > pos) {
-				tokens.push({
-					type: "text",
-					value: template.slice(pos, textEnd),
-					raw: template.slice(pos, textEnd),
-				});
-			}
-			if (tagStart === -1) break;
-			pos = tagStart;
-			continue;
-		}
-
-		// Find closing delimiter
-		const tagEndStart = template.indexOf(closeDelim, pos + openDelim.length);
-		if (tagEndStart === -1) {
-			// No closing delimiter, treat as text
-			tokens.push({
-				type: "text",
-				value: template.slice(pos),
-				raw: template.slice(pos),
-			});
-			break;
-		}
-
-		const tagContent = template.slice(pos + openDelim.length, tagEndStart);
-		const fullTag = template.slice(pos, tagEndStart + closeDelim.length);
-
-		// Check for triple mustache (unescaped)
-		if (
-			openDelim === "{{" &&
-			template[pos + 2] === "{" &&
-			template[tagEndStart + 2] === "}"
-		) {
-			const innerContent = template.slice(pos + 3, tagEndStart);
-			tokens.push({
-				type: "unescaped",
-				value: innerContent.trim(),
-				raw: template.slice(pos, tagEndStart + 3),
-				unescaped: true,
-			});
-			pos = tagEndStart + 3;
-			continue;
-		}
-
-		// Parse tag type
-		const firstChar = tagContent[0];
-		const restContent = tagContent.slice(1).trim();
-
-		switch (firstChar) {
-			case "#":
-				tokens.push({
-					type: "section_open",
-					value: restContent,
-					raw: fullTag,
-				});
-				break;
-			case "/":
-				tokens.push({
-					type: "section_close",
-					value: restContent,
-					raw: fullTag,
-				});
-				break;
-			case "^":
-				tokens.push({
-					type: "inverted",
-					value: restContent,
-					raw: fullTag,
-				});
-				break;
-			case ">":
-				tokens.push({
-					type: "partial",
-					value: restContent,
-					raw: fullTag,
-				});
-				break;
-			case "!":
-				tokens.push({
-					type: "comment",
-					value: restContent,
-					raw: fullTag,
-				});
-				break;
-			case "&":
-				tokens.push({
-					type: "unescaped",
-					value: restContent,
-					raw: fullTag,
-					unescaped: true,
-				});
-				break;
-			default:
-				tokens.push({
-					type: "variable",
-					value: tagContent.trim(),
-					raw: fullTag,
-				});
-		}
-
-		pos = tagEndStart + closeDelim.length;
 	}
 
-	return tokens;
+	// 10. Handle -first and -last in iteration contexts
+	// Process inverted sections FIRST as complete pairs (they use {{/-first}} as close tag too)
+	// {{^-first}}...{{/-first}} -> {{#unless @first}}...{{/unless}}
+	result = result.replace(
+		/\{\{\^-first\}\}([\s\S]*?)\{\{\/-first\}\}/g,
+		"{{#unless @first}}$1{{/unless}}",
+	);
+	result = result.replace(
+		/\{\{\^-last\}\}([\s\S]*?)\{\{\/-last\}\}/g,
+		"{{#unless @last}}$1{{/unless}}",
+	);
+
+	// Then process regular sections
+	// {{#-first}}...{{/-first}} -> {{#if @first}}...{{/if}}
+	result = result.replace(/\{\{#-first\}\}/g, "{{#if @first}}");
+	result = result.replace(/\{\{\/-first\}\}/g, "{{/if}}");
+	result = result.replace(/\{\{#-last\}\}/g, "{{#if @last}}");
+	result = result.replace(/\{\{\/-last\}\}/g, "{{/if}}");
+
+	// 11. Fix ambiguous }}} sequences after block tags that could confuse Handlebars
+	// When a block tag like {{#if ...}} or {{/if}} is followed immediately by }
+	// (which is code output, not template), Handlebars parser may get confused.
+	// Add whitespace to disambiguate: {{#if foo}}} -> {{#if foo}} }
+	// Pattern: Match {{...}} where ... doesn't start with { (not unescaped output)
+	// followed by } that isn't part of another tag
+	result = result.replace(/(\{\{[#^\/][\w@\s]+\}\})\}([^}])/g, "$1 }$2");
+
+	return result;
 }
 
 /**
- * Check if a variable name should use {{#if}} instead of {{#}}
+ * Process a single file - reads from path, outputs converted content to stdout
  */
-function shouldUseIfConditional(varName: string): boolean {
-	// Handle dotted paths like "lambda.X" or "array.0"
-	const baseName = varName.split(".")[0];
-
-	// Array existence check pattern: array.0
-	if (/^\w+\.0$/.test(varName)) {
-		return true;
-	}
-
-	// Lambda pattern: lambda.X
-	if (varName.startsWith("lambda.")) {
-		return false; // These become helper calls
-	}
-
-	// Known string conditionals
-	if (STRING_CONDITIONALS.has(baseName)) {
-		return true;
-	}
-
-	// Known block variables should NOT use if
-	if (BLOCK_VARIABLES.has(baseName)) {
-		return false;
-	}
-
-	// Boolean-like names typically should not use if (they're already boolean)
-	if (
-		varName.startsWith("is") ||
-		varName.startsWith("has") ||
-		varName.startsWith("with") ||
-		varName.startsWith("use")
-	) {
-		return false;
-	}
-
-	// Default: assume it's a potential string conditional
-	return false;
-}
-
-/**
- * Convert tokens to Handlebars-compatible output
- */
-function convertToHandlebars(tokens: Token[]): string {
-	const output: string[] = [];
-	const context: ConversionContext = {
-		depth: 0,
-		blockStack: [],
-		currentDelimiters: ["{{", "}}"],
-	};
-
-	for (let i = 0; i < tokens.length; i++) {
-		const token = tokens[i];
-
-		switch (token.type) {
-			case "text":
-				output.push(token.value);
-				break;
-
-			case "delimiter_change":
-				// Skip delimiter changes - Handlebars doesn't support them
-				// The tokenizer already handled the delimiter state
-				break;
-
-			case "alt_unescaped":
-			case "alt_variable":
-				// Convert alternate delimiter variables to triple braces
-				output.push(`{{{${token.value}}}}`);
-				break;
-
-			case "variable":
-				// Handle lambda syntax: {{lambda.X}} -> {{X}}
-				if (token.value.startsWith("lambda.")) {
-					const helperName = token.value.slice(7);
-					output.push(`{{${helperName}}}`);
-				} else {
-					output.push(`{{${token.value}}}`);
-				}
-				break;
-
-			case "unescaped":
-				output.push(`{{{${token.value}}}}`);
-				break;
-
-			case "section_open": {
-				const varName = token.value;
-				context.blockStack.push(varName);
-				context.depth++;
-
-				// Handle array.0 pattern (check if array is non-empty)
-				if (/^\w+\.0$/.test(varName)) {
-					const arrayName = varName.split(".")[0];
-					output.push(`{{#if ${arrayName}}}`);
-				}
-				// Handle lambda.X pattern (block helper)
-				else if (varName.startsWith("lambda.")) {
-					const helperName = varName.slice(7);
-					output.push(`{{#${helperName}}}`);
-				}
-				// Check if this is a string conditional that needs {{#if}}
-				else if (shouldUseIfConditional(varName)) {
-					output.push(`{{#if ${varName}}}`);
-				} else {
-					output.push(`{{#${varName}}}`);
-				}
-				break;
-			}
-
-			case "section_close": {
-				const varName = token.value;
-				const openingTag = context.blockStack.pop();
-				const wasInverted = openingTag?.startsWith("^");
-				context.depth--;
-
-				// Handle array.0 pattern
-				if (/^\w+\.0$/.test(varName)) {
-					output.push(wasInverted ? `{{/unless}}` : `{{/if}}`);
-				}
-				// Handle lambda.X pattern
-				else if (varName.startsWith("lambda.")) {
-					const helperName = varName.slice(7);
-					output.push(`{{/${helperName}}}`);
-				}
-				// Match the opening tag type
-				else if (shouldUseIfConditional(varName)) {
-					output.push(wasInverted ? `{{/unless}}` : `{{/if}}`);
-				} else {
-					output.push(`{{/${varName}}}`);
-				}
-				break;
-			}
-
-			case "inverted": {
-				const varName = token.value;
-
-				// Handle array.0 pattern
-				if (/^\w+\.0$/.test(varName)) {
-					const arrayName = varName.split(".")[0];
-					output.push(`{{#unless ${arrayName}}}`);
-				}
-				// Check if this is a string conditional
-				else if (shouldUseIfConditional(varName)) {
-					output.push(`{{#unless ${varName}}}`);
-				} else {
-					output.push(`{{^${varName}}}`);
-				}
-
-				// Track for proper closing
-				context.blockStack.push(`^${varName}`);
-				context.depth++;
-				break;
-			}
-
-			case "partial":
-				output.push(`{{>${token.value}}}`);
-				break;
-
-			case "comment":
-				output.push(`{{!${token.value}}}`);
-				break;
-		}
-	}
-
-	return output.join("");
-}
-
-/**
- * Convert a single template file
- */
-function convertTemplate(content: string): string {
-	const tokens = tokenize(content);
-	return convertToHandlebars(tokens);
-}
-
-/**
- * Process a single file
- */
-function processFile(inputPath: string, outputPath?: string): void {
+function processFile(inputPath: string): void {
 	const content = readFileSync(inputPath, "utf-8");
 	const converted = convertTemplate(content);
-
-	if (outputPath) {
-		writeFileSync(outputPath, converted);
-		console.log(`Converted: ${inputPath} -> ${outputPath}`);
-	} else {
-		console.log(converted);
-	}
-}
-
-/**
- * Process a directory recursively
- */
-function processDirectory(
-	inputDir: string,
-	outputDir: string,
-	extensions = [".mustache"],
-): void {
-	const entries = readdirSync(inputDir);
-
-	for (const entry of entries) {
-		const inputPath = join(inputDir, entry);
-		const outputPath = join(outputDir, entry);
-		const stat = statSync(inputPath);
-
-		if (stat.isDirectory()) {
-			processDirectory(inputPath, outputPath, extensions);
-		} else if (extensions.includes(extname(entry))) {
-			processFile(inputPath, outputPath);
-		}
-	}
+	process.stdout.write(converted);
 }
 
 // CLI handling
@@ -491,46 +243,21 @@ function main(): void {
 Mustache to Handlebars Template Converter
 
 Usage:
-  npx tsx src/cli/convert-template.ts <input> [output]
-  npx tsx src/cli/convert-template.ts --dir <input-dir> <output-dir>
+  npx tsx src/cli/convert-template.ts <input-file>
 
-Options:
-  --dir           Process entire directory recursively
-  --ext <exts>    File extensions to process (default: .mustache)
-  -h, --help      Show this help message
+The converted template is written to stdout.
 
 Examples:
-  # Convert single file to stdout
   npx tsx src/cli/convert-template.ts template.mustache
-
-  # Convert single file to output file
-  npx tsx src/cli/convert-template.ts input.mustache output.mustache
-
-  # Convert directory
-  npx tsx src/cli/convert-template.ts --dir ./input-templates ./output-templates
+  npx tsx src/cli/convert-template.ts template.mustache > output.mustache
 `);
 		process.exit(0);
 	}
 
-	if (args[0] === "--dir") {
-		if (args.length < 3) {
-			console.error("Error: --dir requires input and output directories");
-			process.exit(1);
-		}
-		processDirectory(args[1], args[2]);
-	} else {
-		processFile(args[0], args[1]);
-	}
+	processFile(args[0]);
 }
 
-// Export for testing
-export {
-	tokenize,
-	convertTemplate,
-	convertToHandlebars,
-	type Token,
-	type TokenType,
-};
-
 // Run if called directly
-main();
+if (import.meta.url === `file://${process.argv[1]}`) {
+	main();
+}
