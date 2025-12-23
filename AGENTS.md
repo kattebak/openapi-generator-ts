@@ -41,10 +41,17 @@ cd samples && make typescript-fetch
 ## Templates
 
 Templates in `templates/{generator}/`. Synced from original Java project with automatic conversion:
+
 - `{{=<% %>=}}` delimiter changes → removed
 - `{{#lambda.func}}` → `{{#func}}`
+- `{{{{var}}}}` quad-braces → proper escaping for JSDoc
+
+**⚠️ CRITICAL: Never manually edit templates!**
+
+Templates are synced from upstream and converted automatically. All template fixes must be made in `src/cli/convert-template.ts` to ensure the process is reproducible. After updating the converter, re-run `npm run sync-templates:clean` to regenerate all templates.
 
 **Handlebars vs Mustache differences:**
+
 - String conditionals: Use `{{#if returnType}}` not `{{#returnType}}`
 - Nested access: Use `{{../classname}}` for parent context
 - Convert templates: `npx tsx src/cli/convert-template.ts input.mustache output.mustache`
