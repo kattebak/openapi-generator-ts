@@ -185,12 +185,9 @@ export class DefaultGenerator {
 					schemas as Record<string, OpenAPIV3.SchemaObject>,
 				);
 
-				console.error(`DEBUG: Found ${result.models.size} models:`, Array.from(result.models.keys()));
-
 				// Generate model files
 				const modelFiles = await this.generateModels(result.models, spec);
 				result.files.push(...modelFiles);
-				console.error(`DEBUG: Generated ${modelFiles.length} model files`);
 			}
 
 			// Process operations
@@ -209,11 +206,6 @@ export class DefaultGenerator {
 					schemas as Record<string, OpenAPIV3.SchemaObject>,
 				);
 
-				console.error(`DEBUG: Found ${result.operations.size} operation groups:`, Array.from(result.operations.keys()));
-				for (const [tag, ops] of result.operations) {
-					console.error(`DEBUG: Tag "${tag}" has ${ops.length} operations:`, ops.map(op => op.operationId));
-				}
-
 				// Generate API files
 				const apiFiles = await this.generateApis(
 					result.operations,
@@ -221,7 +213,6 @@ export class DefaultGenerator {
 					spec,
 				);
 				result.files.push(...apiFiles);
-				console.error(`DEBUG: Generated ${apiFiles.length} API files`);
 			}
 
 			// Generate supporting files
@@ -264,13 +255,9 @@ export class DefaultGenerator {
 			throw new Error("Template manager not initialized");
 		}
 
-		console.error(`DEBUG generateModels: Processing ${models.size} models`);
-		console.error(`DEBUG generateModels: modelTemplateFile = ${this.metadata.modelTemplateFile}`);
-
 		const globalData = this.createGlobalTemplateData(spec);
 
 		for (const [name, model] of models) {
-			console.error(`DEBUG generateModels: Processing model "${name}"`);
 			const templateData: TemplateData = {
 				...globalData,
 				...model,
@@ -294,8 +281,6 @@ export class DefaultGenerator {
 					`${model.classname}${this.metadata.modelFileExtension}`,
 				);
 
-				console.error(`DEBUG generateModels: Writing to ${outputPath}`);
-
 				const result = await this.templateManager.writeFile(
 					outputPath,
 					content,
@@ -306,7 +291,6 @@ export class DefaultGenerator {
 					console.log(`  Generated: ${outputPath}`);
 				}
 			} catch (error) {
-				console.error(`DEBUG generateModels: Error generating model ${name}:`, error);
 				if (this.config.verbose) {
 					console.warn(`  Warning: Could not generate model ${name}: ${error}`);
 				}

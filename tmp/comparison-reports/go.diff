@@ -1,6 +1,6 @@
 diff -r -u --exclude=.openapi-generator --exclude=.openapi-generator-ignore tmp/original-output/go/README.md samples/build/go/README.md
 --- tmp/original-output/go/README.md	2025-12-23 01:34:34
-+++ samples/build/go/README.md	2025-12-23 01:34:58
++++ samples/build/go/README.md	2025-12-23 01:39:14
 @@ -1,14 +1,14 @@
 -# Go API client for openapi
 +# Go API client for petstore
@@ -15,7 +15,7 @@ diff -r -u --exclude=.openapi-generator --exclude=.openapi-generator-ignore tmp/
 -- Generator version: 7.18.0
 -- Build package: org.openapitools.codegen.languages.GoClientCodegen
 +- Package version: 
-+- Build date: 2025-12-23T00:34:58.203Z
++- Build date: 2025-12-23T00:39:14.081Z
 +- Generator version: 
 +- Build package: go
  
@@ -102,7 +102,7 @@ Only in tmp/original-output/go: api
 Only in tmp/original-output/go: api_pets.go
 diff -r -u --exclude=.openapi-generator --exclude=.openapi-generator-ignore tmp/original-output/go/client.go samples/build/go/client.go
 --- tmp/original-output/go/client.go	2025-12-23 01:34:34
-+++ samples/build/go/client.go	2025-12-23 01:34:58
++++ samples/build/go/client.go	2025-12-23 01:39:14
 @@ -1,15 +1,11 @@
  /*
  Swagger Petstore
@@ -149,7 +149,7 @@ diff -r -u --exclude=.openapi-generator --exclude=.openapi-generator-ignore tmp/
  }
 diff -r -u --exclude=.openapi-generator --exclude=.openapi-generator-ignore tmp/original-output/go/configuration.go samples/build/go/configuration.go
 --- tmp/original-output/go/configuration.go	2025-12-23 01:34:34
-+++ samples/build/go/configuration.go	2025-12-23 01:34:58
++++ samples/build/go/configuration.go	2025-12-23 01:39:14
 @@ -1,15 +1,11 @@
  /*
  Swagger Petstore
@@ -189,7 +189,7 @@ diff -r -u --exclude=.openapi-generator --exclude=.openapi-generator-ignore tmp/
 Only in tmp/original-output/go: docs
 diff -r -u --exclude=.openapi-generator --exclude=.openapi-generator-ignore tmp/original-output/go/git_push.sh samples/build/go/git_push.sh
 --- tmp/original-output/go/git_push.sh	2025-12-23 01:34:34
-+++ samples/build/go/git_push.sh	2025-12-23 01:34:58
++++ samples/build/go/git_push.sh	2025-12-23 01:39:14
 @@ -9,22 +9,22 @@
  git_host=$4
  
@@ -219,7 +219,7 @@ diff -r -u --exclude=.openapi-generator --exclude=.openapi-generator-ignore tmp/
  
 diff -r -u --exclude=.openapi-generator --exclude=.openapi-generator-ignore tmp/original-output/go/go.mod samples/build/go/go.mod
 --- tmp/original-output/go/go.mod	2025-12-23 01:34:34
-+++ samples/build/go/go.mod	2025-12-23 01:34:58
++++ samples/build/go/go.mod	2025-12-23 01:39:14
 @@ -1,4 +1,4 @@
 -module github.com/GIT_USER_ID/GIT_REPO_ID
 +module //
@@ -231,7 +231,7 @@ Only in tmp/original-output/go: model_pet.go
 Only in samples/build/go: models
 diff -r -u --exclude=.openapi-generator --exclude=.openapi-generator-ignore tmp/original-output/go/response.go samples/build/go/response.go
 --- tmp/original-output/go/response.go	2025-12-23 01:34:34
-+++ samples/build/go/response.go	2025-12-23 01:34:58
++++ samples/build/go/response.go	2025-12-23 01:39:14
 @@ -1,14 +1,10 @@
  /*
  Swagger Petstore
@@ -251,7 +251,7 @@ diff -r -u --exclude=.openapi-generator --exclude=.openapi-generator-ignore tmp/
 Only in tmp/original-output/go: test
 diff -r -u --exclude=.openapi-generator --exclude=.openapi-generator-ignore tmp/original-output/go/utils.go samples/build/go/utils.go
 --- tmp/original-output/go/utils.go	2025-12-23 01:34:34
-+++ samples/build/go/utils.go	2025-12-23 01:34:58
++++ samples/build/go/utils.go	2025-12-23 01:39:14
 @@ -1,14 +1,10 @@
  /*
  Swagger Petstore
