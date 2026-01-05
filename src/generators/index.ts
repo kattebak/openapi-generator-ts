@@ -4,7 +4,10 @@
 import type { CodegenConfig, GeneratorMetadata } from "../core/config.js";
 import { createGoMetadata, getGoAdditionalProperties } from "./go.js";
 import { createPhpMetadata, getPhpAdditionalProperties } from "./php.js";
-import { createPythonMetadata, getPythonAdditionalProperties } from "./python.js";
+import {
+	createPythonMetadata,
+	getPythonAdditionalProperties,
+} from "./python.js";
 import {
 	createTypescriptFetchMetadata,
 	getTypescriptAdditionalProperties,
@@ -37,7 +40,10 @@ additionalPropertiesProviders.set(
 	"typescript-fetch",
 	getTypescriptAdditionalProperties,
 );
-additionalPropertiesProviders.set("typescript", getTypescriptAdditionalProperties);
+additionalPropertiesProviders.set(
+	"typescript",
+	getTypescriptAdditionalProperties,
+);
 additionalPropertiesProviders.set("python", getPythonAdditionalProperties);
 additionalPropertiesProviders.set("php", getPhpAdditionalProperties);
 
