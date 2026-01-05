@@ -418,12 +418,12 @@ func (a *{{{classname}}}Service) {{nickname}}Execute(r {{#structPrefix}}{{&class
 			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
 			if err != nil {
 				newErr.error = err.Error()
-				return {{#if returnType}}localVarReturnValue, {{/if}}localVarHTTPResponse, newErr
+				return {{#if ../../returnType}}localVarReturnValue, {{/if}}localVarHTTPResponse, newErr
 			}
 					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
 					newErr.model = v
 			{{#unless @last}}
-			return {{#if returnType}}localVarReturnValue, {{/if}}localVarHTTPResponse, newErr
+			return {{#if ../../returnType}}localVarReturnValue, {{/if}}localVarHTTPResponse, newErr
 			{{/unless}}
 		{{^../wildcard}}
 		}
