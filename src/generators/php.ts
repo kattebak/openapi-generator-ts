@@ -149,6 +149,8 @@ export function createPhpMetadata(): GeneratorMetadata {
 		apiFileExtension: ".php",
 		modelTemplateFile: "model.mustache",
 		apiTemplateFile: "api.mustache",
+		defaultModelPackage: "{{srcBasePath}}/Model",
+		defaultApiPackage: "{{srcBasePath}}/Api",
 		supportingFiles: [
 			{
 				templateFile: "ApiException.mustache",
@@ -255,6 +257,10 @@ export function getPhpAdditionalProperties(
 			config.additionalProperties?.hideGenerationTimestamp ?? true,
 		apiDocPath: "docs/Api",
 		modelDocPath: "docs/Model",
+		// Git repository metadata
+		gitHost: config.additionalProperties?.gitHost ?? "github.com",
+		gitUserId: config.additionalProperties?.gitUserId ?? "GIT_USER_ID",
+		gitRepoId: config.additionalProperties?.gitRepoId ?? "GIT_REPO_ID",
 		...config.additionalProperties,
 	};
 }

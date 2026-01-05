@@ -2,6 +2,7 @@
  * Python Generator
  * Generates Python client code using urllib3, asyncio, or httpx
  */
+import { snakeCase } from "es-toolkit/string";
 import type { CodegenConfig, GeneratorMetadata } from "../core/config.js";
 
 /**
@@ -129,6 +130,22 @@ const PYTHON_IMPORT_MAPPINGS: Record<string, string> = {
 };
 
 /**
+ * Convert model name to Python snake_case filename
+ */
+function toPythonModelFilename(modelName: string): string {
+	return `${snakeCase(modelName)}.py`;
+}
+
+/**
+ * Convert API class name to Python snake_case filename
+ */
+function toPythonApiFilename(className: string): string {
+	// Remove 'Api' suffix if present before converting to snake_case
+	const baseName = className.replace(/Api$/i, "");
+	return `${snakeCase(baseName)}_api.py`;
+}
+
+/**
  * Create Python generator metadata
  */
 export function createPythonMetadata(): GeneratorMetadata {
@@ -144,6 +161,10 @@ export function createPythonMetadata(): GeneratorMetadata {
 		apiFileExtension: ".py",
 		modelTemplateFile: "model.mustache",
 		apiTemplateFile: "api.mustache",
+		defaultModelPackage: "{{packageName}}/models",
+		defaultApiPackage: "{{packageName}}/api",
+		toModelFilename: toPythonModelFilename,
+		toApiFilename: toPythonApiFilename,
 		supportingFiles: [
 			{
 				templateFile: "__init__package.mustache",
@@ -220,6 +241,16 @@ export function createPythonMetadata(): GeneratorMetadata {
 				folder: "{{packageName}}",
 				destinationFilename: "py.typed",
 			},
+			{
+				templateFile: "travis.mustache",
+				folder: "",
+				destinationFilename: ".travis.yml",
+			},
+			{
+				templateFile: "gitlab-ci.mustache",
+				folder: "",
+				destinationFilename: ".gitlab-ci.yml",
+			},
 		],
 		reservedWords: PYTHON_RESERVED_WORDS,
 		defaultTypeMappings: PYTHON_TYPE_MAPPINGS,
@@ -251,6 +282,13 @@ export function getPythonAdditionalProperties(
 		mapNumberTo:
 			config.additionalProperties?.mapNumberTo ??
 			"Union[StrictFloat, StrictInt]",
+		// Python version for README
+		generatorLanguageVersion:
+			config.additionalProperties?.generatorLanguageVersion ?? "3.8+",
+		// Git repository metadata
+		gitHost: config.additionalProperties?.gitHost ?? "github.com",
+		gitUserId: config.additionalProperties?.gitUserId ?? "GIT_USER_ID",
+		gitRepoId: config.additionalProperties?.gitRepoId ?? "GIT_REPO_ID",
 		...config.additionalProperties,
 	};
 }

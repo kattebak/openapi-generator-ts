@@ -194,6 +194,16 @@ export function createTypescriptFetchMetadata(): GeneratorMetadata {
 				folder: "models",
 				destinationFilename: "index.ts",
 			},
+			{
+				templateFile: "gitignore",
+				folder: "",
+				destinationFilename: ".gitignore",
+			},
+			{
+				templateFile: "npmignore.mustache",
+				folder: "",
+				destinationFilename: ".npmignore",
+			},
 		],
 		reservedWords: TYPESCRIPT_RESERVED_WORDS,
 		defaultTypeMappings: TYPESCRIPT_TYPE_MAPPINGS,
@@ -215,6 +225,10 @@ export function getTypescriptAdditionalProperties(
 		npmName: config.additionalProperties?.npmName ?? config.packageName,
 		npmVersion: config.additionalProperties?.npmVersion ?? "1.0.0",
 		snapshot: false,
+		// Git repository metadata
+		gitHost: config.additionalProperties?.gitHost ?? "github.com",
+		gitUserId: config.additionalProperties?.gitUserId ?? "GIT_USER_ID",
+		gitRepoId: config.additionalProperties?.gitRepoId ?? "GIT_REPO_ID",
 		...config.additionalProperties,
 	};
 }

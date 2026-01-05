@@ -3,9 +3,12 @@
  */
 import type { CodegenConfig, GeneratorMetadata } from "../core/config.js";
 import { createGoMetadata, getGoAdditionalProperties } from "./go.js";
-import { createPhpMetadata } from "./php.js";
-import { createPythonMetadata } from "./python.js";
-import { createTypescriptFetchMetadata } from "./typescript-fetch.js";
+import { createPhpMetadata, getPhpAdditionalProperties } from "./php.js";
+import { createPythonMetadata, getPythonAdditionalProperties } from "./python.js";
+import {
+	createTypescriptFetchMetadata,
+	getTypescriptAdditionalProperties,
+} from "./typescript-fetch.js";
 
 export * from "./go.js";
 export * from "./php.js";
@@ -26,8 +29,17 @@ generators.set("typescript-fetch", createTypescriptFetchMetadata);
 generators.set("typescript", createTypescriptFetchMetadata); // Alias
 generators.set("python", createPythonMetadata);
 generators.set("go", createGoMetadata);
-additionalPropertiesProviders.set("go", getGoAdditionalProperties);
 generators.set("php", createPhpMetadata);
+
+// Register additional properties providers
+additionalPropertiesProviders.set("go", getGoAdditionalProperties);
+additionalPropertiesProviders.set(
+	"typescript-fetch",
+	getTypescriptAdditionalProperties,
+);
+additionalPropertiesProviders.set("typescript", getTypescriptAdditionalProperties);
+additionalPropertiesProviders.set("python", getPythonAdditionalProperties);
+additionalPropertiesProviders.set("php", getPhpAdditionalProperties);
 
 /**
  * Get a generator by name

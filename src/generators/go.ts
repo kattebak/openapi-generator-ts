@@ -361,6 +361,10 @@ export function getGoAdditionalProperties(
 			config.additionalProperties?.goImportAlias ?? "openapiclient",
 		apiDocPath: "docs/",
 		modelDocPath: "docs/",
+		// Git repository metadata
+		gitHost: config.additionalProperties?.gitHost ?? "github.com",
+		gitUserId: config.additionalProperties?.gitUserId ?? "GIT_USER_ID",
+		gitRepoId: config.additionalProperties?.gitRepoId ?? "GIT_REPO_ID",
 		...config.additionalProperties,
 	};
 }
