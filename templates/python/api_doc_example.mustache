@@ -14,18 +14,18 @@ from pprint import pprint
     # Create an instance of the API class
     api_instance = {{{packageName}}}.{{{classname}}}(api_client)
     {{#allParams}}
-    {{paramName}} = {{{example}}} # {{{dataType}}} | {{{description}}}{{^required}} (optional){{/required}}{{#defaultValue}} (default to {{{.}}}){{/defaultValue}}
+    {{paramName}} = {{{example}}} # {{{dataType}}} | {{{description}}}{{^required}} (optional){{/required}}{{#if defaultValue}} (default to {{{defaultValue}}}){{/if}}
     {{/allParams}}
 
     try:
-        {{#summary}}
-        # {{{.}}}
-        {{/summary}}
-        {{#returnType}}api_response = {{/returnType}}{{#async}}await {{/async}}api_instance.{{{operationId}}}({{#allParams}}{{#required}}{{paramName}}{{/required}}{{^required}}{{paramName}}={{paramName}}{{/required}}{{^-last}}, {{/-last}}{{/allParams}})
-        {{#returnType}}
+        {{#if summary}}
+        # {{{summary}}}
+        {{/if}}
+        {{#if returnType}}api_response = {{/if}}{{#async}}await {{/async}}api_instance.{{{operationId}}}({{#allParams}}{{#required}}{{paramName}}{{/required}}{{^required}}{{paramName}}={{paramName}}{{/required}}{{#unless @last}}, {{/unless}}{{/allParams}})
+        {{#if returnType}}
         print("The response of {{classname}}->{{operationId}}:\n")
         pprint(api_response)
-        {{/returnType}}
+        {{/if}}
     except Exception as e:
         print("Exception when calling {{classname}}->{{operationId}}: %s\n" % e)
 ```

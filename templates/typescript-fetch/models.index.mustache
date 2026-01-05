@@ -17,10 +17,10 @@ export * from './{{{ classFilename }}}Record{{importFileExtension}}';
 {{/isEnum}}
 {{^isEnum}}
 {{#oneOf}}
-{{#-first}}
+{{#if @first}}
 {{>modelOneOfInterfaces}}
 
-{{/-first}}
+{{/if}}
 {{/oneOf}}
 {{^oneOf}}
 {{>modelGenericInterfaces}}

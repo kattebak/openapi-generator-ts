@@ -26,8 +26,8 @@ async function example() {
   {{#hasParams}}
   const body = {
     {{#allParams}}
-    // {{{dataType}}}{{#description}} | {{{description}}}{{/description}}{{^required}} (optional){{/required}}
-    {{paramName}}: {{{example}}}{{^example}}...{{/example}},
+    // {{{dataType}}}{{#if description}} | {{{description}}}{{/if}}{{^required}} (optional){{/required}}
+    {{paramName}}: {{{example}}}{{#unless example}}...{{/unless}},
     {{/allParams}}
   } satisfies {{operationIdCamelCase}}Request;
 

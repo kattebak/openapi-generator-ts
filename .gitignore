@@ -138,3 +138,10 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .template-cache
+.claude
+
+# Sample generated output
+samples/build/
+samples/build
+tmp
+.vscode

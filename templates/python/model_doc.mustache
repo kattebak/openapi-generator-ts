@@ -1,14 +1,14 @@
 {{#models}}{{#model}}# {{classname}}
 
-{{#description}}{{&description}}
-{{/description}}
+{{#if description}}{{&description}}
+{{/if}}
 
 {{^isEnum}}
 ## Properties
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-{{#vars}}**{{name}}** | {{#isPrimitiveType}}**{{dataType}}**{{/isPrimitiveType}}{{^isPrimitiveType}}[**{{dataType}}**]({{complexType}}.md){{/isPrimitiveType}} | {{description}} | {{^required}}[optional] {{/required}}{{#isReadOnly}}[readonly] {{/isReadOnly}}{{#defaultValue}}[default to {{{.}}}]{{/defaultValue}}
+{{#vars}}**{{name}}** | {{#isPrimitiveType}}**{{dataType}}**{{/isPrimitiveType}}{{^isPrimitiveType}}[**{{dataType}}**]({{complexType}}.md){{/isPrimitiveType}} | {{description}} | {{^required}}[optional] {{/required}}{{#isReadOnly}}[readonly] {{/isReadOnly}}{{#if defaultValue}}[default to {{{defaultValue}}}]{{/if}}
 {{/vars}}
 
 ## Example

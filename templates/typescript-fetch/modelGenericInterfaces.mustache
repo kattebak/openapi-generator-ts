@@ -1,5 +1,5 @@
 /**
- * {{#lambda.indented_star_1}}{{{unescapedDescription}}}{{/lambda.indented_star_1}}
+ * {{#indented_star_1}}{{{unescapedDescription}}}{{/indented_star_1}}
  * @export
  * @interface {{classname}}
  */
@@ -9,8 +9,8 @@ export interface {{classname}} {{#parent}}extends {{{.}}} {{/parent}}{
 {{/additionalPropertiesType}}
 {{#vars}}
     /**
-     * {{#lambda.indented_star_4}}{{{unescapedDescription}}}{{/lambda.indented_star_4}}
-     * @type {<%&datatype%>}<%={{ }}=%>
+     * {{#indented_star_4}}{{{unescapedDescription}}}{{/indented_star_4}}
+     * @type {{braceWrap datatype}}
      * @memberof {{classname}}
     {{#deprecated}}
      * @deprecated
@@ -30,7 +30,7 @@ export interface {{classname}} {{#parent}}extends {{{.}}} {{/parent}}{
 export enum {{classname}}{{enumName}} {
 {{#allowableValues}}
     {{#enumVars}}
-    {{{name}}} = {{{value}}}{{^-last}},{{/-last}}
+    {{{name}}} = {{{value}}}{{#unless @last}},{{/unless}}
     {{/enumVars}}
 {{/allowableValues}}
 }
@@ -41,7 +41,7 @@ export enum {{classname}}{{enumName}} {
 export const {{classname}}{{enumName}} = {
 {{#allowableValues}}
     {{#enumVars}}
-    {{{name}}}: {{{value}}}{{^-last}},{{/-last}}
+    {{{name}}}: {{{value}}}{{#unless @last}},{{/unless}}
     {{/enumVars}}
 {{/allowableValues}}
 } as const;

@@ -12,11 +12,11 @@ npm install {{npmName}} --save
 
 Next, try it out.
 
-{{#apiInfo}}{{#apis}}{{#-first}}{{#operations}}{{#operation}}{{#-first}}
+{{#apiInfo}}{{#apis}}{{#if @first}}{{#operations}}{{#operation}}{{#if @first}}
 ```ts
 {{>api_example}}
 ```
-{{/-first}}{{/operation}}{{/operations}}{{/-first}}{{/apis}}{{/apiInfo}}
+{{/if}}{{/operation}}{{/operations}}{{/if}}{{/apis}}{{/apiInfo}}
 
 ## Documentation
 
@@ -98,9 +98,9 @@ The generated npm module supports the following:
   * CommonJS
   * ES6 module system
 
-{{#infoUrl}}
+{{#if infoUrl}}
 For more information, please visit [{{{infoUrl}}}]({{{infoUrl}}})
-{{/infoUrl}}
+{{/if}}
 
 ## Development
 

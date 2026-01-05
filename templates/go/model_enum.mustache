@@ -1,12 +1,12 @@
-// {{{classname}}} {{{description}}}{{^description}}the model '{{{classname}}}'{{/description}}
+// {{{classname}}} {{{description}}}{{#unless description}}the model '{{{classname}}}'{{/unless}}
 type {{{classname}}} {{{format}}}{{^format}}{{dataType}}{{/format}}
 
 // List of {{{name}}}
 const (
 	{{#allowableValues}}
 	{{#enumVars}}
-	{{^-first}}
-	{{/-first}}
+	{{#unless @first}}
+	{{/unless}}
 	{{#enumClassPrefix}}{{{classname.toUpperCase}}}_{{/enumClassPrefix}}{{name}} {{{classname}}} = {{{value}}}
 	{{/enumVars}}
 	{{/allowableValues}}

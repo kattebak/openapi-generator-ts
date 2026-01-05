@@ -36,13 +36,13 @@ const (
 
 const (
 	// Constants for HTTP headers.
-	// The 'Host' header, as defined in RFC 2616, section 14.23.
+	// The 'Host' header, as defined in RFC 2616, section 14.[23].
 	HttpHeaderHost string = "Host"
 	// The 'Date' header.
 	HttpHeaderDate string = "Date"
-	// The digest header, as defined in RFC 3230, section 4.3.2.
+	// The digest header, as defined in RFC 3230, section 4.[3].2.
 	HttpHeaderDigest string = "Digest"
-	// The HTTP Authorization header, as defined in RFC 7235, section 4.2.
+	// The HTTP Authorization header, as defined in RFC 7235, section 4.[2].
 	HttpHeaderAuthorization string = "Authorization"
 )
 
@@ -59,7 +59,7 @@ const (
 	HttpSigningSchemeRsaSha256 string = "rsa-sha256"
 
 	// RFC 8017 section 7.2
-	// Calculate the message signature using RSASSA-PKCS1-V1_5-SIGN from RSA PKCS#1 v1.5.
+	// Calculate the message signature using RSASSA-PKCS1-V1_5-SIGN from RSA PKCS#1 v1.[5].
 	// PKCSV1_5 is deterministic. The same message and key will produce an identical
 	// signature value each time.
 	HttpSigningAlgorithmRsaPKCS1v15 string = "RSASSA-PKCS1-v1_5"
@@ -101,7 +101,7 @@ var supportedSigningSchemes = map[string]bool{
 // When SignedHeaders is not specified, the client defaults to a single value, '(created)',
 // in the list of HTTP headers.
 // When SignedHeaders contains the 'Digest' value, the client performs the following operations:
-// 1. Calculate a digest of request body, as specified in RFC3230, section 4.3.2.
+// 1. Calculate a digest of request body, as specified in RFC3230, section 4.[3].2.
 // 2. Set the 'Digest' header in the request body.
 // 3. Include the 'Digest' header and value in the HTTP signature.
 type HttpSignatureAuth struct {
@@ -267,7 +267,7 @@ func SignRequest(
 	now := time.Now()
 	date := now.UTC().Format(http.TimeFormat)
 	// The 'created' field expresses when the signature was created.
-	// The value MUST be a Unix timestamp integer value. See 'HTTP signature' section 2.1.4.
+	// The value MUST be a Unix timestamp integer value. See 'HTTP signature' section 2.[1].4.
 	created := now.Unix()
 
 	var h crypto.Hash
@@ -357,7 +357,7 @@ func SignRequest(
 			r.Header.Set(HttpHeaderDate, date)
 		case "digest":
 			// Calculate the digest of the HTTP request body.
-			// Calculate body digest per RFC 3230 section 4.3.2
+			// Calculate body digest per RFC 3230 section 4.[3].2
 			bodyHash := h.New()
 			if r.Body != nil {
 				// Make a copy of the body io.Reader so that we can read the body to calculate the hash,

@@ -1,6 +1,6 @@
 {{#stringEnums}}
 /**
- * {{#lambda.indented_star_1}}{{{unescapedDescription}}}{{/lambda.indented_star_1}}
+ * {{#indented_star_1}}{{{unescapedDescription}}}{{/indented_star_1}}
  * @export
  * @enum {string}
  */
@@ -12,13 +12,13 @@ export enum {{classname}} {
     * {{enumDescription}}
     */
     {{/enumDescription}}
-    {{{name}}} = {{{value}}}{{^-last}},{{/-last}}
+    {{{name}}} = {{{value}}}{{#unless @last}},{{/unless}}
 {{/enumVars}}
 {{/allowableValues}}
 }
 {{/stringEnums}}{{^stringEnums}}
 /**
- * {{#lambda.indented_star_1}}{{{unescapedDescription}}}{{/lambda.indented_star_1}}
+ * {{#indented_star_1}}{{{unescapedDescription}}}{{/indented_star_1}}
  * @export
  */
 export const {{classname}} = {
@@ -29,7 +29,7 @@ export const {{classname}} = {
     * {{enumDescription}}
     */
     {{/enumDescription}}
-    {{{name}}}: {{{value}}}{{^-last}},{{/-last}}
+    {{{name}}}: {{{value}}}{{#unless @last}},{{/unless}}
 {{/enumVars}}
 {{/allowableValues}}
 } as const;

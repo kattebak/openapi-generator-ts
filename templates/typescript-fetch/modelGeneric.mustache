@@ -119,7 +119,7 @@ export function {{classname}}ToJSON(json: any): {{classname}} {
     return {{classname}}ToJSONTyped(json, false);
 }
 
-export function {{classname}}ToJSONTyped(value?: {{#hasReadOnly}}Omit<{{classname}}, {{#readOnlyVars}}'{{baseName}}'{{^-last}}|{{/-last}}{{/readOnlyVars}}>{{/hasReadOnly}}{{^hasReadOnly}}{{classname}}{{/hasReadOnly}} | null, ignoreDiscriminator: boolean = false): any {
+export function {{classname}}ToJSONTyped(value?: {{#hasReadOnly}}Omit<{{classname}}, {{#readOnlyVars}}'{{baseName}}'{{#unless @last}}|{{/unless}}{{/readOnlyVars}}>{{/hasReadOnly}}{{^hasReadOnly}}{{classname}}{{/hasReadOnly}} | null, ignoreDiscriminator: boolean = false): any {
     {{#hasVars}}
     if (value == null) {
         return value;
@@ -214,23 +214,23 @@ export const {{classname}}PropertyValidationAttributesMap: {
 {{#vars}}
 {{#hasValidation}}
     {{name}}: {
-        {{#maxLength}}
+        {{#if maxLength}}
         maxLength: {{maxLength}},
-        {{/maxLength}}
-        {{#minLength}}
+        {{/if}}
+        {{#if minLength}}
         minLength: {{minLength}},
-        {{/minLength}}
-        {{#pattern}}
+        {{/if}}
+        {{#if pattern}}
         pattern: '{{pattern}}',
-        {{/pattern}}
-        {{#maximum}}
+        {{/if}}
+        {{#if maximum}}
         maximum: {{maximum}},
         exclusiveMaximum: {{exclusiveMaximum}},
-        {{/maximum}}
-        {{#minimum}}
+        {{/if}}
+        {{#if minimum}}
         minimum: {{minimum}},
         exclusiveMinimum: {{exclusiveMinimum}},
-        {{/minimum}}
+        {{/if}}
         {{#multipleOf}}
         multipleOf: {{multipleOf}},
         {{/multipleOf}}

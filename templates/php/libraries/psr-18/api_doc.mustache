@@ -1,23 +1,23 @@
-# {{invokerPackage}}\{{classname}}{{#description}}
+# {{invokerPackage}}\{{classname}}{{#if description}}
 
-{{description}}{{/description}}
+{{description}}{{/if}}
 
 All URIs are relative to {{basePath}}.
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
-{{#operations}}{{#operation}}[**{{operationId}}()**]({{classname}}.md#{{operationId}}) | **{{httpMethod}}** {{path}} | {{#summary}}{{summary}}{{/summary}}
+{{#operations}}{{#operation}}[**{{operationId}}()**]({{classname}}.md#{{operationId}}) | **{{httpMethod}}** {{path}} | {{#if summary}}{{summary}}{{/if}}
 {{/operation}}{{/operations}}{{#operations}}{{#operation}}
 
 ## `{{{operationId}}}()`
 
 ```php
-{{{operationId}}}({{#allParams}}${{paramName}}{{^-last}}, {{/-last}}{{/allParams}}){{#returnType}}: {{{returnType}}}{{/returnType}}
+{{{operationId}}}({{#allParams}}${{paramName}}{{#unless @last}}, {{/unless}}{{/allParams}}){{#if returnType}}: {{{returnType}}}{{/if}}
 ```
 
-{{{summary}}}{{#notes}}
+{{{summary}}}{{#if notes}}
 
-{{{notes}}}{{/notes}}
+{{{notes}}}{{/if}}
 
 ### Example
 
@@ -34,17 +34,17 @@ $apiInstance = new {{invokerPackage}}\Api\{{classname}}(
     $config{{/hasAuthMethods}}
 );
 {{^exts.x-group-parameters}}
-{{#allParams}}${{paramName}} = {{{example}}}; // {{{dataType}}}{{#description}} | {{{description}}}{{/description}}
+{{#allParams}}${{paramName}} = {{{example}}}; // {{{dataType}}}{{#if description}} | {{{description}}}{{/if}}
 {{/allParams}}
 {{/exts.x-group-parameters}}
 {{#exts.x-group-parameters}}
-{{#allParams}}$associate_array['{{paramName}}'] = {{{example}}}; // {{{dataType}}}{{#description}} | {{{description}}}{{/description}}
+{{#allParams}}$associate_array['{{paramName}}'] = {{{example}}}; // {{{dataType}}}{{#if description}} | {{{description}}}{{/if}}
 {{/allParams}}
 {{/exts.x-group-parameters}}
 
 try {
-    {{#returnType}}$result = {{/returnType}}$apiInstance->{{{operationId}}}({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{^-last}}, {{/-last}}{{/allParams}}{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associate_array{{/exts.x-group-parameters}});{{#returnType}}
-    print_r($result);{{/returnType}}
+    {{#if returnType}}$result = {{/if}}$apiInstance->{{{operationId}}}({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{#unless @last}}, {{/unless}}{{/allParams}}{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associate_array{{/exts.x-group-parameters}});{{#if returnType}}
+    print_r($result);{{/if}}
 } catch (Exception $e) {
     echo 'Exception when calling {{classname}}->{{operationId}}: ', $e->getMessage(), PHP_EOL;
 }
@@ -56,23 +56,23 @@ try {
 Note: the input parameter is an associative array with the keys listed as the parameter name below.
 
 {{/exts.x-group-parameters}}
-{{^allParams}}This endpoint does not need any parameter.{{/allParams}}{{#allParams}}{{#-last}}Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------{{/-last}}{{/allParams}}
-{{#allParams}} **{{paramName}}** | {{#isFile}}**{{{dataType}}}**{{/isFile}}{{#isPrimitiveType}}**{{{dataType}}}**{{/isPrimitiveType}}{{^isPrimitiveType}}{{^isFile}}[**{{{dataType}}}**](../Model/{{baseType}}.md){{/isFile}}{{/isPrimitiveType}}| {{description}} |{{^required}} [optional]{{/required}}{{#defaultValue}} [default to {{defaultValue}}]{{/defaultValue}}
+{{^allParams}}This endpoint does not need any parameter.{{/allParams}}{{#allParams}}{{#if @last}}Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------{{/if}}{{/allParams}}
+{{#allParams}} **{{paramName}}** | {{#isFile}}**{{{dataType}}}**{{/isFile}}{{#isPrimitiveType}}**{{{dataType}}}**{{/isPrimitiveType}}{{^isPrimitiveType}}{{^isFile}}[**{{{dataType}}}**](../Model/{{baseType}}.md){{/isFile}}{{/isPrimitiveType}}| {{description}} |{{^required}} [optional]{{/required}}{{#if defaultValue}} [default to {{defaultValue}}]{{/if}}
 {{/allParams}}
 
 ### Return type
 
-{{#returnType}}{{#returnTypeIsPrimitive}}**{{{returnType}}}**{{/returnTypeIsPrimitive}}{{^returnTypeIsPrimitive}}[**{{{returnType}}}**](../Model/{{returnBaseType}}.md){{/returnTypeIsPrimitive}}{{/returnType}}{{^returnType}}void (empty response body){{/returnType}}
+{{#if returnType}}{{#returnTypeIsPrimitive}}**{{{returnType}}}**{{/returnTypeIsPrimitive}}{{^returnTypeIsPrimitive}}[**{{{returnType}}}**](../Model/{{returnBaseType}}.md){{/returnTypeIsPrimitive}}{{/if}}{{#unless returnType}}void (empty response body){{/unless}}
 
 ### Authorization
 
-{{^authMethods}}No authorization required{{/authMethods}}{{#authMethods}}[{{{name}}}](../../README.md#{{{name}}}){{^-last}}, {{/-last}}{{/authMethods}}
+{{^authMethods}}No authorization required{{/authMethods}}{{#authMethods}}[{{{name}}}](../../README.md#{{{name}}}){{#unless @last}}, {{/unless}}{{/authMethods}}
 
 ### HTTP request headers
 
-- **Content-Type**: {{#consumes}}`{{{mediaType}}}`{{^-last}}, {{/-last}}{{/consumes}}{{^consumes}}Not defined{{/consumes}}
-- **Accept**: {{#produces}}`{{{mediaType}}}`{{^-last}}, {{/-last}}{{/produces}}{{^produces}}Not defined{{/produces}}
+- **Content-Type**: {{#consumes}}`{{{mediaType}}}`{{#unless @last}}, {{/unless}}{{/consumes}}{{^consumes}}Not defined{{/consumes}}
+- **Accept**: {{#produces}}`{{{mediaType}}}`{{#unless @last}}, {{/unless}}{{/produces}}{{^produces}}Not defined{{/produces}}
 
 [[Back to top]](#) [[Back to API list]](../../README.md#endpoints)
 [[Back to Model list]](../../README.md#models)

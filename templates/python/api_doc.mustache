@@ -1,5 +1,5 @@
-# {{packageName}}.{{classname}}{{#description}}
-{{.}}{{/description}}
+# {{packageName}}.{{classname}}{{#if description}}
+{{description}}{{/if}}
 
 All URIs are relative to *{{basePath}}*
 
@@ -11,12 +11,12 @@ Method | HTTP request | Description
 {{#operations}}
 {{#operation}}
 # **{{{operationId}}}**
-> {{#returnType}}{{{.}}} {{/returnType}}{{{operationId}}}({{#allParams}}{{#required}}{{{paramName}}}{{/required}}{{^required}}{{{paramName}}}={{{paramName}}}{{/required}}{{^-last}}, {{/-last}}{{/allParams}})
+> {{#if returnType}}{{{returnType}}} {{/if}}{{{operationId}}}({{#allParams}}{{#required}}{{{paramName}}}{{/required}}{{^required}}{{{paramName}}}={{{paramName}}}{{/required}}{{#unless @last}}, {{/unless}}{{/allParams}})
 
-{{#summary}}
+{{#if summary}}
 {{{summary}}}
 
-{{/summary}}
+{{/if}}
 {{#unescapedNotes}}
 {{{.}}}
 
@@ -46,34 +46,34 @@ Method | HTTP request | Description
 
 ### Parameters
 
-{{^allParams}}This endpoint does not need any parameter.{{/allParams}}{{#allParams}}{{#-last}}
+{{^allParams}}This endpoint does not need any parameter.{{/allParams}}{{#allParams}}{{#if @last}}
 Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------{{/-last}}{{/allParams}}
-{{#allParams}} **{{paramName}}** | {{#isFile}}**{{dataType}}**{{/isFile}}{{^isFile}}{{#isPrimitiveType}}**{{dataType}}**{{/isPrimitiveType}}{{^isPrimitiveType}}[**{{dataType}}**]({{baseType}}.md){{/isPrimitiveType}}{{/isFile}}| {{description}} | {{^required}}[optional] {{/required}}{{#defaultValue}}[default to {{.}}]{{/defaultValue}}
+------------- | ------------- | ------------- | -------------{{/if}}{{/allParams}}
+{{#allParams}} **{{paramName}}** | {{#isFile}}**{{dataType}}**{{/isFile}}{{^isFile}}{{#isPrimitiveType}}**{{dataType}}**{{/isPrimitiveType}}{{^isPrimitiveType}}[**{{dataType}}**]({{baseType}}.md){{/isPrimitiveType}}{{/isFile}}| {{description}} | {{^required}}[optional] {{/required}}{{#if defaultValue}}[default to {{defaultValue}}]{{/if}}
 {{/allParams}}
 
 ### Return type
 
-{{#returnType}}{{#returnTypeIsPrimitive}}**{{{returnType}}}**{{/returnTypeIsPrimitive}}{{^returnTypeIsPrimitive}}[**{{{returnType}}}**]({{returnBaseType}}.md){{/returnTypeIsPrimitive}}{{/returnType}}{{^returnType}}void (empty response body){{/returnType}}
+{{#if returnType}}{{#returnTypeIsPrimitive}}**{{{returnType}}}**{{/returnTypeIsPrimitive}}{{^returnTypeIsPrimitive}}[**{{{returnType}}}**]({{returnBaseType}}.md){{/returnTypeIsPrimitive}}{{/if}}{{#unless returnType}}void (empty response body){{/unless}}
 
 ### Authorization
 
-{{^authMethods}}No authorization required{{/authMethods}}{{#authMethods}}[{{{name}}}](../README.md#{{{name}}}){{^-last}}, {{/-last}}{{/authMethods}}
+{{^authMethods}}No authorization required{{/authMethods}}{{#authMethods}}[{{{name}}}](../README.md#{{{name}}}){{#unless @last}}, {{/unless}}{{/authMethods}}
 
 ### HTTP request headers
 
- - **Content-Type**: {{#consumes}}{{{mediaType}}}{{^-last}}, {{/-last}}{{/consumes}}{{^consumes}}Not defined{{/consumes}}
- - **Accept**: {{#produces}}{{{mediaType}}}{{^-last}}, {{/-last}}{{/produces}}{{^produces}}Not defined{{/produces}}
+ - **Content-Type**: {{#consumes}}{{{mediaType}}}{{#unless @last}}, {{/unless}}{{/consumes}}{{^consumes}}Not defined{{/consumes}}
+ - **Accept**: {{#produces}}{{{mediaType}}}{{#unless @last}}, {{/unless}}{{/produces}}{{^produces}}Not defined{{/produces}}
 
-{{#responses.0}}
+{{#if responses}}
 ### HTTP response details
 
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 {{#responses}}
-**{{code}}** | {{message}} | {{#headers}} * {{baseName}} - {{description}} <br> {{/headers}}{{^headers.0}} - {{/headers.0}} |
+**{{code}}** | {{message}} | {{#headers}} * {{baseName}} - {{description}} <br> {{/headers}}{{#unless headers}} - {{/if}} |
 {{/responses}}
-{{/responses.0}}
+{{/if}}
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

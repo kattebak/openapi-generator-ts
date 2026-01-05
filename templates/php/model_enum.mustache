@@ -23,8 +23,8 @@ class {{classname}}
         return [
             {{#allowableValues}}
             {{#enumVars}}
-            self::{{{name}}}{{^-last}},
-            {{/-last}}
+            self::{{{name}}}{{#unless @last}},
+            {{/unless}}
             {{/enumVars}}
             {{/allowableValues}}
 

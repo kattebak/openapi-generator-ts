@@ -93,7 +93,7 @@ class HttpSigningConfiguration:
         When SignedHeaders contains the 'Digest' value, the client performs the
         following operations:
         1. Calculate a digest of request body, as specified in `RFC3230,
-          section 4.3.2<https://datatracker.ietf.org/doc/html/rfc3230#section-4.3.2>`_.
+          section 4.[3].2<https://datatracker.ietf.org/doc/html/rfc3230#section-4.[3].2>`_.
         2. Set the ``Digest`` header in the request body.
         3. Include the ``Digest`` header and value in the HTTP signature.
     :param signing_algorithm: A string value specifying the signature algorithm, when
@@ -244,7 +244,7 @@ class HttpSigningConfiguration:
                 (key_binary, pem_header, is_encrypted) = PEM.decode(pem_data, passphrase)
                 (oid, privkey, params) = \
                     PKCS8.unwrap(key_binary, passphrase=self.private_key_passphrase)
-                if oid == '1.2.840.10045.2.1':
+                if oid == '1.[2].840.[10045].2.1':
                     self.private_key = ECC.import_key(pem_data, self.private_key_passphrase)
                 else:
                     raise Exception("Unsupported key: {0}. OID: {1}".format(pem_header, oid))
@@ -292,7 +292,7 @@ class HttpSigningConfiguration:
 
         # Get UNIX time, e.g. seconds since epoch, not including leap seconds.
         now = time()
-        # Format date per RFC 7231 section-7.1.1.2. An example is:
+        # Format date per RFC 7231 section-7.[1].1.[2]. An example is:
         # Date: Wed, 21 Oct 2015 07:28:00 GMT
         cdate = formatdate(timeval=now, localtime=False, usegmt=True)
         # The '(created)' value MUST be a Unix timestamp integer value.

@@ -1,7 +1,7 @@
 /*
-{{#appName}}
-{{{.}}}
-{{/appName}}
+{{#if appName}}
+{{{appName}}}
+{{/if}}
 
 Testing {{classname}}Service
 
@@ -32,10 +32,10 @@ func Test_{{packageName}}_{{classname}}Service(t *testing.T) {
 		t.Skip("skip test")  // remove to run test
 		{{/pathParams}}
 		{{#pathParams}}
-		{{#-first}}
+		{{#if @first}}
 		t.Skip("skip test")  // remove to run test
 
-		{{/-first}}
+		{{/if}}
 		{{#isPrimitiveType}}
 		var {{paramName}} {{{dataType}}}
 		{{/isPrimitiveType}}
@@ -44,12 +44,12 @@ func Test_{{packageName}}_{{classname}}Service(t *testing.T) {
 		{{/isPrimitiveType}}
 		{{/pathParams}}
 
-		{{#returnType}}resp, {{/returnType}}httpRes, err := apiClient.{{classname}}.{{operationId}}(context.Background(){{#pathParams}}, {{paramName}}{{/pathParams}}).Execute()
+		{{#if returnType}}resp, {{/if}}httpRes, err := apiClient.{{classname}}.{{operationId}}(context.Background(){{#pathParams}}, {{paramName}}{{/pathParams}}).Execute()
 
 		require.Nil(t, err)
-		{{#returnType}}
+		{{#if returnType}}
 		require.NotNil(t, resp)
-		{{/returnType}}
+		{{/if}}
 		assert.Equal(t, 200, httpRes.StatusCode)
 
 	})

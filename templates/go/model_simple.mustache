@@ -1,7 +1,7 @@
 // checks if the {{classname}} type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &{{classname}}{}
 
-// {{classname}} {{{description}}}{{^description}}struct for {{{classname}}}{{/description}}
+// {{classname}} {{{description}}}{{#unless description}}struct for {{{classname}}}{{/unless}}
 type {{classname}} struct {
 {{#parentModel.name}}
 {{^isArray}}
@@ -12,11 +12,11 @@ type {{classname}} struct {
 {{/isArray}}
 {{/parentModel.name}}
 {{#vars}}
-{{^-first}}
-{{/-first}}
-{{#description}}
-	// {{{.}}}
-{{/description}}
+{{#unless @first}}
+{{/unless}}
+{{#if description}}
+	// {{{description}}}
+{{/if}}
 {{#deprecated}}
 	// Deprecated
 {{/deprecated}}
@@ -41,27 +41,27 @@ type _{{{classname}}} {{{classname}}}
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func New{{classname}}({{#requiredVars}}{{nameInCamelCase}} {{dataType}}{{^-last}}, {{/-last}}{{/requiredVars}}) *{{classname}} {
+func New{{classname}}({{#requiredVars}}{{nameInCamelCase}} {{dataType}}{{#unless @last}}, {{/unless}}{{/requiredVars}}) *{{classname}} {
 	this := {{classname}}{}
 {{#allVars}}
 {{#required}}
 	this.{{name}} = {{nameInCamelCase}}
 {{/required}}
 {{^required}}
-{{#defaultValue}}
+{{#if defaultValue}}
 {{^vendorExtensions.x-golang-is-container}}
 {{^isReadOnly}}
 {{#isNullable}}
-	var {{nameInCamelCase}} {{{datatypeWithEnum}}} = {{{.}}}
+	var {{nameInCamelCase}} {{{datatypeWithEnum}}} = {{{defaultValue}}}
 	this.{{name}} = *New{{{dataType}}}(&{{nameInCamelCase}})
 {{/isNullable}}
 {{^isNullable}}
-	var {{nameInCamelCase}} {{{dataType}}} = {{{.}}}
+	var {{nameInCamelCase}} {{{dataType}}} = {{{defaultValue}}}
 	this.{{name}} = &{{nameInCamelCase}}
 {{/isNullable}}
 {{/isReadOnly}}
 {{/vendorExtensions.x-golang-is-container}}
-{{/defaultValue}}
+{{/if}}
 {{/required}}
 {{/allVars}}
 	return &this
@@ -73,21 +73,21 @@ func New{{classname}}({{#requiredVars}}{{nameInCamelCase}} {{dataType}}{{^-last}
 func New{{classname}}WithDefaults() *{{classname}} {
 	this := {{classname}}{}
 {{#vars}}
-{{#defaultValue}}
+{{#if defaultValue}}
 {{^vendorExtensions.x-golang-is-container}}
 {{^isReadOnly}}
 {{#isNullable}}
 {{!we use datatypeWithEnum here, since it will represent the non-nullable name of the datatype, e.g. int64 for NullableInt64}}
-	var {{nameInCamelCase}} {{{datatypeWithEnum}}} = {{{.}}}
+	var {{nameInCamelCase}} {{{datatypeWithEnum}}} = {{{defaultValue}}}
 	this.{{name}} = *New{{{dataType}}}(&{{nameInCamelCase}})
 {{/isNullable}}
 {{^isNullable}}
-	var {{nameInCamelCase}} {{{dataType}}} = {{{.}}}
+	var {{nameInCamelCase}} {{{dataType}}} = {{{defaultValue}}}
 	this.{{name}} = {{^required}}&{{/required}}{{nameInCamelCase}}
 {{/isNullable}}
 {{/isReadOnly}}
 {{/vendorExtensions.x-golang-is-container}}
-{{/defaultValue}}
+{{/if}}
 {{/vars}}
 	return &this
 }
@@ -170,12 +170,12 @@ func (o *{{classname}}) Set{{name}}(v {{vendorExtensions.x-go-base-type}}) {
 
 {{#useDefaultValuesForRequiredVars}}
 {{^isReadOnly}}
-{{#defaultValue}}
+{{#if defaultValue}}
 // GetDefault{{{nameInPascalCase}}} returns the default value {{{defaultValue}}} of the {{{name}}} field.
 func (o *{{classname}}) GetDefault{{nameInPascalCase}}() interface{}  {
 	return {{{defaultValue}}}
 }
-{{/defaultValue}}
+{{/if}}
 {{/isReadOnly}}
 
 {{/useDefaultValuesForRequiredVars}}
@@ -331,11 +331,11 @@ func (o {{classname}}) ToMap() (map[string]interface{}, error) {
 	{{#required}}
 	{{#useDefaultValuesForRequiredVars}}
 	{{^isReadOnly}}
-	{{#defaultValue}}
+	{{#if defaultValue}}
 	if _, exists := toSerialize["{{{baseName}}}"]; !exists {
 		toSerialize["{{{baseName}}}"] = o.GetDefault{{nameInPascalCase}}()
 	}
-	{{/defaultValue}}
+	{{/if}}
 	{{/isReadOnly}}
 	{{/useDefaultValuesForRequiredVars}}
 	toSerialize["{{{baseName}}}"] = o.{{name}}
@@ -381,11 +381,11 @@ func (o *{{{classname}}}) UnmarshalJSON(data []byte) (err error) {
 	// These values are used when required properties are missing from the payload.
 	defaultValueFuncMap := map[string]func() interface{} {
 {{#requiredVars}}
-{{#defaultValue}}
+{{#if defaultValue}}
 {{^isReadOnly}}
 		"{{baseName}}": o.GetDefault{{nameInPascalCase}},
 {{/isReadOnly}}
-{{/defaultValue}}
+{{/if}}
 {{/requiredVars}}
 	}
 	var defaultValueApplied bool
@@ -429,11 +429,11 @@ func (o *{{{classname}}}) UnmarshalJSON(data []byte) (err error) {
 {{^isMap}}
 	type {{classname}}WithoutEmbeddedStruct struct {
 	{{#vars}}
-	{{^-first}}
-	{{/-first}}
-	{{#description}}
-		// {{{.}}}
-	{{/description}}
+	{{#unless @first}}
+	{{/unless}}
+	{{#if description}}
+		// {{{description}}}
+	{{/if}}
 	{{#deprecated}}
 		// Deprecated
 	{{/deprecated}}

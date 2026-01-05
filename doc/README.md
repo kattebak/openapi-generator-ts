@@ -4,6 +4,8 @@ This documentation covers the TypeScript port of OpenAPI Generator, including:
 
 - [Available Generators](./generators.md) - Documentation for each generator
 - [Porting Guide](./porting-guide.md) - How to port generators from Java
+- [Maintenance Guide](./maintenance.md) - Template syncing and comparison workflows
+- [Discrepancies Tracker](./discrepancies-tracker.md) - Current status of generator fidelity
 
 ## Architecture Overview
 
@@ -42,6 +44,7 @@ src/
 ## Template Resolution
 
 Templates are resolved in this order:
+
 1. User-specified template directory (`--template-dir`)
 2. Generator-specific templates in the package
 3. Original Java templates from the workspace

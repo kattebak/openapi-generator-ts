@@ -1,11 +1,11 @@
-        """{{#isDeprecated}}(Deprecated) {{/isDeprecated}}{{{summary}}}{{^summary}}{{operationId}}{{/summary}}
+        """{{#isDeprecated}}(Deprecated) {{/isDeprecated}}{{{summary}}}{{#unless summary}}{{operationId}}{{/unless}}
 
-        {{#notes}}
-        {{{.}}}
-        {{/notes}}
+        {{#if notes}}
+        {{{notes}}}
+        {{/if}}
 
         {{#allParams}}
-        :param {{paramName}}:{{#description}} {{{.}}}{{/description}}{{#required}} (required){{/required}}{{#optional}}(optional){{/optional}}
+        :param {{paramName}}:{{#if description}} {{{description}}}{{/if}}{{#required}} (required){{/required}}{{#optional}}(optional){{/optional}}
         :type {{paramName}}: {{dataType}}{{#optional}}, optional{{/optional}}
         {{/allParams}}
         :param _request_timeout: timeout setting for this request. If one

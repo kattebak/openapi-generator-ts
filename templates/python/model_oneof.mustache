@@ -11,18 +11,18 @@ from pydantic import StrictStr, Field
 from typing import Union, List, Set, Optional, Dict
 from typing_extensions import Literal, Self
 
-{{#uppercase}}{{{classname}}}{{/uppercase}}_ONE_OF_SCHEMAS = [{{#oneOf}}"{{.}}"{{^-last}}, {{/-last}}{{/oneOf}}]
+{{#uppercase}}{{{classname}}}{{/uppercase}}_ONE_OF_SCHEMAS = [{{#oneOf}}"{{.}}"{{#unless @last}}, {{/unless}}{{/oneOf}}]
 
 class {{classname}}({{#parent}}{{{.}}}{{/parent}}{{^parent}}BaseModel{{/parent}}):
     """
-    {{{description}}}{{^description}}{{{classname}}}{{/description}}
+    {{{description}}}{{#unless description}}{{{classname}}}{{/unless}}
     """
 {{#composedSchemas.oneOf}}
     # data type: {{{dataType}}}
     {{vendorExtensions.x-py-name}}: {{{vendorExtensions.x-py-typing}}}
 {{/composedSchemas.oneOf}}
-    actual_instance: Optional[Union[{{#oneOf}}{{{.}}}{{^-last}}, {{/-last}}{{/oneOf}}]] = None
-    one_of_schemas: Set[str] = { {{#oneOf}}"{{.}}"{{^-last}}, {{/-last}}{{/oneOf}} }
+    actual_instance: Optional[Union[{{#oneOf}}{{{.}}}{{#unless @last}}, {{/unless}}{{/oneOf}}]] = None
+    one_of_schemas: Set[str] = { {{#oneOf}}"{{.}}"{{#unless @last}}, {{/unless}}{{/oneOf}} }
 
     model_config = ConfigDict(
         validate_assignment=True,
@@ -33,7 +33,7 @@ class {{classname}}({{#parent}}{{{.}}}{{/parent}}{{^parent}}BaseModel{{/parent}}
 
     discriminator_value_class_map: Dict[str, str] = {
 {{#children}}
-        '{{^vendorExtensions.x-discriminator-value}}{{name}}{{/vendorExtensions.x-discriminator-value}}{{#vendorExtensions.x-discriminator-value}}{{{vendorExtensions.x-discriminator-value}}}{{/vendorExtensions.x-discriminator-value}}': '{{{classname}}}'{{^-last}},{{/-last}}
+        '{{^vendorExtensions.x-discriminator-value}}{{name}}{{/vendorExtensions.x-discriminator-value}}{{#vendorExtensions.x-discriminator-value}}{{{vendorExtensions.x-discriminator-value}}}{{/vendorExtensions.x-discriminator-value}}': '{{{classname}}}'{{#unless @last}},{{/unless}}
 {{/children}}
     }
 {{/discriminator}}
@@ -85,10 +85,10 @@ class {{classname}}({{#parent}}{{{.}}}{{/parent}}{{^parent}}BaseModel{{/parent}}
         {{/composedSchemas.oneOf}}
         if match > 1:
             # more than 1 match
-            raise ValueError("Multiple matches found when setting `actual_instance` in {{{classname}}} with oneOf schemas: {{#oneOf}}{{{.}}}{{^-last}}, {{/-last}}{{/oneOf}}. Details: " + ", ".join(error_messages))
+            raise ValueError("Multiple matches found when setting `actual_instance` in {{{classname}}} with oneOf schemas: {{#oneOf}}{{{.}}}{{#unless @last}}, {{/unless}}{{/oneOf}}. Details: " + ", ".join(error_messages))
         elif match == 0:
             # no match
-            raise ValueError("No match found when setting `actual_instance` in {{{classname}}} with oneOf schemas: {{#oneOf}}{{{.}}}{{^-last}}, {{/-last}}{{/oneOf}}. Details: " + ", ".join(error_messages))
+            raise ValueError("No match found when setting `actual_instance` in {{{classname}}} with oneOf schemas: {{#oneOf}}{{{.}}}{{#unless @last}}, {{/unless}}{{/oneOf}}. Details: " + ", ".join(error_messages))
         else:
             return v
 
@@ -116,13 +116,13 @@ class {{classname}}({{#parent}}{{{.}}}{{/parent}}{{^parent}}BaseModel{{/parent}}
         {{#useOneOfDiscriminatorLookup}}
         {{#discriminator}}
         {{#mappedModels}}
-        {{#-first}}
+        {{#if @first}}
         # use oneOf discriminator to lookup the data type
         _data_type = json.loads(json_str).get("{{{propertyBaseName}}}")
         if not _data_type:
             raise ValueError("Failed to lookup data type from the field `{{{propertyBaseName}}}` in the input.")
 
-        {{/-first}}
+        {{/if}}
         # check if data type is `{{{modelName}}}`
         if _data_type == "{{{mappingName}}}":
             instance.actual_instance = {{{modelName}}}.from_json(json_str)
@@ -168,10 +168,10 @@ class {{classname}}({{#parent}}{{{.}}}{{/parent}}{{^parent}}BaseModel{{/parent}}
 
         if match > 1:
             # more than 1 match
-            raise ValueError("Multiple matches found when deserializing the JSON string into {{{classname}}} with oneOf schemas: {{#oneOf}}{{{.}}}{{^-last}}, {{/-last}}{{/oneOf}}. Details: " + ", ".join(error_messages))
+            raise ValueError("Multiple matches found when deserializing the JSON string into {{{classname}}} with oneOf schemas: {{#oneOf}}{{{.}}}{{#unless @last}}, {{/unless}}{{/oneOf}}. Details: " + ", ".join(error_messages))
         elif match == 0:
             # no match
-            raise ValueError("No match found when deserializing the JSON string into {{{classname}}} with oneOf schemas: {{#oneOf}}{{{.}}}{{^-last}}, {{/-last}}{{/oneOf}}. Details: " + ", ".join(error_messages))
+            raise ValueError("No match found when deserializing the JSON string into {{{classname}}} with oneOf schemas: {{#oneOf}}{{{.}}}{{#unless @last}}, {{/unless}}{{/oneOf}}. Details: " + ", ".join(error_messages))
         else:
             return instance
 
@@ -185,7 +185,7 @@ class {{classname}}({{#parent}}{{{.}}}{{/parent}}{{^parent}}BaseModel{{/parent}}
         else:
             return json.dumps(self.actual_instance)
 
-    def to_dict(self) -> Optional[Union[Dict[str, Any], {{#oneOf}}{{{.}}}{{^-last}}, {{/-last}}{{/oneOf}}]]:
+    def to_dict(self) -> Optional[Union[Dict[str, Any], {{#oneOf}}{{{.}}}{{#unless @last}}, {{/unless}}{{/oneOf}}]]:
         """Returns the dict representation of the actual instance"""
         if self.actual_instance is None:
             return None

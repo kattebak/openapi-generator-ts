@@ -3,12 +3,12 @@
  * OpenAPI Generator CLI
  * Uses Node's native parseArgs for argument parsing (Node 18.3+)
  */
-import { parseArgs } from 'node:util';
-import { generateCommand } from './commands/generate.js';
-import { validateCommand } from './commands/validate.js';
-import { listCommand } from './commands/list.js';
+import { parseArgs } from "node:util";
+import { generateCommand } from "./commands/generate.js";
+import { listCommand } from "./commands/list.js";
+import { validateCommand } from "./commands/validate.js";
 
-const VERSION = '0.1.0';
+const VERSION = "0.1.0";
 
 const USAGE = `
 OpenAPI Generator - Generate code from OpenAPI specifications
@@ -90,183 +90,187 @@ List all available generators
 `;
 
 async function main(): Promise<void> {
-  const args = process.argv.slice(2);
+	const args = process.argv.slice(2);
 
-  // Handle no args or top-level help
-  if (args.length === 0 || args[0] === '-h' || args[0] === '--help') {
-    console.log(USAGE);
-    process.exit(0);
-  }
+	// Handle no args or top-level help
+	if (args.length === 0 || args[0] === "-h" || args[0] === "--help") {
+		console.log(USAGE);
+		process.exit(0);
+	}
 
-  // Handle version
-  if (args[0] === '-v' || args[0] === '--version') {
-    console.log(VERSION);
-    process.exit(0);
-  }
+	// Handle version
+	if (args[0] === "-v" || args[0] === "--version") {
+		console.log(VERSION);
+		process.exit(0);
+	}
 
-  const command = args[0];
-  const commandArgs = args.slice(1);
+	const command = args[0];
+	const commandArgs = args.slice(1);
 
-  try {
-    switch (command) {
-      case 'generate':
-        await handleGenerate(commandArgs);
-        break;
-      case 'validate':
-        await handleValidate(commandArgs);
-        break;
-      case 'list':
-        handleList(commandArgs);
-        break;
-      default:
-        console.error(`Unknown command: ${command}`);
-        console.log(USAGE);
-        process.exit(1);
-    }
-  } catch (error) {
-    console.error('Error:', error instanceof Error ? error.message : error);
-    if (process.env.DEBUG) {
-      console.error(error);
-    }
-    process.exit(1);
-  }
+	try {
+		switch (command) {
+			case "generate":
+				await handleGenerate(commandArgs);
+				break;
+			case "validate":
+				await handleValidate(commandArgs);
+				break;
+			case "list":
+				handleList(commandArgs);
+				break;
+			default:
+				console.error(`Unknown command: ${command}`);
+				console.log(USAGE);
+				process.exit(1);
+		}
+	} catch (error) {
+		console.error("Error:", error instanceof Error ? error.message : error);
+		if (process.env.DEBUG) {
+			console.error(error);
+		}
+		process.exit(1);
+	}
 }
 
 async function handleGenerate(args: string[]): Promise<void> {
-  // Check for help
-  if (args.includes('-h') || args.includes('--help')) {
-    console.log(GENERATE_USAGE);
-    process.exit(0);
-  }
+	// Check for help
+	if (args.includes("-h") || args.includes("--help")) {
+		console.log(GENERATE_USAGE);
+		process.exit(0);
+	}
 
-  const { values } = parseArgs({
-    args,
-    options: {
-      input: { type: 'string', short: 'i' },
-      generator: { type: 'string', short: 'g' },
-      output: { type: 'string', short: 'o', default: './generated' },
-      templates: { type: 'string', short: 't' },
-      library: { type: 'string' },
-      package: { type: 'string', short: 'p' },
-      'api-package': { type: 'string' },
-      'model-package': { type: 'string' },
-      'skip-models': { type: 'boolean', default: false },
-      'skip-apis': { type: 'boolean', default: false },
-      'skip-supporting': { type: 'boolean', default: false },
-      'skip-overwrite': { type: 'boolean', default: false },
-      'minimal-update': { type: 'boolean', default: true },
-      'dry-run': { type: 'boolean', default: false },
-      'additional-properties': { type: 'string' },
-      'type-mappings': { type: 'string' },
-      'import-mappings': { type: 'string' },
-      verbose: { type: 'boolean', short: 'v', default: false },
-      debug: { type: 'boolean', default: false },
-    },
-    strict: true,
-  });
+	const { values } = parseArgs({
+		args,
+		options: {
+			input: { type: "string", short: "i" },
+			generator: { type: "string", short: "g" },
+			output: { type: "string", short: "o", default: "./generated" },
+			templates: { type: "string", short: "t" },
+			library: { type: "string" },
+			package: { type: "string", short: "p" },
+			"api-package": { type: "string" },
+			"model-package": { type: "string" },
+			"skip-models": { type: "boolean", default: false },
+			"skip-apis": { type: "boolean", default: false },
+			"skip-supporting": { type: "boolean", default: false },
+			"skip-overwrite": { type: "boolean", default: false },
+			"minimal-update": { type: "boolean", default: true },
+			"dry-run": { type: "boolean", default: false },
+			"additional-properties": { type: "string" },
+			"type-mappings": { type: "string" },
+			"import-mappings": { type: "string" },
+			verbose: { type: "boolean", short: "v", default: false },
+			debug: { type: "boolean", default: false },
+		},
+		strict: true,
+	});
 
-  // Validate required options
-  if (!values.input) {
-    console.error('Error: --input (-i) is required');
-    console.log(GENERATE_USAGE);
-    process.exit(1);
-  }
+	// Validate required options
+	if (!values.input) {
+		console.error("Error: --input (-i) is required");
+		console.log(GENERATE_USAGE);
+		process.exit(1);
+	}
 
-  if (!values.generator) {
-    console.error('Error: --generator (-g) is required');
-    console.log(GENERATE_USAGE);
-    process.exit(1);
-  }
+	if (!values.generator) {
+		console.error("Error: --generator (-g) is required");
+		console.log(GENERATE_USAGE);
+		process.exit(1);
+	}
 
-  // Parse additional properties
-  const additionalProperties = parseKeyValuePairs(
-    values['additional-properties'] as string | undefined
-  );
-  const typeMappings = parseKeyValuePairs(values['type-mappings'] as string | undefined);
-  const importMappings = parseKeyValuePairs(values['import-mappings'] as string | undefined);
+	// Parse additional properties
+	const additionalProperties = parseKeyValuePairs(
+		values["additional-properties"] as string | undefined,
+	);
+	const typeMappings = parseKeyValuePairs(
+		values["type-mappings"] as string | undefined,
+	);
+	const importMappings = parseKeyValuePairs(
+		values["import-mappings"] as string | undefined,
+	);
 
-  await generateCommand({
-    inputSpec: values.input as string,
-    generatorName: values.generator as string,
-    outputDir: values.output as string,
-    templateDir: values.templates as string | undefined,
-    library: values.library as string | undefined,
-    packageName: values.package as string | undefined,
-    apiPackage: values['api-package'] as string | undefined,
-    modelPackage: values['model-package'] as string | undefined,
-    generateModels: !values['skip-models'],
-    generateApis: !values['skip-apis'],
-    generateSupportingFiles: !values['skip-supporting'],
-    skipOverwrite: values['skip-overwrite'] as boolean,
-    minimalUpdate: values['minimal-update'] as boolean,
-    dryRun: values['dry-run'] as boolean,
-    additionalProperties,
-    typeMappings,
-    importMappings,
-    verbose: values.verbose as boolean,
-    debug: values.debug as boolean,
-  });
+	await generateCommand({
+		inputSpec: values.input as string,
+		generatorName: values.generator as string,
+		outputDir: values.output as string,
+		templateDir: values.templates as string | undefined,
+		library: values.library as string | undefined,
+		packageName: values.package as string | undefined,
+		apiPackage: values["api-package"] as string | undefined,
+		modelPackage: values["model-package"] as string | undefined,
+		generateModels: !values["skip-models"],
+		generateApis: !values["skip-apis"],
+		generateSupportingFiles: !values["skip-supporting"],
+		skipOverwrite: values["skip-overwrite"] as boolean,
+		minimalUpdate: values["minimal-update"] as boolean,
+		dryRun: values["dry-run"] as boolean,
+		additionalProperties,
+		typeMappings,
+		importMappings,
+		verbose: values.verbose as boolean,
+		debug: values.debug as boolean,
+	});
 }
 
 async function handleValidate(args: string[]): Promise<void> {
-  // Check for help
-  if (args.includes('-h') || args.includes('--help')) {
-    console.log(VALIDATE_USAGE);
-    process.exit(0);
-  }
+	// Check for help
+	if (args.includes("-h") || args.includes("--help")) {
+		console.log(VALIDATE_USAGE);
+		process.exit(0);
+	}
 
-  const { values } = parseArgs({
-    args,
-    options: {
-      input: { type: 'string', short: 'i' },
-      strict: { type: 'boolean', default: false },
-    },
-    strict: true,
-  });
+	const { values } = parseArgs({
+		args,
+		options: {
+			input: { type: "string", short: "i" },
+			strict: { type: "boolean", default: false },
+		},
+		strict: true,
+	});
 
-  if (!values.input) {
-    console.error('Error: --input (-i) is required');
-    console.log(VALIDATE_USAGE);
-    process.exit(1);
-  }
+	if (!values.input) {
+		console.error("Error: --input (-i) is required");
+		console.log(VALIDATE_USAGE);
+		process.exit(1);
+	}
 
-  await validateCommand({
-    inputSpec: values.input as string,
-    strict: values.strict as boolean,
-  });
+	await validateCommand({
+		inputSpec: values.input as string,
+		strict: values.strict as boolean,
+	});
 }
 
 function handleList(args: string[]): void {
-  // Check for help
-  if (args.includes('-h') || args.includes('--help')) {
-    console.log(LIST_USAGE);
-    process.exit(0);
-  }
+	// Check for help
+	if (args.includes("-h") || args.includes("--help")) {
+		console.log(LIST_USAGE);
+		process.exit(0);
+	}
 
-  listCommand();
+	listCommand();
 }
 
 /**
  * Parse comma-separated key=value pairs
  */
 function parseKeyValuePairs(input: string | undefined): Record<string, string> {
-  if (!input) return {};
+	if (!input) return {};
 
-  const result: Record<string, string> = {};
-  const pairs = input.split(',');
+	const result: Record<string, string> = {};
+	const pairs = input.split(",");
 
-  for (const pair of pairs) {
-    const [key, ...valueParts] = pair.split('=');
-    if (key && valueParts.length > 0) {
-      result[key.trim()] = valueParts.join('=').trim();
-    }
-  }
+	for (const pair of pairs) {
+		const [key, ...valueParts] = pair.split("=");
+		if (key && valueParts.length > 0) {
+			result[key.trim()] = valueParts.join("=").trim();
+		}
+	}
 
-  return result;
+	return result;
 }
 
 // Run the CLI
 main().catch((error) => {
-  console.error('Fatal error:', error);
-  process.exit(1);
+	console.error("Fatal error:", error);
+	process.exit(1);
 });

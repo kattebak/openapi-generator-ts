@@ -122,119 +122,119 @@ use {{invokerPackage}}\ObjectSerializer;
 {{#operation}}
     /**
      * Operation {{{operationId}}}
-{{#summary}}
+{{#if summary}}
      *
-     * {{.}}
-{{/summary}}
+     * {{summary}}
+{{/if}}
      *
-{{#description}}
-     * {{.}}
+{{#if description}}
+     * {{description}}
      *
-{{/description}}
+{{/if}}
 {{#exts.x-group-parameters}}
      * Note: the input parameter is an associative array with the keys listed as the parameter name below
      *
 {{/exts.x-group-parameters}}
 {{#servers}}
-{{#-first}}
+{{#if @first}}
      * This operation contains host(s) defined in the OpenAPI spec. Use 'hostIndex' to select the host.
      * if needed, use the 'variables' parameter to pass variables to the host.
-{{/-first}}
+{{/if}}
      * URL: {{{url}}}
 {{#variables}}
-{{#-first}}
+{{#if @first}}
      *  Variables:
-{{/-first}}
-     *    - {{{name}}}: {{{description}}}{{^description}} No description provided{{/description}}{{#enumValues}}
-{{#-first}}
+{{/if}}
+     *    - {{{name}}}: {{{description}}}{{#unless description}} No description provided{{/unless}}{{#enumValues}}
+{{#if @first}}
      *      Allowed values:
-{{/-first}}
+{{/if}}
      *        - {{{.}}}{{/enumValues}}
 {{/variables}}
-{{#-last}}
+{{#if @last}}
      *
-{{/-last}}
+{{/if}}
 {{/servers}}
 {{#allParams}}
-     * @param  {{{dataType}}}{{^required}}|null{{/required}} ${{paramName}}{{#description}} {{.}}{{/description}}{{^description}} {{paramName}}{{/description}} {{#required}}(required){{/required}}{{^required}}(optional{{#defaultValue}}, default to {{{.}}}{{/defaultValue}}){{/required}}{{#isDeprecated}} (deprecated){{/isDeprecated}}
+     * @param  {{{dataType}}}{{^required}}|null{{/required}} ${{paramName}}{{#if description}} {{description}}{{/if}}{{#unless description}} {{paramName}}{{/unless}} {{#required}}(required){{/required}}{{^required}}(optional{{#if defaultValue}}, default to {{{defaultValue}}}{{/if}}){{/required}}{{#isDeprecated}} (deprecated){{/isDeprecated}}
 {{/allParams}}
 {{#servers}}
-{{#-first}}
+{{#if @first}}
      * @param  null|int $hostIndex Host index. Defaults to null. If null, then the library will use $this->hostIndex instead
      * @param  array $variables Associative array of variables to pass to the host. Defaults to empty array.
-{{/-first}}
+{{/if}}
 {{/servers}}
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['{{{operationId}}}'] to see the possible values for this operation
      *
      * @throws \{{invokerPackage}}\ApiException on non-2xx response or if the response body is not in the expected format
      * @throws \InvalidArgumentException
-     * @return {{#returnType}}{{#responses}}{{#dataType}}{{^-first}}|{{/-first}}{{/dataType}}{{{dataType}}}{{/responses}}{{/returnType}}{{^returnType}}void{{/returnType}}
+     * @return {{#if returnType}}{{#responses}}{{#dataType}}{{#unless @first}}|{{/unless}}{{/dataType}}{{{dataType}}}{{/responses}}{{/if}}{{#unless returnType}}void{{/unless}}
     {{#isDeprecated}}
      * @deprecated
     {{/isDeprecated}}
      */
-    public function {{operationId}}({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{^required}} = {{#defaultValue}}{{{.}}}{{/defaultValue}}{{^defaultValue}}null{{/defaultValue}}{{/required}}, {{/allParams}}{{#servers}}{{#-first}}?int $hostIndex = null, array $variables = [], {{/-first}}{{/servers}}string $contentType = self::contentTypes['{{{operationId}}}'][0]{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}})
+    public function {{operationId}}({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{^required}} = {{{defaultValue}}}{{#unless defaultValue}}null{{/unless}}{{/required}}, {{/allParams}}{{#servers}}{{#if @first}}?int $hostIndex = null, array $variables = [], {{/if}}{{/servers}}string $contentType = self::contentTypes['{{{operationId}}}'][0]{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}})
     {
-        {{#returnType}}list($response) = {{/returnType}}$this->{{operationId}}WithHttpInfo({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}, {{/allParams}}{{#servers}}{{#-first}}$hostIndex, $variables, {{/-first}}{{/servers}}$contentType{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}});{{#returnType}}
-        return $response;{{/returnType}}
+        {{#if returnType}}list($response) = {{/if}}$this->{{operationId}}WithHttpInfo({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}, {{/allParams}}{{#servers}}{{#if @first}}$hostIndex, $variables, {{/if}}{{/servers}}$contentType{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}});{{#if returnType}}
+        return $response;{{/if}}
     }
 
     /**
      * Operation {{{operationId}}}WithHttpInfo
-{{#summary}}
+{{#if summary}}
      *
-     * {{.}}
-{{/summary}}
+     * {{summary}}
+{{/if}}
      *
-{{#description}}
-     * {{.}}
+{{#if description}}
+     * {{description}}
      *
-{{/description}}
+{{/if}}
 {{#exts.x-group-parameters}}
      * Note: the input parameter is an associative array with the keys listed as the parameter name below
      *
 {{/exts.x-group-parameters}}
 {{#servers}}
-{{#-first}}
+{{#if @first}}
      * This operation contains host(s) defined in the OpenAPI spec. Use 'hostIndex' to select the host.
      * if needed, use the 'variables' parameter to pass variables to the host.
-{{/-first}}
+{{/if}}
      * URL: {{{url}}}
 {{#variables}}
-{{#-first}}
+{{#if @first}}
      *  Variables:
-{{/-first}}
-     *    - {{{name}}}: {{{description}}}{{^description}} No description provided{{/description}}{{#enumValues}}
-{{#-first}}
+{{/if}}
+     *    - {{{name}}}: {{{description}}}{{#unless description}} No description provided{{/unless}}{{#enumValues}}
+{{#if @first}}
      *      Allowed values:
-{{/-first}}
+{{/if}}
      *        - {{{.}}}{{/enumValues}}
 {{/variables}}
-{{#-last}}
+{{#if @last}}
      *
-{{/-last}}
+{{/if}}
 {{/servers}}
 {{#allParams}}
-     * @param  {{{dataType}}}{{^required}}|null{{/required}} ${{paramName}}{{#description}} {{.}}{{/description}} {{#required}}(required){{/required}}{{^required}}(optional{{#defaultValue}}, default to {{{.}}}{{/defaultValue}}){{/required}}{{#isDeprecated}} (deprecated){{/isDeprecated}}
+     * @param  {{{dataType}}}{{^required}}|null{{/required}} ${{paramName}}{{#if description}} {{description}}{{/if}} {{#required}}(required){{/required}}{{^required}}(optional{{#if defaultValue}}, default to {{{defaultValue}}}{{/if}}){{/required}}{{#isDeprecated}} (deprecated){{/isDeprecated}}
 {{/allParams}}
 {{#servers}}
-{{#-first}}
+{{#if @first}}
      * @param  null|int $hostIndex Host index. Defaults to null. If null, then the library will use $this->hostIndex instead
      * @param  array $variables Associative array of variables to pass to the host. Defaults to empty array.
-{{/-first}}
+{{/if}}
 {{/servers}}
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['{{{operationId}}}'] to see the possible values for this operation
      *
      * @throws \{{invokerPackage}}\ApiException on non-2xx response or if the response body is not in the expected format
      * @throws \InvalidArgumentException
-     * @return array of {{#returnType}}{{#responses}}{{#dataType}}{{^-first}}|{{/-first}}{{/dataType}}{{{dataType}}}{{/responses}}{{/returnType}}{{^returnType}}null{{/returnType}}, HTTP status code, HTTP response headers (array of strings)
+     * @return array of {{#if returnType}}{{#responses}}{{#dataType}}{{#unless @first}}|{{/unless}}{{/dataType}}{{{dataType}}}{{/responses}}{{/if}}{{#unless returnType}}null{{/unless}}, HTTP status code, HTTP response headers (array of strings)
     {{#isDeprecated}}
      * @deprecated
     {{/isDeprecated}}
      */
-    public function {{operationId}}WithHttpInfo({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{^required}} = {{#defaultValue}}{{{.}}}{{/defaultValue}}{{^defaultValue}}null{{/defaultValue}}{{/required}}, {{/allParams}}{{#servers}}{{#-first}}?int $hostIndex = null, array $variables = [], {{/-first}}{{/servers}}string $contentType = self::contentTypes['{{{operationId}}}'][0]{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}})
+    public function {{operationId}}WithHttpInfo({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{^required}} = {{{defaultValue}}}{{#unless defaultValue}}null{{/unless}}{{/required}}, {{/allParams}}{{#servers}}{{#if @first}}?int $hostIndex = null, array $variables = [], {{/if}}{{/servers}}string $contentType = self::contentTypes['{{{operationId}}}'][0]{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}})
     {
-        $request = $this->{{operationId}}Request({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}, {{/allParams}}{{#servers}}{{#-first}}$hostIndex, $variables, {{/-first}}{{/servers}}$contentType{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}});
+        $request = $this->{{operationId}}Request({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}, {{/allParams}}{{#servers}}{{#if @first}}$hostIndex, $variables, {{/if}}{{/servers}}$contentType{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}});
 
         try {
             $options = $this->createHttpClientOption();
@@ -258,12 +258,12 @@ use {{invokerPackage}}\ObjectSerializer;
 
             $statusCode = $response->getStatusCode();
 
-            {{#returnType}}
+            {{#if returnType}}
             {{#responses}}
-            {{#-first}}
+            {{#if @first}}
 
             switch($statusCode) {
-            {{/-first}}
+            {{/if}}
             {{#dataType}}
                 {{^isRange}}{{^isWildcard}}case {{code}}:{{/isWildcard}}{{#isWildcard}}default:{{/isWildcard}}
                     return $this->handleResponseWithDataType(
@@ -272,9 +272,9 @@ use {{invokerPackage}}\ObjectSerializer;
                         $response,
                     );{{/isRange}}
             {{/dataType}}
-            {{#-last}}
+            {{#if @last}}
             }
-            {{/-last}}
+            {{/if}}
             {{/responses}}
 
             {{#responses}}{{#dataType}}{{#isRange}}{{^isWildcard}}if ($this->responseWithinRangeCode('{{code}}', $statusCode)) {
@@ -303,11 +303,11 @@ use {{invokerPackage}}\ObjectSerializer;
                 $request,
                 $response,
             );
-            {{/returnType}}
-            {{^returnType}}
+            {{/if}}
+            {{#unless returnType}}
 
             return [null, $statusCode, $response->getHeaders()];
-            {{/returnType}}
+            {{/unless}}
         } catch (ApiException $e) {
             switch ($e->getCode()) {
         {{#responses}}
@@ -341,46 +341,46 @@ use {{invokerPackage}}\ObjectSerializer;
     /**
      * Operation {{{operationId}}}Async
      *
-{{#summary}}
-     * {{.}}
+{{#if summary}}
+     * {{summary}}
      *
-{{/summary}}
-{{#description}}
-     * {{.}}
+{{/if}}
+{{#if description}}
+     * {{description}}
      *
-{{/description}}
+{{/if}}
 {{#exts.x-group-parameters}}
      * Note: the input parameter is an associative array with the keys listed as the parameter name below
      *
 {{/exts.x-group-parameters}}
 {{#servers}}
-{{#-first}}
+{{#if @first}}
      * This operation contains host(s) defined in the OpenAPI spec. Use 'hostIndex' to select the host.
      * if needed, use the 'variables' parameter to pass variables to the host.
-{{/-first}}
+{{/if}}
      * URL: {{{url}}}
 {{#variables}}
-{{#-first}}
+{{#if @first}}
      *  Variables:
-{{/-first}}
-     *    - {{{name}}}: {{{description}}}{{^description}} No description provided{{/description}}{{#enumValues}}
-{{#-first}}
+{{/if}}
+     *    - {{{name}}}: {{{description}}}{{#unless description}} No description provided{{/unless}}{{#enumValues}}
+{{#if @first}}
      *      Allowed values:
-{{/-first}}
+{{/if}}
      *        - {{{.}}}{{/enumValues}}
 {{/variables}}
-{{#-last}}
+{{#if @last}}
      *
-{{/-last}}
+{{/if}}
 {{/servers}}
 {{#allParams}}
-     * @param  {{{dataType}}}{{^required}}|null{{/required}} ${{paramName}}{{#description}} {{.}}{{/description}} {{#required}}(required){{/required}}{{^required}}(optional{{#defaultValue}}, default to {{{.}}}{{/defaultValue}}){{/required}}{{#isDeprecated}} (deprecated){{/isDeprecated}}
+     * @param  {{{dataType}}}{{^required}}|null{{/required}} ${{paramName}}{{#if description}} {{description}}{{/if}} {{#required}}(required){{/required}}{{^required}}(optional{{#if defaultValue}}, default to {{{defaultValue}}}{{/if}}){{/required}}{{#isDeprecated}} (deprecated){{/isDeprecated}}
 {{/allParams}}
 {{#servers}}
-{{#-first}}
+{{#if @first}}
      * @param  null|int $hostIndex Host index. Defaults to null. If null, then the library will use $this->hostIndex instead
      * @param  array $variables Associative array of variables to pass to the host. Defaults to empty array.
-{{/-first}}
+{{/if}}
 {{/servers}}
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['{{{operationId}}}'] to see the possible values for this operation
      *
@@ -390,9 +390,9 @@ use {{invokerPackage}}\ObjectSerializer;
      * @deprecated
     {{/isDeprecated}}
      */
-    public function {{operationId}}Async({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{^required}} = {{#defaultValue}}{{{.}}}{{/defaultValue}}{{^defaultValue}}null{{/defaultValue}}{{/required}}, {{/allParams}}{{#servers}}{{#-first}}?int $hostIndex = null, array $variables = [], {{/-first}}{{/servers}}string $contentType = self::contentTypes['{{{operationId}}}'][0]{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}})
+    public function {{operationId}}Async({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{^required}} = {{{defaultValue}}}{{#unless defaultValue}}null{{/unless}}{{/required}}, {{/allParams}}{{#servers}}{{#if @first}}?int $hostIndex = null, array $variables = [], {{/if}}{{/servers}}string $contentType = self::contentTypes['{{{operationId}}}'][0]{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}})
     {
-        return $this->{{operationId}}AsyncWithHttpInfo({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}, {{/allParams}}{{#servers}}{{#-first}}$hostIndex, $variables, {{/-first}}{{/servers}}$contentType{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}})
+        return $this->{{operationId}}AsyncWithHttpInfo({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}, {{/allParams}}{{#servers}}{{#if @first}}$hostIndex, $variables, {{/if}}{{/servers}}$contentType{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}})
             ->then(
                 function ($response) {
                     return $response[0];
@@ -403,46 +403,46 @@ use {{invokerPackage}}\ObjectSerializer;
     /**
      * Operation {{{operationId}}}AsyncWithHttpInfo
      *
-{{#summary}}
-     * {{.}}
+{{#if summary}}
+     * {{summary}}
      *
-{{/summary}}
-{{#description}}
-     * {{.}}
+{{/if}}
+{{#if description}}
+     * {{description}}
      *
-{{/description}}
+{{/if}}
 {{#exts.x-group-parameters}}
      * Note: the input parameter is an associative array with the keys listed as the parameter name below
      *
 {{/exts.x-group-parameters}}
 {{#servers}}
-{{#-first}}
+{{#if @first}}
      * This operation contains host(s) defined in the OpenAPI spec. Use 'hostIndex' to select the host.
      * if needed, use the 'variables' parameter to pass variables to the host.
-{{/-first}}
+{{/if}}
      * URL: {{{url}}}
 {{#variables}}
-{{#-first}}
+{{#if @first}}
      *  Variables:
-{{/-first}}
-     *    - {{{name}}}: {{{description}}}{{^description}} No description provided{{/description}}{{#enumValues}}
-{{#-first}}
+{{/if}}
+     *    - {{{name}}}: {{{description}}}{{#unless description}} No description provided{{/unless}}{{#enumValues}}
+{{#if @first}}
      *      Allowed values:
-{{/-first}}
+{{/if}}
      *        - {{{.}}}{{/enumValues}}
 {{/variables}}
-{{#-last}}
+{{#if @last}}
      *
-{{/-last}}
+{{/if}}
 {{/servers}}
 {{#allParams}}
-     * @param  {{{dataType}}}{{^required}}|null{{/required}} ${{paramName}}{{#description}} {{.}}{{/description}} {{#required}}(required){{/required}}{{^required}}(optional{{#defaultValue}}, default to {{{.}}}{{/defaultValue}}){{/required}}{{#isDeprecated}} (deprecated){{/isDeprecated}}
+     * @param  {{{dataType}}}{{^required}}|null{{/required}} ${{paramName}}{{#if description}} {{description}}{{/if}} {{#required}}(required){{/required}}{{^required}}(optional{{#if defaultValue}}, default to {{{defaultValue}}}{{/if}}){{/required}}{{#isDeprecated}} (deprecated){{/isDeprecated}}
 {{/allParams}}
 {{#servers}}
-{{#-first}}
+{{#if @first}}
      * @param  null|int $hostIndex Host index. Defaults to null. If null, then the library will use $this->hostIndex instead
      * @param  array $variables Associative array of variables to pass to the host. Defaults to empty array.
-{{/-first}}
+{{/if}}
 {{/servers}}
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['{{{operationId}}}'] to see the possible values for this operation
      *
@@ -452,16 +452,16 @@ use {{invokerPackage}}\ObjectSerializer;
      * @deprecated
     {{/isDeprecated}}
      */
-    public function {{operationId}}AsyncWithHttpInfo({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{^required}} = {{#defaultValue}}{{{.}}}{{/defaultValue}}{{^defaultValue}}null{{/defaultValue}}{{/required}}, {{/allParams}}{{#servers}}{{#-first}}?int $hostIndex = null, array $variables = [], {{/-first}}{{/servers}}string $contentType = self::contentTypes['{{{operationId}}}'][0]{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}})
+    public function {{operationId}}AsyncWithHttpInfo({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{^required}} = {{{defaultValue}}}{{#unless defaultValue}}null{{/unless}}{{/required}}, {{/allParams}}{{#servers}}{{#if @first}}?int $hostIndex = null, array $variables = [], {{/if}}{{/servers}}string $contentType = self::contentTypes['{{{operationId}}}'][0]{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}})
     {
         $returnType = '{{{returnType}}}';
-        $request = $this->{{operationId}}Request({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}, {{/allParams}}{{#servers}}{{#-first}}$hostIndex, $variables, {{/-first}}{{/servers}}$contentType{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}});
+        $request = $this->{{operationId}}Request({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}, {{/allParams}}{{#servers}}{{#if @first}}$hostIndex, $variables, {{/if}}{{/servers}}$contentType{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}});
 
         return $this->client
             ->sendAsync($request, $this->createHttpClientOption())
             ->then(
                 function ($response) use ($returnType) {
-                    {{#returnType}}
+                    {{#if returnType}}
                     if ($returnType === '\SplFileObject') {
                         $content = $response->getBody(); //stream goes to serializer
                     } else {
@@ -476,10 +476,10 @@ use {{invokerPackage}}\ObjectSerializer;
                         $response->getStatusCode(),
                         $response->getHeaders()
                     ];
-                    {{/returnType}}
-                    {{^returnType}}
+                    {{/if}}
+                    {{#unless returnType}}
                     return [null, $response->getStatusCode(), $response->getHeaders()];
-                    {{/returnType}}
+                    {{/unless}}
                 },
                 function ($exception) {
                     $response = $exception->getResponse();
@@ -506,33 +506,33 @@ use {{invokerPackage}}\ObjectSerializer;
      *
 {{/exts.x-group-parameters}}
 {{#servers}}
-{{#-first}}
+{{#if @first}}
     * This operation contains host(s) defined in the OpenAPI spec. Use 'hostIndex' to select the host.
     * if needed, use the 'variables' parameter to pass variables to the host.
-{{/-first}}
+{{/if}}
      * URL: {{{url}}}
 {{#variables}}
-{{#-first}}
+{{#if @first}}
      *  Variables:
-{{/-first}}
-    *    - {{{name}}}: {{{description}}}{{^description}} No description provided{{/description}}{{#enumValues}}
-{{#-first}}
+{{/if}}
+    *    - {{{name}}}: {{{description}}}{{#unless description}} No description provided{{/unless}}{{#enumValues}}
+{{#if @first}}
      *      Allowed values:
-{{/-first}}
+{{/if}}
      *        - {{{.}}}{{/enumValues}}
 {{/variables}}
-{{#-last}}
+{{#if @last}}
      *
-{{/-last}}
+{{/if}}
 {{/servers}}
 {{#allParams}}
-     * @param  {{{dataType}}}{{^required}}|null{{/required}} ${{paramName}}{{#description}} {{.}}{{/description}} {{#required}}(required){{/required}}{{^required}}(optional{{#defaultValue}}, default to {{{.}}}{{/defaultValue}}){{/required}}{{#isDeprecated}} (deprecated){{/isDeprecated}}
+     * @param  {{{dataType}}}{{^required}}|null{{/required}} ${{paramName}}{{#if description}} {{description}}{{/if}} {{#required}}(required){{/required}}{{^required}}(optional{{#if defaultValue}}, default to {{{defaultValue}}}{{/if}}){{/required}}{{#isDeprecated}} (deprecated){{/isDeprecated}}
 {{/allParams}}
 {{#servers}}
-{{#-first}}
+{{#if @first}}
      * @param  null|int $hostIndex Host index. Defaults to null. If null, then the library will use $this->hostIndex instead
      * @param  array $variables Associative array of variables to pass to the host. Defaults to empty array.
-{{/-first}}
+{{/if}}
 {{/servers}}
      * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['{{{operationId}}}'] to see the possible values for this operation
      *
@@ -542,16 +542,16 @@ use {{invokerPackage}}\ObjectSerializer;
      * @deprecated
     {{/isDeprecated}}
      */
-    public function {{operationId}}Request({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{^required}} = {{#defaultValue}}{{{.}}}{{/defaultValue}}{{^defaultValue}}null{{/defaultValue}}{{/required}}, {{/allParams}}{{#servers}}{{#-first}}?int $hostIndex = null, array $variables = [], {{/-first}}{{/servers}}string $contentType = self::contentTypes['{{{operationId}}}'][0]{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}})
+    public function {{operationId}}Request({{^exts.x-group-parameters}}{{#allParams}}${{paramName}}{{^required}} = {{{defaultValue}}}{{#unless defaultValue}}null{{/unless}}{{/required}}, {{/allParams}}{{#servers}}{{#if @first}}?int $hostIndex = null, array $variables = [], {{/if}}{{/servers}}string $contentType = self::contentTypes['{{{operationId}}}'][0]{{/exts.x-group-parameters}}{{#exts.x-group-parameters}}$associative_array{{/exts.x-group-parameters}})
     {
         {{#exts.x-group-parameters}}
         // unbox the parameters from the associative array
 {{#allParams}}
-        ${{paramName}} = array_key_exists('{{paramName}}', $associative_array) ? $associative_array['{{paramName}}'] : {{{defaultValue}}}{{^defaultValue}}null{{/defaultValue}};
-{{/allParams}}{{#servers.0}}
+        ${{paramName}} = array_key_exists('{{paramName}}', $associative_array) ? $associative_array['{{paramName}}'] : {{{defaultValue}}}{{#unless defaultValue}}null{{/unless}};
+{{/allParams}}{{#if servers}}
         $hostIndex = $associative_array['hostIndex'];
         $variables = array_key_exists('variables', $associative_array) ? $associative_array['variables'] : [];
-{{/servers.0}}
+{{/if}}
         $contentType = $associative_array['contentType'] ?? self::contentTypes['{{{operationId}}}'][0];
         {{/exts.x-group-parameters}}{{#allParams}}
         {{#required}}
@@ -563,31 +563,31 @@ use {{invokerPackage}}\ObjectSerializer;
         }
         {{/required}}
         {{#hasValidation}}
-        {{#maxLength}}
+        {{#if maxLength}}
         if ({{^required}}${{paramName}} !== null && {{/required}}strlen(${{paramName}}) > {{maxLength}}) {
             throw new \InvalidArgumentException('invalid length for "${{paramName}}" when calling {{classname}}.{{operationId}}, must be smaller than or equal to {{maxLength}}.');
         }
-        {{/maxLength}}
-        {{#minLength}}
+        {{/if}}
+        {{#if minLength}}
         if ({{^required}}${{paramName}} !== null && {{/required}}strlen(${{paramName}}) < {{minLength}}) {
             throw new \InvalidArgumentException('invalid length for "${{paramName}}" when calling {{classname}}.{{operationId}}, must be bigger than or equal to {{minLength}}.');
         }
-        {{/minLength}}
-        {{#maximum}}
+        {{/if}}
+        {{#if maximum}}
         if ({{^required}}${{paramName}} !== null && {{/required}}${{paramName}} >{{#exclusiveMaximum}}={{/exclusiveMaximum}} {{maximum}}) {
             throw new \InvalidArgumentException('invalid value for "${{paramName}}" when calling {{classname}}.{{operationId}}, must be smaller than {{^exclusiveMaximum}}or equal to {{/exclusiveMaximum}}{{maximum}}.');
         }
-        {{/maximum}}
-        {{#minimum}}
+        {{/if}}
+        {{#if minimum}}
         if ({{^required}}${{paramName}} !== null && {{/required}}${{paramName}} <{{#exclusiveMinimum}}={{/exclusiveMinimum}} {{minimum}}) {
             throw new \InvalidArgumentException('invalid value for "${{paramName}}" when calling {{classname}}.{{operationId}}, must be bigger than {{^exclusiveMinimum}}or equal to {{/exclusiveMinimum}}{{minimum}}.');
         }
-        {{/minimum}}
-        {{#pattern}}
+        {{/if}}
+        {{#if pattern}}
         if ({{^required}}${{paramName}} !== null && {{/required}}!preg_match("{{{pattern}}}", ${{paramName}})) {
             throw new \InvalidArgumentException("invalid value for \"{{paramName}}\" when calling {{classname}}.{{operationId}}, must conform to the pattern {{{pattern}}}.");
         }
-        {{/pattern}}
+        {{/if}}
         {{#maxItems}}
         if ({{^required}}${{paramName}} !== null && {{/required}}count(${{paramName}}) > {{maxItems}}) {
             throw new \InvalidArgumentException('invalid value for "${{paramName}}" when calling {{classname}}.{{operationId}}, number of items must be less than or equal to {{maxItems}}.');
@@ -648,19 +648,19 @@ use {{invokerPackage}}\ObjectSerializer;
         {{/pathParams}}
 
         {{#formParams}}
-        {{#-first}}
+        {{#if @first}}
         // form params
         $formDataProcessor = new FormDataProcessor();
 
         $formData = $formDataProcessor->prepare([
-        {{/-first}}
+        {{/if}}
             '{{paramName}}' => ${{paramName}},
-        {{#-last}}
+        {{#if @last}}
         ]);
 
         $formParams = $formDataProcessor->flatten($formData);
         $multipart = $formDataProcessor->has_file;
-        {{/-last}}
+        {{/if}}
         {{/formParams}}
 
         {{#isMultipart}}
@@ -752,7 +752,7 @@ use {{invokerPackage}}\ObjectSerializer;
             $headers
         );
 
-        {{#servers.0}}
+        {{#if servers}}
         # Preserve the original behavior of server indexing.
         if ($hostIndex === null) {
             $hostIndex = $this->hostIndex;
@@ -764,10 +764,10 @@ use {{invokerPackage}}\ObjectSerializer;
             throw new \InvalidArgumentException("Invalid index {$hostIndex} when selecting the host. Must be less than ".count($hostSettings));
         }
         $operationHost = Configuration::getHostString($hostSettings, $hostIndex, $variables);
-        {{/servers.0}}
-        {{^servers.0}}
+        {{/if}}
+        {{#unless servers}}
         $operationHost = $this->config->getHost();
-        {{/servers.0}}
+        {{/if}}
         $query = ObjectSerializer::buildQuery($queryParams);
         return new Request(
             '{{httpMethod}}',
@@ -777,7 +777,7 @@ use {{invokerPackage}}\ObjectSerializer;
         );
     }
 
-    {{#servers.0}}
+    {{#if servers}}
     /**
      * Returns an array of host settings for Operation {{operationId}}
      *
@@ -789,34 +789,34 @@ use {{invokerPackage}}\ObjectSerializer;
         {{#servers}}
             [
                 "url" => "{{{url}}}",
-                "description" => "{{{description}}}{{^description}}No description provided{{/description}}",
+                "description" => "{{{description}}}{{#unless description}}No description provided{{/unless}}",
                 {{#variables}}
-                {{#-first}}
+                {{#if @first}}
                 "variables" => [
-                {{/-first}}
+                {{/if}}
                     "{{{name}}}" => [
-                    "description" => "{{{description}}}{{^description}}No description provided{{/description}}",
+                    "description" => "{{{description}}}{{#unless description}}No description provided{{/unless}}",
                     "default_value" => "{{{defaultValue}}}",
                     {{#enumValues}}
-                    {{#-first}}
+                    {{#if @first}}
                     "enum_values" => [
-                    {{/-first}}
+                    {{/if}}
                         "{{{.}}}",
-                    {{#-last}}
+                    {{#if @last}}
                     ]
-                    {{/-last}}
+                    {{/if}}
                     {{/enumValues}}
-                    ]{{^-last}},{{/-last}}
-                {{#-last}}
+                    ]{{#unless @last}},{{/unless}}
+                {{#if @last}}
                 ]
-                {{/-last}}
+                {{/if}}
                 {{/variables}}
-            ]{{^-last}},{{/-last}}
+            ]{{#unless @last}},{{/unless}}
         {{/servers}}
         ];
     }
 
-    {{/servers.0}}
+    {{/if}}
     {{/operation}}
     /**
      * Create http client option

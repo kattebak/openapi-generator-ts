@@ -15,8 +15,8 @@ class {{classname}} {{#parentSchema}}extends {{{parent}}}{{/parentSchema}}{{^par
       * @var string[]
       */
     protected static $openAPITypes = [
-        {{#vars}}'{{name}}' => '{{{dataType}}}'{{^-last}},
-        {{/-last}}{{/vars}}
+        {{#vars}}'{{name}}' => '{{{dataType}}}'{{#unless @last}},
+        {{/unless}}{{/vars}}
     ];
 
     /**
@@ -27,8 +27,8 @@ class {{classname}} {{#parentSchema}}extends {{{parent}}}{{/parentSchema}}{{^par
       * @psalm-var array<string, string|null>
       */
     protected static $openAPIFormats = [
-        {{#vars}}'{{name}}' => {{#dataFormat}}'{{{.}}}'{{/dataFormat}}{{^dataFormat}}null{{/dataFormat}}{{^-last}},
-        {{/-last}}{{/vars}}
+        {{#vars}}'{{name}}' => {{#if dataFormat}}'{{{dataFormat}}}'{{/if}}{{#unless dataFormat}}null{{/unless}}{{#unless @last}},
+        {{/unless}}{{/vars}}
     ];
 
     /**
@@ -37,8 +37,8 @@ class {{classname}} {{#parentSchema}}extends {{{parent}}}{{/parentSchema}}{{^par
       * @var boolean[]
       */
     protected static array $openAPINullables = [
-        {{#vars}}'{{name}}' => {{#isNullable}}true{{/isNullable}}{{^isNullable}}false{{/isNullable}}{{^-last}},
-        {{/-last}}{{/vars}}
+        {{#vars}}'{{name}}' => {{#isNullable}}true{{/isNullable}}{{^isNullable}}false{{/isNullable}}{{#unless @last}},
+        {{/unless}}{{/vars}}
     ];
 
     /**
@@ -127,8 +127,8 @@ class {{classname}} {{#parentSchema}}extends {{{parent}}}{{/parentSchema}}{{^par
      * @var string[]
      */
     protected static $attributeMap = [
-        {{#vars}}'{{name}}' => '{{baseName}}'{{^-last}},
-        {{/-last}}{{/vars}}
+        {{#vars}}'{{name}}' => '{{baseName}}'{{#unless @last}},
+        {{/unless}}{{/vars}}
     ];
 
     /**
@@ -137,8 +137,8 @@ class {{classname}} {{#parentSchema}}extends {{{parent}}}{{/parentSchema}}{{^par
      * @var string[]
      */
     protected static $setters = [
-        {{#vars}}'{{name}}' => '{{setter}}'{{^-last}},
-        {{/-last}}{{/vars}}
+        {{#vars}}'{{name}}' => '{{setter}}'{{#unless @last}},
+        {{/unless}}{{/vars}}
     ];
 
     /**
@@ -147,8 +147,8 @@ class {{classname}} {{#parentSchema}}extends {{{parent}}}{{/parentSchema}}{{^par
      * @var string[]
      */
     protected static $getters = [
-        {{#vars}}'{{name}}' => '{{getter}}'{{^-last}},
-        {{/-last}}{{/vars}}
+        {{#vars}}'{{name}}' => '{{getter}}'{{#unless @last}},
+        {{/unless}}{{/vars}}
     ];
 
     /**
@@ -212,8 +212,8 @@ class {{classname}} {{#parentSchema}}extends {{{parent}}}{{/parentSchema}}{{^par
     public function {{getter}}AllowableValues()
     {
         return [
-            {{#allowableValues}}{{#enumVars}}self::{{enumName}}_{{{name}}},{{^-last}}
-            {{/-last}}{{/enumVars}}{{/allowableValues}}
+            {{#allowableValues}}{{#enumVars}}self::{{enumName}}_{{{name}}},{{#unless @last}}
+            {{/unless}}{{/enumVars}}{{/allowableValues}}
         ];
     }
 
@@ -241,7 +241,7 @@ class {{classname}} {{#parentSchema}}extends {{{parent}}}{{/parentSchema}}{{^par
 
         {{/parentSchema}}
         {{#vars}}
-        $this->setIfExists('{{name}}', $data ?? [], {{#defaultValue}}{{{defaultValue}}}{{/defaultValue}}{{^defaultValue}}null{{/defaultValue}});
+        $this->setIfExists('{{name}}', $data ?? [], {{#if defaultValue}}{{{defaultValue}}}{{/if}}{{#unless defaultValue}}null{{/unless}});
         {{/vars}}
         {{#discriminator}}
 
@@ -302,36 +302,36 @@ class {{classname}} {{#parentSchema}}extends {{{parent}}}{{/parentSchema}}{{^par
         {{/isContainer}}
         {{/isEnum}}
         {{#hasValidation}}
-        {{#maxLength}}
+        {{#if maxLength}}
         if ({{^required}}!is_null($this->container['{{name}}']) && {{/required}}(mb_strlen($this->container['{{name}}']) > {{maxLength}})) {
             $invalidProperties[] = "invalid value for '{{name}}', the character length must be smaller than or equal to {{{maxLength}}}.";
         }
 
-        {{/maxLength}}
-        {{#minLength}}
+        {{/if}}
+        {{#if minLength}}
         if ({{^required}}!is_null($this->container['{{name}}']) && {{/required}}(mb_strlen($this->container['{{name}}']) < {{minLength}})) {
             $invalidProperties[] = "invalid value for '{{name}}', the character length must be bigger than or equal to {{{minLength}}}.";
         }
 
-        {{/minLength}}
-        {{#maximum}}
+        {{/if}}
+        {{#if maximum}}
         if ({{^required}}!is_null($this->container['{{name}}']) && {{/required}}($this->container['{{name}}'] >{{#exclusiveMaximum}}={{/exclusiveMaximum}} {{maximum}})) {
             $invalidProperties[] = "invalid value for '{{name}}', must be smaller than {{^exclusiveMaximum}}or equal to {{/exclusiveMaximum}}{{maximum}}.";
         }
 
-        {{/maximum}}
-        {{#minimum}}
+        {{/if}}
+        {{#if minimum}}
         if ({{^required}}!is_null($this->container['{{name}}']) && {{/required}}($this->container['{{name}}'] <{{#exclusiveMinimum}}={{/exclusiveMinimum}} {{minimum}})) {
             $invalidProperties[] = "invalid value for '{{name}}', must be bigger than {{^exclusiveMinimum}}or equal to {{/exclusiveMinimum}}{{minimum}}.";
         }
 
-        {{/minimum}}
-        {{#pattern}}
+        {{/if}}
+        {{#if pattern}}
         if ({{^required}}!is_null($this->container['{{name}}']) && {{/required}}!preg_match("{{{pattern}}}", $this->container['{{name}}'])) {
             $invalidProperties[] = "invalid value for '{{name}}', must be conform to the pattern {{{pattern}}}.";
         }
 
-        {{/pattern}}
+        {{/if}}
         {{#maxItems}}
         if ({{^required}}!is_null($this->container['{{name}}']) && {{/required}}(count($this->container['{{name}}']) > {{maxItems}})) {
             $invalidProperties[] = "invalid value for '{{name}}', number of items must be less than or equal to {{{maxItems}}}.";
@@ -378,7 +378,7 @@ class {{classname}} {{#parentSchema}}extends {{{parent}}}{{/parentSchema}}{{^par
     /**
      * Sets {{name}}
      *
-     * @param {{{dataType}}}{{#notRequiredOrIsNullable}}|null{{/notRequiredOrIsNullable}} ${{name}}{{#description}} {{{.}}}{{/description}}{{^description}} {{{name}}}{{/description}}
+     * @param {{{dataType}}}{{#notRequiredOrIsNullable}}|null{{/notRequiredOrIsNullable}} ${{name}}{{#if description}} {{{description}}}{{/if}}{{#unless description}} {{{name}}}{{/unless}}
      *
      * @return self
     {{#deprecated}}
@@ -409,7 +409,7 @@ class {{classname}} {{#parentSchema}}extends {{{parent}}}{{/parentSchema}}{{^par
         {{^isContainer}}
         if ({{#isNullable}}!is_null(${{name}}) && {{/isNullable}}!in_array(${{{name}}}, $allowedValues, true)) {
         {{#enumUnknownDefaultCase}}
-            ${{name}} = {{#allowableValues}}{{#enumVars}}{{#-last}}self::{{enumName}}_{{{name}}};{{/-last}}{{/enumVars}}{{/allowableValues}}
+            ${{name}} = {{#allowableValues}}{{#enumVars}}{{#if @last}}self::{{enumName}}_{{{name}}};{{/if}}{{/enumVars}}{{/allowableValues}}
         {{/enumUnknownDefaultCase}}
         {{^enumUnknownDefaultCase}}
             throw new \InvalidArgumentException(
@@ -434,30 +434,30 @@ class {{classname}} {{#parentSchema}}extends {{{parent}}}{{/parentSchema}}{{^par
         {{/isContainer}}
         {{/isEnum}}
         {{#hasValidation}}
-        {{#maxLength}}
+        {{#if maxLength}}
         if ({{#isNullable}}!is_null(${{name}}) && {{/isNullable}}(mb_strlen(${{name}}) > {{maxLength}})) {
             throw new \InvalidArgumentException('invalid length for ${{name}} when calling {{classname}}.{{operationId}}, must be smaller than or equal to {{maxLength}}.');
-        }{{/maxLength}}
-        {{#minLength}}
+        }{{/if}}
+        {{#if minLength}}
         if ({{#isNullable}}!is_null(${{name}}) && {{/isNullable}}(mb_strlen(${{name}}) < {{minLength}})) {
             throw new \InvalidArgumentException('invalid length for ${{name}} when calling {{classname}}.{{operationId}}, must be bigger than or equal to {{minLength}}.');
         }
-        {{/minLength}}
-        {{#maximum}}
+        {{/if}}
+        {{#if maximum}}
         if ({{#isNullable}}!is_null(${{name}}) && {{/isNullable}}(${{name}} >{{#exclusiveMaximum}}={{/exclusiveMaximum}} {{maximum}})) {
             throw new \InvalidArgumentException('invalid value for ${{name}} when calling {{classname}}.{{operationId}}, must be smaller than {{^exclusiveMaximum}}or equal to {{/exclusiveMaximum}}{{maximum}}.');
         }
-        {{/maximum}}
-        {{#minimum}}
+        {{/if}}
+        {{#if minimum}}
         if ({{#isNullable}}!is_null(${{name}}) && {{/isNullable}}(${{name}} <{{#exclusiveMinimum}}={{/exclusiveMinimum}} {{minimum}})) {
             throw new \InvalidArgumentException('invalid value for ${{name}} when calling {{classname}}.{{operationId}}, must be bigger than {{^exclusiveMinimum}}or equal to {{/exclusiveMinimum}}{{minimum}}.');
         }
-        {{/minimum}}
-        {{#pattern}}
+        {{/if}}
+        {{#if pattern}}
         if ({{#isNullable}}!is_null(${{name}}) && {{/isNullable}}(!preg_match("{{{pattern}}}", ObjectSerializer::toString(${{name}})))) {
             throw new \InvalidArgumentException("invalid value for \${{name}} when calling {{classname}}.{{operationId}}, must conform to the pattern {{{pattern}}}.");
         }
-        {{/pattern}}
+        {{/if}}
         {{#maxItems}}
         if ({{#isNullable}}!is_null(${{name}}) && {{/isNullable}}(count(${{name}}) > {{maxItems}})) {
             throw new \InvalidArgumentException('invalid value for ${{name}} when calling {{classname}}.{{operationId}}, number of items must be less than or equal to {{maxItems}}.');

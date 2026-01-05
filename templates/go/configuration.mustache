@@ -138,37 +138,37 @@ func NewConfiguration() *Configuration {
 		UserAgent:        "{{{httpUserAgent}}}{{^httpUserAgent}}OpenAPI-Generator/{{{packageVersion}}}/go{{/httpUserAgent}}",
 		Debug:            false,
 		{{#servers}}
-		{{#-first}}
+		{{#if @first}}
 		Servers:          ServerConfigurations{
-		{{/-first}}
+		{{/if}}
 			{
 				URL: "{{{url}}}",
-				Description: "{{{description}}}{{^description}}No description provided{{/description}}",
+				Description: "{{{description}}}{{#unless description}}No description provided{{/unless}}",
 				{{#variables}}
-				{{#-first}}
+				{{#if @first}}
 				Variables: map[string]ServerVariable{
-				{{/-first}}
+				{{/if}}
 					"{{{name}}}": ServerVariable{
-						Description: "{{{description}}}{{^description}}No description provided{{/description}}",
+						Description: "{{{description}}}{{#unless description}}No description provided{{/unless}}",
 						DefaultValue: "{{{defaultValue}}}",
 						{{#enumValues}}
-						{{#-first}}
+						{{#if @first}}
 						EnumValues: []string{
-						{{/-first}}
+						{{/if}}
 							"{{{.}}}",
-						{{#-last}}
+						{{#if @last}}
 						},
-						{{/-last}}
+						{{/if}}
 						{{/enumValues}}
 					},
-				{{#-last}}
+				{{#if @last}}
 				},
-				{{/-last}}
+				{{/if}}
 				{{/variables}}
 			},
-		{{#-last}}
+		{{#if @last}}
 		},
-		{{/-last}}
+		{{/if}}
 		{{/servers}}
 		{{#apiInfo}}
 		OperationServers: map[string]ServerConfigurations{
@@ -176,37 +176,37 @@ func NewConfiguration() *Configuration {
 		{{#operations}}
 		{{#operation}}
 		{{#servers}}
-		{{#-first}}
+		{{#if @first}}
 			"{{{classname}}}Service.{{{nickname}}}": {
-		{{/-first}}
+		{{/if}}
 				{
 					URL: "{{{url}}}",
-					Description: "{{{description}}}{{^description}}No description provided{{/description}}",
+					Description: "{{{description}}}{{#unless description}}No description provided{{/unless}}",
 					{{#variables}}
-					{{#-first}}
+					{{#if @first}}
 					Variables: map[string]ServerVariable{
-					{{/-first}}
+					{{/if}}
 						"{{{name}}}": ServerVariable{
-							Description: "{{{description}}}{{^description}}No description provided{{/description}}",
+							Description: "{{{description}}}{{#unless description}}No description provided{{/unless}}",
 							DefaultValue: "{{{defaultValue}}}",
 							{{#enumValues}}
-							{{#-first}}
+							{{#if @first}}
 							EnumValues: []string{
-							{{/-first}}
+							{{/if}}
 								"{{{.}}}",
-							{{#-last}}
+							{{#if @last}}
 							},
-							{{/-last}}
+							{{/if}}
 							{{/enumValues}}
 						},
-					{{#-last}}
+					{{#if @last}}
 					},
-					{{/-last}}
+					{{/if}}
 					{{/variables}}
 				},
-		{{#-last}}
+		{{#if @last}}
 			},
-		{{/-last}}
+		{{/if}}
 		{{/servers}}
 		{{/operation}}
 		{{/operations}}

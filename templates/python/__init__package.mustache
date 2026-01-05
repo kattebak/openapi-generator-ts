@@ -20,8 +20,8 @@ __all__ = [
     "ApiAttributeError",
     "ApiException",
     {{#hasHttpSignatureMethods}}"HttpSigningConfiguration",
-    {{/hasHttpSignatureMethods}}{{#models}}{{#model}}"{{classname}}"{{^-last}},
-    {{/-last}}{{#-last}},{{/-last}}{{/model}}{{/models}}
+    {{/hasHttpSignatureMethods}}{{#models}}{{#model}}"{{classname}}"{{#unless @last}},
+    {{/unless}}{{#if @last}},{{/if}}{{/model}}{{/models}}
 ]
 
 {{^lazyImports}}

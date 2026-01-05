@@ -1,324 +1,92 @@
 # Agent Guidelines for OpenAPI Generator TypeScript Port
 
-This document provides context and guidance for LLMs working on the `@kattebak/openapi-generator-ts` package.
+TypeScript port of [OpenAPI Generator](https://github.com/openapi-generator-tech/openapi-generator). Generates client code from OpenAPI specs using Handlebars templates.
 
-## Project Overview
-
-This package is a TypeScript port of the Java [OpenAPI Generator](https://github.com/openapi-generator-tech/openapi-generator). It generates client code from OpenAPI specifications using Handlebars templates.
-
-### Key Architecture
+## Architecture
 
 ```
 src/
-  cli/           # CLI using Node's native `util.parseArgs`
+  cli/           # CLI (Node's native util.parseArgs)
   core/          # Generator engine and configuration
   generators/    # Language-specific generators (typescript-fetch, python, go, php)
-  models/        # Codegen data models (CodegenModel, CodegenOperation, etc.)
-  parser/        # OpenAPI spec parsing with @apidevtools/swagger-parser
+  models/        # CodegenModel, CodegenOperation, CodegenProperty, etc.
+  parser/        # OpenAPI parsing (@apidevtools/swagger-parser)
   template/      # Handlebars engine and lambda functions
 ```
 
-## How to Port a Generator from Java
-
-### 1. Locate the Java Source Files
-
-Generators are in:
-```
-modules/openapi-generator/src/main/java/org/openapitools/codegen/languages/
-```
-
-Most generators extend an abstract base class:
-- `TypeScriptFetchClientCodegen` extends `AbstractTypeScriptClientCodegen`
-- `PythonClientCodegen` extends `AbstractPythonCodegen`
-- `GoClientCodegen` extends `AbstractGoCodegen`
-- `PhpClientCodegen` extends `AbstractPhpCodegen`
-
-### 2. Extract Key Information
-
-From the Java files, extract:
-
-1. **Reserved Words** - Look for `setReservedWordsLowerCase()` or `reservedWords` initialization
-2. **Type Mappings** - Look for `typeMapping.put()` calls
-3. **Import Mappings** - Look for `importMapping.put()` calls
-4. **Supporting Files** - Look for `supportingFiles.add(new SupportingFile(...))` calls
-5. **Additional Properties** - Look for `additionalProperties.put()` calls
-
-### 3. Create the Generator File
-
-Create `src/generators/{language}.ts` with:
-
-```typescript
-import type { GeneratorMetadata, CodegenConfig } from '../core/config.js';
-
-const RESERVED_WORDS = new Set([...]);
-const TYPE_MAPPINGS: Record<string, string> = {...};
-const IMPORT_MAPPINGS: Record<string, string> = {...};
-
-export function createMetadata(): GeneratorMetadata {
-  return {
-    name: 'language',
-    description: 'Generates Language client code',
-    type: 'client',
-    language: 'Language',
-    libraries: ['default'],
-    defaultLibrary: 'default',
-    embeddedTemplateDir: 'language',
-    modelFileExtension: '.ext',
-    apiFileExtension: '.ext',
-    modelTemplateFile: 'model.mustache',
-    apiTemplateFile: 'api.mustache',
-    supportingFiles: [...],
-    reservedWords: RESERVED_WORDS,
-    defaultTypeMappings: TYPE_MAPPINGS,
-    defaultImportMappings: IMPORT_MAPPINGS,
-  };
-}
-
-export function getAdditionalProperties(config: CodegenConfig): Record<string, unknown> {
-  return {
-    // Default properties from Java
-    ...config.additionalProperties,
-  };
-}
-```
-
-### 4. Register the Generator
-
-Add to `src/generators/index.ts`:
-
-```typescript
-import { createMetadata } from './language.js';
-export * from './language.js';
-generators.set('language', createMetadata);
-```
-
-### 5. Templates
-
-Templates are located in:
-```
-modules/openapi-generator/src/main/resources/{generator-name}/
-```
-
-The original Mustache templates are mostly compatible with Handlebars, but there are differences:
-
-| Feature | Java Mustache | Handlebars |
-|---------|---------------|------------|
-| Lambdas | `{{#lambda.camelcase}}text{{/lambda.camelcase}}` | `{{#camelcase}}text{{/camelcase}}` |
-| Delimiter changing | `{{=<% %>=}}` | Not supported |
-
-### 6. Syncing Templates from Original
-
-Templates are synced from the original Java project using a script that:
-1. Does a shallow clone of the original repository
-2. Copies templates for configured generators
-3. Converts Mustache syntax to Handlebars-compatible format
+## Commands
 
 ```bash
-# Sync all configured generators
-npm run sync-templates
+npm run build              # Compile TypeScript
+npm test                   # Lint, typecheck, unit tests, build samples
+npm run test:unit          # Unit tests only
+npm run sync-templates     # Sync templates from original Java project
+npm run lint / npm run fix # Biome linting
 
-# Sync specific generators
-./scripts/sync-templates.sh -g go,python
+# CLI
+npx tsx src/cli/index.ts generate -i spec.yaml -g typescript-fetch -o output/
 
-# Clean and re-sync
-npm run sync-templates:clean
-
-# Dry run to see what would be done
-./scripts/sync-templates.sh --dry-run
+# Samples
+cd samples && make typescript-fetch
 ```
 
-To add a new generator to the sync, edit `scripts/sync-templates.sh` and add an entry to `GENERATOR_CONFIGS`:
+## Porting a Generator
+
+1. **Find Java source**: `modules/openapi-generator/src/main/java/org/openapitools/codegen/languages/`
+2. **Extract**: reserved words, type mappings, import mappings, supporting files
+3. **Create** `src/generators/{language}.ts` with `createMetadata()` and `getAdditionalProperties()`
+4. **Register** in `src/generators/index.ts`
+5. **Sync templates**: Add to `GENERATOR_CONFIGS` in `scripts/sync-templates.sh`
+
+## Templates
+
+Templates in `templates/{generator}/`. Synced from original Java project with automatic conversion:
+
+- `{{=<% %>=}}` delimiter changes → removed
+- `{{#lambda.func}}` → `{{#func}}`
+- `{{{{var}}}}` quad-braces → proper escaping for JSDoc
+
+**⚠️ CRITICAL: Never manually edit templates!**
+
+Templates are synced from upstream and converted automatically. All template fixes must be made in `src/cli/convert-template.ts` to ensure the process is reproducible. After updating the converter, re-run `npm run sync-templates:clean` to regenerate all templates.
+
+**Handlebars vs Mustache differences:**
+
+- String conditionals: Use `{{#if returnType}}` not `{{#returnType}}`
+- Nested access: Use `{{../classname}}` for parent context
+- Convert templates: `npx tsx src/cli/convert-template.ts input.mustache output.mustache`
+
+## Comparing Output
 
 ```bash
-declare -A GENERATOR_CONFIGS=(
-  ["new-generator"]="new-generator:new-generator"  # source_dir:target_dir
-  # ... existing generators
-)
+# Generate with original
+npx @openapitools/openapi-generator-cli generate \
+  -i samples/petstore.yaml -g typescript-fetch -o tmp/original-output
+
+# Generate with this port
+cd samples && make typescript-fetch
+
+# Compare
+diff -r tmp/original-output samples/build/typescript-fetch
 ```
 
-The sync script automatically handles:
-- Removing `{{=<% %>=}}` delimiter changes
-- Converting `{{#lambda.funcName}}` to `{{#funcName}}`
-- Converting `{{lambda.funcName}}` to `{{funcName}}`
-
-## Lambda Functions
-
-Lambda functions are in `src/template/lambdas/`. Available functions:
-
-- **String transforms**: `lowercase`, `uppercase`, `camelcase`, `pascalcase`, `snakecase`, `kebabcase`, `screamingSnakecase`, `titlecase`
-- **Character ops**: `capitalizeFirst`, `lowercaseFirst`, `uncamelize`
-- **Quoting**: `doublequote`, `singlequote`, `escapeDoubleQuotes`, `escapeSingleQuotes`
-- **Paths**: `forwardslash`, `backslash`
-- **Indentation**: `indent`, `indent4`, `indent8`, `indentTab`
-
-## Data Models
-
-The core data models mirror the Java implementation:
-
-- **CodegenModel** - Represents a schema/model with properties, inheritance, etc.
-- **CodegenOperation** - Represents an API operation with parameters, responses, etc.
-- **CodegenProperty** - Represents a model property
-- **CodegenParameter** - Represents an operation parameter
-- **CodegenResponse** - Represents an API response
-- **CodegenSecurity** - Represents security schemes
-
-## Testing
-
-Tests use Node.js's built-in test runner with native TypeScript support:
-
-```bash
-npm test                    # Run all tests
-npm run test:verbose        # Run with detailed output
-```
-
-Test files are co-located with source files using the `.test.ts` suffix.
-
-## Common Patterns
-
-### Type Mappings
-
-Java:
-```java
-typeMapping.put("integer", "int");
-typeMapping.put("array", "List");
-```
-
-TypeScript:
-```typescript
-const TYPE_MAPPINGS: Record<string, string> = {
-  integer: 'int',
-  array: 'List',
-};
-```
-
-### Reserved Words
-
-Java:
-```java
-reservedWords = new HashSet<>(Arrays.asList("and", "or", "not"));
-```
-
-TypeScript:
-```typescript
-const RESERVED_WORDS = new Set(['and', 'or', 'not']);
-```
-
-### Supporting Files
-
-Java:
-```java
-supportingFiles.add(new SupportingFile("api_client.mustache", packagePath(), "api_client.py"));
-```
-
-TypeScript:
-```typescript
-supportingFiles: [
-  {
-    templateFile: 'api_client.mustache',
-    folder: '{{packageName}}',
-    destinationFilename: 'api_client.py',
-  },
-],
-```
-
-## Key Dependencies
-
-- `@apidevtools/swagger-parser` - OpenAPI parsing and dereferencing
-- `handlebars` - Template engine (Mustache-compatible)
-- `es-toolkit` - String transformation utilities (camelCase, snakeCase, etc.)
-- `fast-glob` - File pattern matching
-- `fs-extra` - Enhanced file system operations
-
-## CLI
-
-The CLI uses Node's native `util.parseArgs` (not commander):
-
-```bash
-node dist/cli/index.js list                           # List generators
-node dist/cli/index.js validate -i spec.yaml          # Validate spec
-node dist/cli/index.js generate -i spec.yaml -g go -o output/  # Generate code
-```
-
-## ESM Notes
-
-This is an ESM package. For `__dirname` equivalent:
-
-```typescript
-import { fileURLToPath } from 'node:url';
-import path from 'node:path';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-```
-
-## Documentation
-
-- `doc/README.md` - Architecture overview
-- `doc/generators.md` - Generator documentation
-- `doc/porting-guide.md` - Detailed porting guide
-
-## Parser Functions
-
-The OpenAPI parser (`src/parser/openapi-parser.ts`) provides:
-
-- `parseSpec(path, options)` - Parse spec from file path or URL
-- `parseSpecFromString(content, options)` - Parse spec from JSON/YAML string
-- `getSchemas(document)` - Extract schemas from parsed document
-- `getPaths(document)` - Extract paths/operations
-- `getSecuritySchemes(document)` - Extract security schemes
-- `getServers(document)` - Extract server URLs
-- `isOpenAPI3(document)` - Type guard for OpenAPI 3.x
-- `isOpenAPI31(document)` - Type guard for OpenAPI 3.1
-
-## Test Patterns
-
-Tests use Node.js built-in test runner with tsx for TypeScript:
-
-```bash
-npm test                    # Run all tests
-npm run test:verbose        # Detailed output with spec reporter
-```
-
-Test files are co-located with source using `.test.ts` suffix. Example patterns:
-
-```typescript
-import { describe, it } from 'node:test';
-import assert from 'node:assert';
-
-describe('FeatureName', () => {
-  it('should do something', () => {
-    assert.strictEqual(actual, expected);
-  });
-});
-```
-
-For generator tests, verify:
-- Metadata completeness (name, type, language)
-- Reserved words include language keywords
-- Type mappings cover OpenAPI types
-- Supporting files are defined
+**Common issues:**
+| Issue | Fix Location |
+|-------|--------------|
+| Empty names | `src/core/generator.ts` - check operation context |
+| Wrong types | `src/parser/operation-transformer.ts` - $ref resolution |
+| Missing imports | Template or generator |
+| Undefined vars | Template - use `../varName` for parent context |
 
 ## Available Generators
 
-Currently ported:
-- `typescript-fetch` - TypeScript with Fetch API
-- `python` - Python client
-- `go` - Go client
-- `php` - PHP client (with guzzle and psr-18 libraries)
+`typescript-fetch`, `python`, `go`, `php`
 
-## Troubleshooting
+## Lambda Functions
 
-### ESM Import Issues
-Always use `.js` extensions in imports, even for TypeScript files:
-```typescript
-import { something } from './module.js';  // Correct
-import { something } from './module.ts';  // Wrong - not allowed
-```
+String: `lowercase`, `uppercase`, `camelcase`, `pascalcase`, `snakecase`, `kebabcase`
+Other: `capitalizeFirst`, `doublequote`, `indent`, `indent4`, `indent8`
 
-The tsx loader handles resolution from `.js` to `.ts` at runtime.
+## ESM Note
 
-### Handlebars vs Mustache
-When porting templates from Java:
-- Remove delimiter changes (`{{=<% %>=}}`)
-- Convert lambda syntax: `{{#lambda.func}}` → `{{#func}}`
-- Handlebars helpers return strings, not booleans in templates
+Use `.js` extensions in imports: `import { x } from './module.js'`
