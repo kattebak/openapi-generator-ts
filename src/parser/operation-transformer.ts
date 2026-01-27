@@ -421,10 +421,12 @@ export class OperationTransformer {
 			// Handle reference objects for body parameter
 			if (this.isReferenceObject(mediaTypeObj.schema)) {
 				const refName = this.getRefName(mediaTypeObj.schema.$ref);
+				// Apply model name transformation (sanitize dots and special characters)
+				const modelName = this.toModelName(refName);
 				const paramName = camelCase(refName);
-				const bodyParam = createCodegenParameter(paramName, refName);
+				const bodyParam = createCodegenParameter(paramName, modelName);
 				bodyParam.isBodyParam = true;
-				bodyParam.baseType = refName;
+				bodyParam.baseType = modelName;
 				bodyParam.isModel = true;
 				bodyParam.required = requestBody.required ?? false;
 				bodyParam.description = requestBody.description;
@@ -434,8 +436,8 @@ export class OperationTransformer {
 				operation.bodyParams.push(bodyParam);
 				this.addParameter(operation, bodyParam);
 
-				// Add import for the model type
-				operation.imports.add(refName);
+				// Add import for the model type (using sanitized name)
+				operation.imports.add(modelName);
 				break;
 			}
 

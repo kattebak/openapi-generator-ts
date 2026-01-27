@@ -529,12 +529,27 @@ export class SchemaTransformer {
 			property.isContainer = true;
 
 			const arraySchema = schema as OpenAPIV3.ArraySchemaObject;
-			if (arraySchema.items && !this.isReferenceObject(arraySchema.items)) {
-				property.items = this.transformPropertySchema(
-					"items",
-					arraySchema.items,
-					false,
-				);
+			if (arraySchema.items) {
+				if (this.isReferenceObject(arraySchema.items)) {
+					// Handle reference items - extract and sanitize the element type
+					const refName = this.getRefName(arraySchema.items.$ref);
+					const elementType = this.toModelName(refName);
+					property.baseType = elementType;
+					property.complexType = elementType;
+					// Update dataType to include the element type
+					property.dataType = `Array<${elementType}>`;
+				} else {
+					property.items = this.transformPropertySchema(
+						"items",
+						arraySchema.items,
+						false,
+					);
+					// Set baseType from items if it's a complex type
+					if (property.items.complexType) {
+						property.baseType = property.items.complexType;
+						property.complexType = property.items.complexType;
+					}
+				}
 			}
 		}
 
