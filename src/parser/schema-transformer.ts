@@ -468,6 +468,7 @@ export class SchemaTransformer {
 		required: boolean,
 	): CodegenProperty {
 		const propName = this.toPropertyName(name);
+		const allOfRefName = this.getSingleAllOfRef(schema);
 		const typeInfo = this.getTypeInfo(schema);
 
 		const property = createCodegenProperty(name, typeInfo.dataType ?? "any");
@@ -483,6 +484,17 @@ export class SchemaTransformer {
 
 		// Type flags
 		Object.assign(property, typeInfo);
+
+		if (allOfRefName) {
+			const modelName = this.toModelName(allOfRefName);
+			property.dataType = modelName;
+			property.datatype = modelName;
+			property.baseType = modelName;
+			property.complexType = modelName;
+			property.isModel = true;
+			property.isAnyType = false;
+			property.isPrimitiveType = false;
+		}
 
 		// Constraints
 		property.maxLength = schema.maxLength;
@@ -534,16 +546,36 @@ export class SchemaTransformer {
 					// Handle reference items - extract and sanitize the element type
 					const refName = this.getRefName(arraySchema.items.$ref);
 					const elementType = this.toModelName(refName);
+					const itemProperty = createCodegenProperty("items", elementType);
+					itemProperty.dataType = elementType;
+					itemProperty.datatype = elementType;
+					itemProperty.baseType = elementType;
+					itemProperty.complexType = elementType;
+					itemProperty.isModel = true;
+					property.items = itemProperty;
 					property.baseType = elementType;
 					property.complexType = elementType;
-					// Update dataType to include the element type
-					property.dataType = `Array<${elementType}>`;
+
+					const arrayType = this.typeMappings.array ?? "Array";
+					property.dataType =
+						arrayType === "[]"
+							? `[]${elementType}`
+							: `${arrayType}<${elementType}>`;
+					property.datatype = property.dataType;
 				} else {
 					property.items = this.transformPropertySchema(
 						"items",
 						arraySchema.items,
 						false,
 					);
+
+					const elementType = property.items.dataType;
+					const arrayType = this.typeMappings.array ?? "Array";
+					property.dataType =
+						arrayType === "[]"
+							? `[]${elementType}`
+							: `${arrayType}<${elementType}>`;
+					property.datatype = property.dataType;
 					// Set baseType from items if it's a complex type
 					if (property.items.complexType) {
 						property.baseType = property.items.complexType;
@@ -573,6 +605,22 @@ export class SchemaTransformer {
 		}
 
 		return property;
+	}
+
+	/**
+	 * Get the single $ref from an allOf schema if present
+	 */
+	private getSingleAllOfRef(schema: OpenAPIV3.SchemaObject): string | null {
+		if (!schema.allOf || schema.allOf.length !== 1) {
+			return null;
+		}
+
+		const [onlySchema] = schema.allOf;
+		if (!this.isReferenceObject(onlySchema)) {
+			return null;
+		}
+
+		return this.getRefName(onlySchema.$ref);
 	}
 
 	/**
