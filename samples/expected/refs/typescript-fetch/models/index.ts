@@ -3,3 +3,4 @@
 export * from './WorkspaceStatus';
 export * from './Workspace';
 export * from './WorkspaceListResponse';
+export * from './TreeNode';

@@ -3,9 +3,10 @@
 /**
  * Workspace API
  * Models that reference other models by $ref: an enum-valued property, a direct
-object-valued property, and an array whose items are a $ref. Serializing these
-correctly requires following the reference to import and call the referenced
-model's FromJSON/ToJSON helpers.
+object-valued property, an array whose items are a $ref, and a model that
+references itself. Serializing these correctly requires following the
+reference to import and call the referenced model's FromJSON/ToJSON helpers,
+while a self-reference must not import its own declarations.
 
  *
  * The version of the OpenAPI document: 1.0.0

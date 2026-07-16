@@ -296,8 +296,11 @@ export class DefaultGenerator {
 
 			// The typescript-fetch model template renders the referenced model's
 			// type and FromJSON/ToJSON helpers from tsImports; for TypeScript the
-			// import filename is the referenced model's classname.
+			// import filename is the referenced model's classname. A self-reference
+			// resolves to the model's own declarations, so importing its own name
+			// would collide with them (TS2440).
 			const tsImports = Array.from(model.imports)
+				.filter((imp) => imp !== model.classname)
 				.sort()
 				.map((imp) => ({ classname: imp, filename: imp }));
 			const hasImports = model.hasImports || tsImports.length > 0;
