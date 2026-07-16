@@ -1,0 +1,148 @@
+openapi: 3.0.0
+info:
+  title: Attribute Value API
+  description: |
+    A discriminated oneOf union whose variants carry a mix of Date and non-Date
+    payloads. Serializing it correctly requires dispatching on the discriminator,
+    so this sample covers union and date code generation.
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+paths:
+  /attributes:
+    get:
+      summary: List attributes
+      operationId: listAttributes
+      tags:
+        - attributes
+      responses:
+        "200":
+          description: A list of attributes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Attribute"
+    post:
+      summary: Create an attribute
+      operationId: createAttribute
+      tags:
+        - attributes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Attribute"
+      responses:
+        "201":
+          description: The created attribute
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Attribute"
+components:
+  schemas:
+    Attribute:
+      type: object
+      required:
+        - name
+        - value
+        - recordedAt
+      properties:
+        name:
+          type: string
+        value:
+          $ref: "#/components/schemas/AttributeValue"
+        effectiveOn:
+          type: string
+          format: date
+        recordedAt:
+          type: string
+          format: date-time
+    AttributeValue:
+      description: The value of an attribute, discriminated by valueKind.
+      oneOf:
+        - $ref: "#/components/schemas/CodeValue"
+        - $ref: "#/components/schemas/NumberValue"
+        - $ref: "#/components/schemas/NumberRangeValue"
+        - $ref: "#/components/schemas/DateValue"
+        - $ref: "#/components/schemas/DateRangeValue"
+      discriminator:
+        propertyName: valueKind
+        mapping:
+          Code: "#/components/schemas/CodeValue"
+          Number: "#/components/schemas/NumberValue"
+          NumberRange: "#/components/schemas/NumberRangeValue"
+          Date: "#/components/schemas/DateValue"
+          DateRange: "#/components/schemas/DateRangeValue"
+    CodeValue:
+      type: object
+      required:
+        - valueKind
+        - value
+      properties:
+        valueKind:
+          type: string
+          enum:
+            - Code
+        value:
+          type: string
+    NumberValue:
+      type: object
+      required:
+        - valueKind
+        - value
+      properties:
+        valueKind:
+          type: string
+          enum:
+            - Number
+        value:
+          type: number
+    NumberRangeValue:
+      type: object
+      required:
+        - valueKind
+        - start
+        - end
+      properties:
+        valueKind:
+          type: string
+          enum:
+            - NumberRange
+        start:
+          type: number
+        end:
+          type: number
+    DateValue:
+      type: object
+      required:
+        - valueKind
+        - value
+      properties:
+        valueKind:
+          type: string
+          enum:
+            - Date
+        value:
+          type: string
+          format: date-time
+    DateRangeValue:
+      type: object
+      required:
+        - valueKind
+        - start
+        - end
+      properties:
+        valueKind:
+          type: string
+          enum:
+            - DateRange
+        start:
+          type: string
+          format: date-time
+        end:
+          type: string
+          format: date-time
