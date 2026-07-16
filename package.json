@@ -2,6 +2,10 @@
 	"name": "@kattebak/openapi-generator-ts",
 	"version": "1.0.1",
 	"description": "OpenAPI Generator - Generate code from OpenAPI specifications",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/kattebak/openapi-generator-ts.git"
+	},
 	"type": "module",
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
