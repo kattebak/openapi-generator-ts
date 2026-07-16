@@ -16,6 +16,14 @@ so this sample covers union and date code generation.
  */
 
 import { mapValues } from '../runtime';
+import type { AttributeValue } from './AttributeValue';
+import {
+    AttributeValueFromJSON,
+    AttributeValueFromJSONTyped,
+    AttributeValueToJSON,
+    AttributeValueToJSONTyped,
+} from './AttributeValue';
+
 /**
  * 
  * @export
@@ -28,6 +36,12 @@ export interface Attribute {
      * @memberof Attribute
      */
     name: string;
+    /**
+     * 
+     * @type {AttributeValue}
+     * @memberof Attribute
+     */
+    value: AttributeValue;
     /**
      * 
      * @type {Date}
@@ -48,6 +62,7 @@ export interface Attribute {
  */
 export function instanceOfAttribute(value: object): value is Attribute {
     if (!('name' in value) || value['name'] === undefined) return false;
+    if (!('value' in value) || value['value'] === undefined) return false;
     if (!('recordedAt' in value) || value['recordedAt'] === undefined) return false;
     return true;
 }
@@ -63,6 +78,7 @@ export function AttributeFromJSONTyped(json: any, ignoreDiscriminator: boolean):
     return {
         
         'name': json['name'],
+        'value': AttributeValueFromJSON(json['value']),
         'effectiveOn': json['effectiveOn'] == null ? undefined : (new Date(json['effectiveOn'])),
         'recordedAt': (new Date(json['recordedAt'])),
     };
@@ -80,6 +96,7 @@ export function AttributeToJSONTyped(value?: Attribute | null, ignoreDiscriminat
     return {
         
         'name': value['name'],
+        'value': AttributeValueToJSON(value['value']),
         'effectiveOn': value['effectiveOn'] == null ? value['effectiveOn'] : value['effectiveOn'].toISOString().substring(0,10),
         'recordedAt': value['recordedAt'].toISOString(),
     };
