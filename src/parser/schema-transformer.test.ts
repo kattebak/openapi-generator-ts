@@ -31,6 +31,72 @@ describe("SchemaTransformer", () => {
 		assert.strictEqual(itemsProp.items.datatype, "Workspace");
 	});
 
+	it("should resolve a direct $ref enum property to the referenced type", () => {
+		const schema: OpenAPIV3.SchemaObject = {
+			type: "object",
+			required: ["status"],
+			properties: {
+				status: {
+					$ref: "#/components/schemas/WorkspaceStatus",
+				} as OpenAPIV3.SchemaObject,
+			},
+		};
+
+		const transformer = new SchemaTransformer();
+		const model = transformer.transformSchema("Workspace", schema);
+		const statusProp = model.vars.find((prop) => prop.baseName === "status");
+
+		assert.ok(statusProp);
+		assert.strictEqual(statusProp.dataType, "WorkspaceStatus");
+		assert.strictEqual(statusProp.datatype, "WorkspaceStatus");
+		assert.strictEqual(statusProp.complexType, "WorkspaceStatus");
+		assert.strictEqual(statusProp.isModel, true);
+		assert.strictEqual(statusProp.isPrimitiveType, false);
+		assert.strictEqual(statusProp.isAnyType, false);
+		assert.strictEqual(statusProp.required, true);
+		assert.ok(model.imports.has("WorkspaceStatus"));
+	});
+
+	it("should resolve a direct $ref object property to the referenced type", () => {
+		const schema: OpenAPIV3.SchemaObject = {
+			type: "object",
+			properties: {
+				primary: {
+					$ref: "#/components/schemas/Workspace",
+				} as OpenAPIV3.SchemaObject,
+			},
+		};
+
+		const transformer = new SchemaTransformer();
+		const model = transformer.transformSchema("WorkspaceListResponse", schema);
+		const primaryProp = model.vars.find((prop) => prop.baseName === "primary");
+
+		assert.ok(primaryProp);
+		assert.strictEqual(primaryProp.dataType, "Workspace");
+		assert.strictEqual(primaryProp.complexType, "Workspace");
+		assert.strictEqual(primaryProp.isModel, true);
+		assert.strictEqual(primaryProp.isAnyType, false);
+		assert.strictEqual(primaryProp.required, false);
+		assert.ok(model.imports.has("Workspace"));
+	});
+
+	it("should import the element type of an array-of-$ref property", () => {
+		const schema: OpenAPIV3.SchemaObject = {
+			type: "object",
+			properties: {
+				items: {
+					type: "array",
+					items: { $ref: "#/components/schemas/Workspace" },
+				},
+			},
+		};
+
+		const transformer = new SchemaTransformer();
+		const model = transformer.transformSchema("WorkspaceListResponse", schema);
+
+		assert.ok(model.imports.has("Workspace"));
+	});
+
 	it("should unwrap single-ref allOf properties", () => {
 		const schema: OpenAPIV3.SchemaObject = {
 			type: "object",

@@ -1,0 +1,54 @@
+openapi: 3.0.0
+info:
+  title: Workspace API
+  description: |
+    Models that reference other models by $ref: an enum-valued property, a direct
+    object-valued property, and an array whose items are a $ref. Serializing these
+    correctly requires following the reference to import and call the referenced
+    model's FromJSON/ToJSON helpers.
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+paths:
+  /workspaces:
+    get:
+      summary: List workspaces
+      operationId: listWorkspaces
+      tags:
+        - workspaces
+      responses:
+        "200":
+          description: A list of workspaces
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkspaceListResponse"
+components:
+  schemas:
+    WorkspaceStatus:
+      type: string
+      enum:
+        - Active
+        - Suspended
+        - Archived
+    Workspace:
+      type: object
+      required:
+        - id
+        - status
+      properties:
+        id:
+          type: string
+        status:
+          $ref: "#/components/schemas/WorkspaceStatus"
+    WorkspaceListResponse:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Workspace"
+        primary:
+          $ref: "#/components/schemas/Workspace"

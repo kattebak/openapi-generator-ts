@@ -294,6 +294,14 @@ export class DefaultGenerator {
 				.sort()
 				.map((imp) => ({ import: imp }));
 
+			// The typescript-fetch model template renders the referenced model's
+			// type and FromJSON/ToJSON helpers from tsImports; for TypeScript the
+			// import filename is the referenced model's classname.
+			const tsImports = Array.from(model.imports)
+				.sort()
+				.map((imp) => ({ classname: imp, filename: imp }));
+			const hasImports = model.hasImports || tsImports.length > 0;
+
 			const templateData: TemplateData = {
 				...globalData,
 				// Wrap model in the structure expected by models.mustache: {{#models}}{{#model}}
@@ -306,6 +314,8 @@ export class DefaultGenerator {
 						model: {
 							...model,
 							classname: model.classname,
+							tsImports,
+							hasImports,
 						},
 					},
 				],

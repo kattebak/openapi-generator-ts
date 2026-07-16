@@ -258,16 +258,10 @@ export class SchemaTransformer {
 		// Transform properties
 		if (schema.properties) {
 			for (const [propName, propSchema] of Object.entries(schema.properties)) {
-				if (this.isReferenceObject(propSchema)) {
-					continue;
-				}
-
 				const isRequired = requiredSet.has(propName);
-				const property = this.transformPropertySchema(
-					propName,
-					propSchema,
-					isRequired,
-				);
+				const property = this.isReferenceObject(propSchema)
+					? this.transformRefProperty(propName, propSchema.$ref, isRequired)
+					: this.transformPropertySchema(propName, propSchema, isRequired);
 
 				// Add parent model classname to property for template access
 				// This is needed because Handlebars doesn't auto-traverse parent scope
@@ -658,6 +652,47 @@ export class SchemaTransformer {
 		);
 
 		// Generator-specific post-processing (e.g., Go vendor extensions)
+		if (this.options.postProcessProperty) {
+			this.options.postProcessProperty(property);
+		}
+
+		return property;
+	}
+
+	/**
+	 * Transform a property that is a direct $ref to another model into a typed,
+	 * importable property. Without this the property is dropped: its type falls
+	 * back to `any` and the serialization layer emits `anyFromJSON`/`anyToJSON`
+	 * against the missing referenced model.
+	 */
+	private transformRefProperty(
+		name: string,
+		ref: string,
+		required: boolean,
+	): CodegenProperty {
+		const propName = this.toPropertyName(name);
+		const modelName = this.toModelName(this.getRefName(ref));
+
+		const property = createCodegenProperty(name, modelName);
+
+		property.name = propName;
+		property.baseName = name;
+		property.required = required;
+		property.dataType = modelName;
+		property.datatype = modelName;
+		property.baseType = modelName;
+		property.complexType = modelName;
+		property.ref = ref;
+		property.isModel = true;
+		property.isPrimitiveType = false;
+		property.isAnyType = false;
+
+		property.getter = `get${pascalCase(propName)}`;
+		property.setter = `set${pascalCase(propName)}`;
+		property.nameInCamelCase = camelCase(propName);
+		property.nameInPascalCase = pascalCase(propName);
+		property.nameInSnakeCase = snakeCase(propName);
+
 		if (this.options.postProcessProperty) {
 			this.options.postProcessProperty(property);
 		}
