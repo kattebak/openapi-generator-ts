@@ -74,8 +74,11 @@ union: $(BUILD_DIR)
 		-o $(BUILD_DIR)/union/php \
 		-p AttributeClient
 
-# Golden check. Models carry the union and date output this repo generates;
-# the surrounding scaffolding does not, and READMEs embed a build timestamp.
+# Golden check. Diffs the typescript-fetch models only: models carry the union
+# and date output, not the surrounding scaffolding whose READMEs embed a build
+# timestamp. go/python/php are generated but not diffed — go's union output does
+# not compile yet (a deferred pre-existing bug), so goldening it would enshrine
+# broken output.
 check: union
 	@echo "Checking generated union models against expected output..."
 	diff -r $(EXPECTED_DIR)/union/typescript-fetch/models \
