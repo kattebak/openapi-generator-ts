@@ -9,6 +9,8 @@ export interface CodegenProperty {
 	datatype: string; // Alias for templates (lowercase)
 	baseType?: string; // Base type for container types
 	datatypeWithEnum?: string;
+	/** Suffix used to name an inline enum, e.g. "StatusEnum". */
+	enumName?: string;
 	name: string;
 
 	// Documentation
@@ -43,6 +45,9 @@ export interface CodegenProperty {
 	isBoolean: boolean;
 	isDate: boolean;
 	isDateTime: boolean;
+	/** TypeScript template contract; mirrors isDate/isDateTime. */
+	isDateType?: boolean;
+	isDateTimeType?: boolean;
 	isByteArray: boolean;
 	isBinary: boolean;
 	isFile: boolean;

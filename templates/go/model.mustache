@@ -15,7 +15,7 @@ import (
 
 {{/isEnum}}
 {{^isEnum}}
-{{#oneOf}}{{#if @first}}{{>model_oneof}}{{/if}}{{/oneOf}}{{^oneOf}}{{#anyOf}}{{#if @first}}{{>model_anyof}}{{/if}}{{/anyOf}}{{^anyOf}}{{>model_simple}}{{/anyOf}}{{/oneOf}}
+{{#if oneOf}}{{>model_oneof}}{{/if}}{{^oneOf}}{{#if anyOf}}{{>model_anyof}}{{/if}}{{^anyOf}}{{>model_simple}}{{/anyOf}}{{/oneOf}}
 {{/isEnum}}
 {{/model}}
 {{/models}}

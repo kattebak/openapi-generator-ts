@@ -2,7 +2,9 @@
  * TypeScript Fetch Generator
  * Generates TypeScript client code using the Fetch API
  */
+import { pascalCase } from "es-toolkit/string";
 import type { CodegenConfig, GeneratorMetadata } from "../core/config.js";
+import type { CodegenModel, CodegenProperty } from "../models/index.js";
 
 /**
  * TypeScript reserved words
@@ -100,8 +102,8 @@ const TYPESCRIPT_TYPE_MAPPINGS: Record<string, string> = {
 	boolean: "boolean",
 
 	// Date/Time
-	date: "string",
-	"date-time": "string",
+	date: "Date",
+	"date-time": "Date",
 	DateTime: "Date",
 	Date: "Date",
 
@@ -134,6 +136,32 @@ const TYPESCRIPT_TYPE_MAPPINGS: Record<string, string> = {
  * TypeScript import mappings
  */
 const TYPESCRIPT_IMPORT_MAPPINGS: Record<string, string> = {};
+
+/**
+ * The TypeScript model templates gate date handling on isDateType/isDateTimeType
+ * rather than the language-neutral isDate/isDateTime flags.
+ */
+function postProcessTypescriptProperty(property: CodegenProperty): void {
+	property.isDateType = property.isDate;
+	property.isDateTimeType = property.isDateTime;
+}
+
+/**
+ * Name an inline enum after the model that declares it. Without this the enum
+ * const takes the model's own name and shadows the model's interface, collapsing
+ * the model's type to that single property's literals.
+ */
+function postProcessTypescriptModel(model: CodegenModel): void {
+	model.isDateType = model.isDate;
+	model.isDateTimeType = model.isDateTime;
+
+	for (const property of model.vars) {
+		if (!property.isEnum) continue;
+
+		property.enumName = `${pascalCase(property.name)}Enum`;
+		property.datatypeWithEnum = `${model.classname}${property.enumName}`;
+	}
+}
 
 /**
  * Create TypeScript Fetch generator metadata
@@ -208,6 +236,8 @@ export function createTypescriptFetchMetadata(): GeneratorMetadata {
 		reservedWords: TYPESCRIPT_RESERVED_WORDS,
 		defaultTypeMappings: TYPESCRIPT_TYPE_MAPPINGS,
 		defaultImportMappings: TYPESCRIPT_IMPORT_MAPPINGS,
+		postProcessProperty: postProcessTypescriptProperty,
+		postProcessModel: postProcessTypescriptModel,
 	};
 }
 

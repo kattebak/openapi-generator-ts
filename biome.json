@@ -15,7 +15,8 @@
 			"!**/templates",
 			"!**/.claude",
 			"!**/tmp",
-			"!**/samples/build"
+			"!**/samples/build",
+			"!**/samples/expected"
 		]
 	},
 	"formatter": {

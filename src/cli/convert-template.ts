@@ -203,7 +203,29 @@ export function convertTemplate(content: string): string {
 		}
 	}
 
-	// 10. Handle -first and -last in iteration contexts
+	// 10. Convert the "include a partial once per array" idiom:
+	// {{#items}}{{#-first}}{{>partial}}{{/-first}}{{/items}}
+	// Both engines bind the block context to the array element, but Mustache
+	// then walks up the context stack to resolve names the partial needs from
+	// the parent, and Handlebars does not — so the partial renders against the
+	// element (often a bare string) and every parent lookup comes back empty.
+	// {{#if items}} renders once and leaves the parent context in place.
+	//
+	// Restricted to bodies that are nothing but a partial include. Bodies with
+	// their own markup use the element context deliberately (e.g. emitting a
+	// header before the first item) and must keep iterating.
+	//
+	// The whitespace around the partial is preserved, so the collapsed block
+	// lays out exactly as the -first block did.
+	//
+	// Must run before the -first rules below, which would split up the pair.
+	result = result.replace(
+		/\{\{#([\w.]+)\}\}\s*\{\{#-first\}\}(\s*)(\{\{>\s*[\w.]+\s*\}\})(\s*)\{\{\/-first\}\}\s*\{\{\/\1\}\}/g,
+		(_, name, before, partial, after) =>
+			`{{#if ${name}}}${before}${partial}${after}{{/if}}`,
+	);
+
+	// 11. Handle -first and -last in iteration contexts
 	// Process inverted sections FIRST as complete pairs (they use {{/-first}} as close tag too)
 	// {{^-first}}...{{/-first}} -> {{#unless @first}}...{{/unless}}
 	result = result.replace(
@@ -222,7 +244,7 @@ export function convertTemplate(content: string): string {
 	result = result.replace(/\{\{#-last\}\}/g, "{{#if @last}}");
 	result = result.replace(/\{\{\/-last\}\}/g, "{{/if}}");
 
-	// 11. Fix ambiguous }}} sequences after block tags that could confuse Handlebars
+	// 12. Fix ambiguous }}} sequences after block tags that could confuse Handlebars
 	// When a block tag like {{#if ...}} or {{/if}} is followed immediately by }
 	// (which is code output, not template), Handlebars parser may get confused.
 	// Add whitespace to disambiguate: {{#if foo}}} -> {{#if foo}} }
