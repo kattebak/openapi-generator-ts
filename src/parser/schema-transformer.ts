@@ -7,6 +7,8 @@ import { camelCase, pascalCase, snakeCase } from "es-toolkit/string";
 import type { OpenAPIV3 } from "openapi-types";
 import {
 	type AllowableValues,
+	type CodegenDiscriminator,
+	type CodegenMappedModel,
 	type CodegenModel,
 	type CodegenProperty,
 	createCodegenModel,
@@ -110,6 +112,9 @@ export class SchemaTransformer {
 
 		// Second pass: resolve parent references
 		this.resolveInheritance(models);
+
+		// Third pass: classify oneOf members, which requires every model to exist
+		this.resolveOneOfMembers(models);
 
 		return models;
 	}
@@ -355,16 +360,7 @@ export class SchemaTransformer {
 		}
 
 		// Handle discriminator
-		if (schema.discriminator) {
-			model.discriminator = {
-				propertyName: schema.discriminator.propertyName,
-				propertyBaseName: schema.discriminator.propertyName,
-				mapping: schema.discriminator.mapping,
-			};
-			model.hasDiscriminatorWithNonEmptyMapping =
-				!!schema.discriminator.mapping &&
-				Object.keys(schema.discriminator.mapping).length > 0;
-		}
+		this.applyDiscriminator(model, schema);
 	}
 
 	/**
@@ -381,22 +377,84 @@ export class SchemaTransformer {
 		for (const subSchema of schema.oneOf) {
 			if (this.isReferenceObject(subSchema)) {
 				const refName = this.getRefName(subSchema.$ref);
-				model.oneOf.push(refName);
+				model.oneOf.push(this.toModelName(refName));
 				model.imports.add(refName);
 			}
 		}
 
 		// Handle discriminator
-		if (schema.discriminator) {
-			model.discriminator = {
-				propertyName: schema.discriminator.propertyName,
-				propertyBaseName: schema.discriminator.propertyName,
-				mapping: schema.discriminator.mapping,
-			};
-			model.hasDiscriminatorWithNonEmptyMapping =
-				!!schema.discriminator.mapping &&
-				Object.keys(schema.discriminator.mapping).length > 0;
+		this.applyDiscriminator(model, schema);
+	}
+
+	/**
+	 * Attach discriminator metadata, resolving the mapping into the mappedModels
+	 * list the templates dispatch on. Without an explicit mapping, each oneOf
+	 * member maps from its own schema name.
+	 */
+	private applyDiscriminator(
+		model: CodegenModel,
+		schema: OpenAPIV3.SchemaObject,
+	): void {
+		if (!schema.discriminator) return;
+
+		const { propertyName, mapping } = schema.discriminator;
+
+		const discriminator: CodegenDiscriminator = {
+			propertyName: this.toPropertyName(propertyName),
+			propertyBaseName: propertyName,
+			mapping,
+		};
+
+		discriminator.mappedModels = this.buildMappedModels(schema, discriminator);
+
+		// Templates address the discriminator both bare ({{#mappedModels}}) and by
+		// full path ({{discriminator.propertyBaseName}}) from inside
+		// {{#discriminator}}. Mustache resolves the latter by walking up the
+		// context stack; Handlebars only looks at the current context, so the
+		// discriminator has to be reachable from itself.
+		discriminator.discriminator = discriminator;
+
+		model.discriminator = discriminator;
+		model.hasDiscriminatorWithNonEmptyMapping =
+			!!mapping && Object.keys(mapping).length > 0;
+	}
+
+	/**
+	 * Resolve discriminator mappings to model names, keeping every entry
+	 * self-contained so templates can read the discriminator from the item.
+	 */
+	private buildMappedModels(
+		schema: OpenAPIV3.SchemaObject,
+		discriminator: CodegenDiscriminator,
+	): CodegenMappedModel[] {
+		const owner = {
+			propertyName: discriminator.propertyName,
+			propertyBaseName: discriminator.propertyBaseName,
+		};
+
+		const mapping = discriminator.mapping;
+		if (mapping && Object.keys(mapping).length > 0) {
+			return Object.entries(mapping).map(([mappingName, ref]) => ({
+				mappingName,
+				modelName: this.toModelName(this.getRefName(ref)),
+				discriminator: owner,
+			}));
 		}
+
+		const members = schema.oneOf ?? schema.anyOf ?? [];
+		return members.flatMap((member) => {
+			if (!this.isReferenceObject(member)) {
+				return [];
+			}
+			const refName = this.getRefName(member.$ref);
+			return [
+				{
+					mappingName: refName,
+					modelName: this.toModelName(refName),
+					discriminator: owner,
+				},
+			];
+		});
 	}
 
 	/**
@@ -690,6 +748,87 @@ export class SchemaTransformer {
 				isString,
 			})),
 		};
+	}
+
+	/**
+	 * Split each union's oneOf members into the buckets the model templates
+	 * render: object models and array models are imported by classname, anything
+	 * else is matched structurally and so is carried as a property.
+	 */
+	private resolveOneOfMembers(models: Map<string, CodegenModel>): void {
+		const byClassname = new Map<string, CodegenModel>();
+		for (const model of models.values()) {
+			byClassname.set(model.classname, model);
+		}
+
+		for (const model of models.values()) {
+			if (model.oneOf.length === 0) continue;
+
+			const oneOfModels: string[] = [];
+			const oneOfArrays: string[] = [];
+			const oneOfPrimitives: CodegenProperty[] = [];
+
+			for (const memberName of model.oneOf) {
+				const member = byClassname.get(memberName);
+
+				// An array alias is skipped during transformation, so an unresolved
+				// member is an object model the union imports by name.
+				if (!member) {
+					oneOfModels.push(memberName);
+					continue;
+				}
+
+				if (member.isArray) {
+					oneOfArrays.push(memberName);
+					continue;
+				}
+
+				if (member.isEnum || member.isAlias || member.isPrimitiveType) {
+					oneOfPrimitives.push(this.modelToMemberProperty(member));
+					continue;
+				}
+
+				oneOfModels.push(memberName);
+			}
+
+			model.oneOfModels = oneOfModels;
+			model.oneOfArrays = oneOfArrays;
+			model.oneOfPrimitives = oneOfPrimitives;
+			model.hasImports = oneOfModels.length > 0 || oneOfArrays.length > 0;
+		}
+	}
+
+	/**
+	 * Represent a primitive/enum union member as a property, which is the shape
+	 * the templates match against.
+	 */
+	private modelToMemberProperty(member: CodegenModel): CodegenProperty {
+		const property = createCodegenProperty(member.classname, member.classname);
+
+		property.name = member.classname;
+		property.dataType = member.classname;
+		property.datatype = member.classname;
+		property.required = true;
+		property.isString = member.isString;
+		property.isNumeric =
+			member.isNumeric || member.isNumber || member.isInteger;
+		property.isInteger = member.isInteger;
+		property.isNumber = member.isNumber;
+		property.isBoolean = member.isBoolean;
+		property.isDate = member.isDate;
+		property.isDateTime = member.isDateTime;
+		property.isArray = member.isArray;
+		property.isEnum = member.isEnum;
+		property.isNullable = member.isNullable;
+		property.isPrimitiveType = true;
+		property.allowableValues = member.allowableValues;
+		property.items = member.items;
+
+		if (this.options.postProcessProperty) {
+			this.options.postProcessProperty(property);
+		}
+
+		return property;
 	}
 
 	/**

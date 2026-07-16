@@ -58,6 +58,27 @@ describe("Template Converter", () => {
 			assert.strictEqual(result, "{{#unless @first}}, {{/unless}}");
 		});
 
+		it("should gate a once-included partial on the array instead of iterating", () => {
+			// Iterating would bind the context to the array's first element, and
+			// Handlebars will not look past it to reach what the partial needs.
+			const input =
+				"{{#oneOf}}\n{{#-first}}\n{{>modelOneOf}}\n{{/-first}}\n{{/oneOf}}";
+			const result = convertTemplate(input);
+			assert.strictEqual(result, "{{#if oneOf}}\n{{>modelOneOf}}\n{{/if}}");
+		});
+
+		it("should keep iterating when the -first body is not just a partial", () => {
+			// Here the body uses the element context deliberately, emitting a
+			// header before the first item.
+			const input =
+				"{{#servers}}\n{{#-first}}\nServers:\n{{/-first}}\n  {{url}}\n{{/servers}}";
+			const result = convertTemplate(input);
+			assert.strictEqual(
+				result,
+				"{{#servers}}\n{{#if @first}}\nServers:\n{{/if}}\n  {{url}}\n{{/servers}}",
+			);
+		});
+
 		it("should remove standalone delimiter changes", () => {
 			const input = "before{{=<% %>=}}after";
 			const result = convertTemplate(input);

@@ -5,6 +5,8 @@
 
 import assert from "node:assert";
 import { describe, it } from "node:test";
+import { createDefaultConfig } from "../core/config.js";
+import { createCodegenModel, createCodegenProperty } from "../models/index.js";
 import {
 	createGoMetadata,
 	createPhpMetadata,
@@ -95,6 +97,48 @@ describe("TypeScript Fetch Generator", () => {
 	it("should have libraries defined", () => {
 		assert.ok(metadata.libraries?.includes("default"));
 		assert.strictEqual(metadata.defaultLibrary, "default");
+	});
+
+	it("should map dates to Date", () => {
+		const typeMappings = metadata.defaultTypeMappings;
+		assert.strictEqual(typeMappings.date, "Date");
+		assert.strictEqual(typeMappings["date-time"], "Date");
+	});
+
+	it("should flag date properties for the TypeScript templates", () => {
+		const property = createCodegenProperty("createdAt", "Date");
+		property.isDateTime = true;
+
+		metadata.postProcessProperty?.(property);
+
+		assert.strictEqual(property.isDateTimeType, true);
+		assert.strictEqual(property.isDateType, false);
+	});
+
+	it("should name an inline enum after the model that declares it", () => {
+		const model = createCodegenModel("DateValue", "DateValue");
+		const valueKind = createCodegenProperty("valueKind", "string");
+		valueKind.name = "valueKind";
+		valueKind.isEnum = true;
+		model.vars.push(valueKind);
+
+		metadata.postProcessModel?.(model, createDefaultConfig());
+
+		// An enum named after the model itself would shadow the model's
+		// interface and collapse its type to this property's literals.
+		assert.strictEqual(valueKind.enumName, "ValueKindEnum");
+		assert.strictEqual(valueKind.datatypeWithEnum, "DateValueValueKindEnum");
+	});
+
+	it("should leave non-enum properties without an enum name", () => {
+		const model = createCodegenModel("DateValue", "DateValue");
+		const value = createCodegenProperty("value", "Date");
+		model.vars.push(value);
+
+		metadata.postProcessModel?.(model, createDefaultConfig());
+
+		assert.strictEqual(value.enumName, undefined);
+		assert.strictEqual(value.datatypeWithEnum, undefined);
 	});
 });
 

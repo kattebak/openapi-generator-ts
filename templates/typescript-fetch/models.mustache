@@ -9,12 +9,10 @@
 
 {{/isEnum}}
 {{^isEnum}}
-{{#oneOf}}
-{{#if @first}}
+{{#if oneOf}}
 {{>modelOneOf}}
 
 {{/if}}
-{{/oneOf}}
 {{^oneOf}}
 {{>modelGeneric}}
 

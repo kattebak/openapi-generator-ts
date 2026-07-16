@@ -1,6 +1,7 @@
 export type { ExternalDocumentation } from "./codegen-model.js";
 export {
 	type CodegenDiscriminator,
+	type CodegenMappedModel,
 	type CodegenModel,
 	type ComposedSchemas,
 	createCodegenModel,

@@ -3,16 +3,35 @@
  */
 import type { AllowableValues, CodegenProperty } from "./codegen-property.js";
 
+export interface CodegenMappedModel {
+	modelName: string;
+	mappingName: string;
+
+	/**
+	 * The owning discriminator, repeated on every mapped model.
+	 * Handlebars does not walk up the context stack for path lookups, so
+	 * templates rendering `{{#mappedModels}}{{discriminator.propertyName}}{{/mappedModels}}`
+	 * can only resolve it from the item itself.
+	 */
+	discriminator?: {
+		propertyName: string;
+		propertyBaseName: string;
+	};
+}
+
 export interface CodegenDiscriminator {
 	propertyName: string;
 	propertyBaseName: string;
 	propertyType?: string;
 	mapping?: Record<string, string>;
-	mappedModels?: Array<{
-		modelName: string;
-		mappingName: string;
-	}>;
+	mappedModels?: CodegenMappedModel[];
 	isEnum?: boolean;
+
+	/**
+	 * Self-reference, so `{{discriminator.propertyBaseName}}` resolves from
+	 * inside a `{{#discriminator}}` block. See CodegenMappedModel.discriminator.
+	 */
+	discriminator?: CodegenDiscriminator;
 }
 
 export interface CodegenModel {
@@ -42,6 +61,14 @@ export interface CodegenModel {
 	composedSchemas?: ComposedSchemas;
 	hasDiscriminatorWithNonEmptyMapping: boolean;
 
+	/**
+	 * oneOf members classified by kind, as the model templates consume them:
+	 * object models and array models by classname, everything else as a property.
+	 */
+	oneOfModels?: string[];
+	oneOfArrays?: string[];
+	oneOfPrimitives?: CodegenProperty[];
+
 	// Discriminator
 	discriminator?: CodegenDiscriminator;
 
@@ -67,6 +94,9 @@ export interface CodegenModel {
 	isBoolean: boolean;
 	isDate: boolean;
 	isDateTime: boolean;
+	/** TypeScript template contract; mirrors isDate/isDateTime. */
+	isDateType?: boolean;
+	isDateTimeType?: boolean;
 	isByteArray: boolean;
 	isBinary: boolean;
 	isFile: boolean;
@@ -127,6 +157,9 @@ export interface CodegenModel {
 
 	// Imports
 	imports: Set<string>;
+
+	/** True when the model template has an import block to render. */
+	hasImports?: boolean;
 
 	// Vendor extensions
 	vendorExtensions: Record<string, unknown>;

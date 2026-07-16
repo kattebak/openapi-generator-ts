@@ -54,3 +54,203 @@ describe("SchemaTransformer", () => {
 		assert.strictEqual(statusProp.isAnyType, false);
 	});
 });
+
+/**
+ * A five-variant union discriminated by a literal field, mixing Date and
+ * non-Date payloads. Serializing it correctly requires dispatching on the
+ * discriminator rather than treating every variant alike.
+ */
+const unionSchemas: Record<string, OpenAPIV3.SchemaObject> = {
+	AttributeValueValue: {
+		oneOf: [
+			{ $ref: "#/components/schemas/CodeSetValue" },
+			{ $ref: "#/components/schemas/NumberValue" },
+			{ $ref: "#/components/schemas/NumberRangeValue" },
+			{ $ref: "#/components/schemas/DateValue" },
+			{ $ref: "#/components/schemas/DateRangeValue" },
+		],
+		discriminator: {
+			propertyName: "valueKind",
+			mapping: {
+				Code: "#/components/schemas/CodeSetValue",
+				Number: "#/components/schemas/NumberValue",
+				NumberRange: "#/components/schemas/NumberRangeValue",
+				Date: "#/components/schemas/DateValue",
+				DateRange: "#/components/schemas/DateRangeValue",
+			},
+		},
+	},
+	CodeSetValue: {
+		type: "object",
+		required: ["valueKind", "value"],
+		properties: {
+			valueKind: { type: "string", enum: ["Code"] },
+			value: { type: "string" },
+		},
+	},
+	NumberValue: {
+		type: "object",
+		required: ["valueKind", "value"],
+		properties: {
+			valueKind: { type: "string", enum: ["Number"] },
+			value: { type: "number" },
+		},
+	},
+	NumberRangeValue: {
+		type: "object",
+		required: ["valueKind", "start", "end"],
+		properties: {
+			valueKind: { type: "string", enum: ["NumberRange"] },
+			start: { type: "number" },
+			end: { type: "number" },
+		},
+	},
+	DateValue: {
+		type: "object",
+		required: ["valueKind", "value"],
+		properties: {
+			valueKind: { type: "string", enum: ["Date"] },
+			value: { type: "string", format: "date-time" },
+		},
+	},
+	DateRangeValue: {
+		type: "object",
+		required: ["valueKind", "start", "end"],
+		properties: {
+			valueKind: { type: "string", enum: ["DateRange"] },
+			start: { type: "string", format: "date-time" },
+			end: { type: "string", format: "date-time" },
+		},
+	},
+};
+
+describe("SchemaTransformer oneOf unions", () => {
+	it("should resolve the discriminator mapping into mapped models", () => {
+		const transformer = new SchemaTransformer();
+		const models = transformer.transformSchemas(unionSchemas);
+		const union = models.get("AttributeValueValue");
+
+		assert.ok(union);
+		assert.ok(union.discriminator);
+		assert.strictEqual(union.discriminator.propertyName, "valueKind");
+		assert.strictEqual(union.discriminator.propertyBaseName, "valueKind");
+		assert.strictEqual(union.hasDiscriminatorWithNonEmptyMapping, true);
+
+		assert.deepStrictEqual(
+			union.discriminator.mappedModels?.map((mapped) => [
+				mapped.mappingName,
+				mapped.modelName,
+			]),
+			[
+				["Code", "CodeSetValue"],
+				["Number", "NumberValue"],
+				["NumberRange", "NumberRangeValue"],
+				["Date", "DateValue"],
+				["DateRange", "DateRangeValue"],
+			],
+		);
+	});
+
+	it("should repeat the discriminator on itself and on every mapped model", () => {
+		const transformer = new SchemaTransformer();
+		const models = transformer.transformSchemas(unionSchemas);
+		const discriminator = models.get("AttributeValueValue")?.discriminator;
+
+		assert.ok(discriminator);
+		// Templates read these paths from contexts that Handlebars will not
+		// resolve them from otherwise.
+		assert.strictEqual(discriminator.discriminator, discriminator);
+
+		for (const mapped of discriminator.mappedModels ?? []) {
+			assert.strictEqual(mapped.discriminator?.propertyName, "valueKind");
+			assert.strictEqual(mapped.discriminator?.propertyBaseName, "valueKind");
+		}
+	});
+
+	it("should derive mapped models from the members when no mapping is given", () => {
+		const transformer = new SchemaTransformer();
+		const models = transformer.transformSchemas({
+			...unionSchemas,
+			AttributeValueValue: {
+				oneOf: [
+					{ $ref: "#/components/schemas/CodeSetValue" },
+					{ $ref: "#/components/schemas/DateValue" },
+				],
+				discriminator: { propertyName: "valueKind" },
+			},
+		});
+		const union = models.get("AttributeValueValue");
+
+		assert.ok(union);
+		assert.strictEqual(union.hasDiscriminatorWithNonEmptyMapping, false);
+		assert.deepStrictEqual(
+			union.discriminator?.mappedModels?.map((mapped) => [
+				mapped.mappingName,
+				mapped.modelName,
+			]),
+			[
+				["CodeSetValue", "CodeSetValue"],
+				["DateValue", "DateValue"],
+			],
+		);
+	});
+
+	it("should classify object members as oneOf models the union imports", () => {
+		const transformer = new SchemaTransformer();
+		const models = transformer.transformSchemas(unionSchemas);
+		const union = models.get("AttributeValueValue");
+
+		assert.ok(union);
+		assert.deepStrictEqual(union.oneOfModels, [
+			"CodeSetValue",
+			"NumberValue",
+			"NumberRangeValue",
+			"DateValue",
+			"DateRangeValue",
+		]);
+		assert.deepStrictEqual(union.oneOfArrays, []);
+		assert.deepStrictEqual(union.oneOfPrimitives, []);
+		assert.strictEqual(union.hasImports, true);
+	});
+
+	it("should classify enum and primitive members as oneOf primitives", () => {
+		const transformer = new SchemaTransformer();
+		const models = transformer.transformSchemas({
+			Kind: { type: "string", enum: ["Code", "Date"] },
+			Count: { type: "integer" },
+			Mixed: {
+				oneOf: [
+					{ $ref: "#/components/schemas/Kind" },
+					{ $ref: "#/components/schemas/Count" },
+					{ $ref: "#/components/schemas/CodeSetValue" },
+				],
+			},
+			CodeSetValue: unionSchemas.CodeSetValue,
+		});
+		const union = models.get("Mixed");
+
+		assert.ok(union);
+		assert.deepStrictEqual(union.oneOfModels, ["CodeSetValue"]);
+		assert.deepStrictEqual(
+			union.oneOfPrimitives?.map((member) => member.dataType),
+			["Kind", "Count"],
+		);
+
+		const [kind] = union.oneOfPrimitives ?? [];
+		assert.strictEqual(kind.isEnum, true);
+		assert.deepStrictEqual(kind.allowableValues?.values, ["Code", "Date"]);
+	});
+
+	it("should keep an inline discriminator enum on the variant that declares it", () => {
+		const transformer = new SchemaTransformer();
+		const models = transformer.transformSchemas(unionSchemas);
+		const dateValue = models.get("DateValue");
+
+		const valueKind = dateValue?.vars.find(
+			(prop) => prop.baseName === "valueKind",
+		);
+		assert.strictEqual(valueKind?.isEnum, true);
+		assert.deepStrictEqual(valueKind?.allowableValues?.values, ["Date"]);
+		assert.strictEqual(dateValue?.hasEnums, true);
+	});
+});
