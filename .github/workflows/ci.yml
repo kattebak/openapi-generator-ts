@@ -32,12 +32,15 @@ jobs:
       contents: write
       issues: write
       pull-requests: write
+      id-token: write
     steps:
       - uses: actions/checkout@v4
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "22"
+      - name: Upgrade npm for trusted publishing
+        run: npm install -g npm@latest
       - name: Install dependencies
         run: npm ci
       - name: Build
@@ -45,5 +48,4 @@ jobs:
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npx semantic-release
